@@ -30,6 +30,8 @@ Simple tower defense game.
 * Multiple tower types
     * Player selects types
 * Multiple creep types
+* Scores
+    * save high scores
 * Tower art
 * Creep art
 * Stretch
