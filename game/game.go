@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 
@@ -9,6 +10,7 @@ import (
 	comp "tower-defense/components"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/yohamta/donburi"
@@ -16,24 +18,29 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
-type GameInfo struct {
-	world     donburi.World
-	ecs       *ecslib.ECS
-	gameOver  bool
-	paused    bool
-	score     int
-	highScore int
-	width     int
-	height    int
-	speed     int
-	debug     bool
-	lines     bool
+type GameData struct {
+	world       donburi.World
+	ecs         *ecslib.ECS
+	gameOver    bool
+	paused      bool
+	score       int
+	highScore   int
+	width       int
+	height      int
+	speed       int
+	debug       bool
+	lines       bool
+	creepTimer  int
+	tickCounter int
 }
 
-func NewGame(width, height, speed int, debug, lines bool) (*GameInfo, error) {
+const minSpeed = 0
+const maxSpeed = 60
+
+func NewGame(width, height, speed int, debug, lines bool) (*GameData, error) {
 	world := donburi.NewWorld()
 	ecs := ecslib.NewECS(world)
-	board, err := comp.NewBoard(world)
+	board, err := comp.NewBoard(world, width, height)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +54,13 @@ func NewGame(width, height, speed int, debug, lines bool) (*GameInfo, error) {
 	ebiten.SetWindowSize(int(board.Width), int(board.Height))
 	ebiten.SetWindowTitle("Tower Defense")
 
-	return &GameInfo{
+	if speed < minSpeed {
+		speed = max(1, minSpeed)
+	} else if speed > maxSpeed {
+		speed = maxSpeed
+	}
+
+	return &GameData{
 		world:     world,
 		ecs:       ecs,
 		highScore: highScore,
@@ -74,14 +87,14 @@ func LoadScores() int {
 	return highScore
 }
 
-func (g *GameInfo) SaveScores() error {
+func (g *GameData) SaveScores() error {
 	str := strconv.Itoa(g.highScore)
 
 	err := os.WriteFile(highScoreFile, []byte(str), 0644)
 	return err
 }
 
-func (g *GameInfo) Init() error {
+func (g *GameData) Init() error {
 	err := comp.NewPlayer(g.world)
 	if err != nil {
 		return err
@@ -90,10 +103,14 @@ func (g *GameInfo) Init() error {
 	return nil
 }
 
-func (g *GameInfo) Clear() error {
+const maxCreepTimer = 120
+
+func (g *GameData) Clear() error {
 	g.gameOver = false
 	g.paused = false
 	g.score = 0
+	g.creepTimer = maxCreepTimer - 10
+	g.tickCounter = 0
 
 	query := donburi.NewQuery(filter.Or(
 		filter.Contains(comp.Bullet),
@@ -107,14 +124,14 @@ func (g *GameInfo) Clear() error {
 	return nil
 }
 
-func (g *GameInfo) GetWorld() donburi.World {
+func (g *GameData) GetWorld() donburi.World {
 	return g.world
 }
-func (g *GameInfo) GetECS() *ecslib.ECS {
+func (g *GameData) GetECS() *ecslib.ECS {
 	return g.ecs
 }
 
-func (g *GameInfo) Update() error {
+func (g *GameData) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
 		g.Clear()
 		g.Init()
@@ -137,14 +154,44 @@ func (g *GameInfo) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyEqual) {
+		g.speed = (min(g.speed+5, maxSpeed))
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyMinus) {
+		g.speed = (max(g.speed-5, minSpeed))
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyD) {
+		g.debug = !g.debug
+	}
 
+	// update player separately from other entities to allow user interactions outside of speed controls
+	pe := comp.Player.MustFirst(g.world)
+	player := comp.Player.Get(pe)
+	err := player.Update(pe)
+	if err != nil {
+		return err
+	}
+
+	if g.speed != 0 && float32(g.tickCounter) > float32(ebiten.TPS())/float32(g.speed) {
+		g.tickCounter = 0
+		err := g.UpdateGame()
+		if err != nil {
+			return err
+		}
+
+	} else {
+		g.tickCounter++
+	}
+	return nil
+}
+func (g *GameData) UpdateGame() error {
 	// query for all entities that have position and velocity and ???
 	// and have them do their updates
 	query := donburi.NewQuery(
 		filter.And(
 			filter.Or(
-				filter.Contains(comp.Player),
 				filter.Contains(comp.Creep),
+				filter.Contains(comp.Tower),
 				filter.Contains(comp.Bullet),
 			),
 		),
@@ -152,14 +199,6 @@ func (g *GameInfo) Update() error {
 	var err error = nil
 	// update all entities
 	query.Each(g.world, func(entry *donburi.Entry) {
-		if entry.HasComponent(comp.Player) {
-			player := comp.Player.Get(entry)
-			err = player.Update(entry)
-			if err != nil {
-				return
-			}
-		}
-
 		if entry.HasComponent(comp.Creep) {
 			creep := comp.Creep.Get(entry)
 			err = creep.Update(entry)
@@ -200,16 +239,39 @@ func (g *GameInfo) Update() error {
 			g.EndGame()
 		}
 	})
+	g.creepTimer++
+	if g.creepTimer >= maxCreepTimer {
+		g.SpawnCreeps()
+		g.creepTimer = 0
+	}
 
 	return err
 }
-func (g *GameInfo) EndGame() {
+
+const muiltiSpawnChance = 0.8
+
+func (g *GameData) SpawnCreeps() {
+	var count = 1
+	if rand.Float32() > muiltiSpawnChance {
+		count = 2
+	}
+	for i := 0; i < count; i++ {
+		be := comp.Board.MustFirst(g.world)
+		board := comp.Board.Get(be)
+		const border = 60
+		x := rand.Intn(board.Width-border) + border/2
+		y := border
+		comp.NewCreep(g.world, x, y)
+	}
+}
+
+func (g *GameData) EndGame() {
 	assets.PlaySound("killed")
 	g.gameOver = true
 	g.SaveScores()
 }
 
-func (g *GameInfo) CleanBoard() {
+func (g *GameData) CleanBoard() {
 	query := donburi.NewQuery(filter.Or(
 		filter.Contains(comp.Bullet),
 		filter.Contains(comp.Creep),
@@ -220,7 +282,7 @@ func (g *GameInfo) CleanBoard() {
 	})
 }
 
-func (g *GameInfo) DetectCollisions() error {
+func (g *GameData) DetectCollisions() error {
 	var err error = nil
 	query := donburi.NewQuery(filter.Contains(comp.Bullet))
 	query.Each(g.world, func(bulletEntry *donburi.Entry) {
@@ -258,7 +320,7 @@ func (g *GameInfo) DetectCollisions() error {
 	return err
 }
 
-func (g *GameInfo) Draw(screen *ebiten.Image) {
+func (g *GameData) Draw(screen *ebiten.Image) {
 	screen.Clear()
 
 	img := assets.GetImage("backgroundV")
@@ -283,32 +345,26 @@ func (g *GameInfo) Draw(screen *ebiten.Image) {
 		}
 	})
 
-	const textBorder float64 = 5
-	// draw level
+	g.DrawText(screen)
+}
 
+func (g *GameData) DrawText(screen *ebiten.Image) {
 	be := comp.Board.MustFirst(g.world)
 	board := comp.Board.Get(be)
 	halfWidth, halfHeight := float64(board.Width/2), float64(board.Height/2)
+
 	// draw score
 	str := fmt.Sprintf("SCORE %05d", g.score)
 	op := &text.DrawOptions{}
 	x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(halfWidth-x/2, textBorder+y)
+	op.GeoM.Translate(halfWidth-x/2, comp.TextBorder+y)
 	text.Draw(screen, str, assets.ScoreFace, op)
 
 	// draw high score
 	str = fmt.Sprintf("HIGH %05d", g.highScore)
 	op = &text.DrawOptions{}
 	x, _ = text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(float64(board.Width)-x-textBorder, textBorder)
-	text.Draw(screen, str, assets.ScoreFace, op)
-
-	// draw player money
-	pe := comp.Player.MustFirst(g.world)
-	player := comp.Player.Get(pe)
-	str = fmt.Sprintf("$$$ %05d", player.GetMoney())
-	op = &text.DrawOptions{}
-	op.GeoM.Translate(textBorder, textBorder)
+	op.GeoM.Translate(float64(board.Width)-x-comp.TextBorder, comp.TextBorder)
 	text.Draw(screen, str, assets.ScoreFace, op)
 
 	if g.gameOver {
@@ -326,19 +382,24 @@ func (g *GameInfo) Draw(screen *ebiten.Image) {
 		op.GeoM.Translate(halfWidth-x/2, halfHeight-y/2)
 		text.Draw(screen, str, assets.ScoreFace, op)
 	}
+
+	if g.debug {
+		str := fmt.Sprintf("Speed %v\nTPS %2.1f", g.speed, ebiten.ActualTPS())
+		ebitenutil.DebugPrintAt(screen, str, 5, 50)
+	}
 }
 
-func (g *GameInfo) Layout(width, height int) (int, int) {
+func (g *GameData) Layout(width, height int) (int, int) {
 	return width, height
 }
 
-func (g *GameInfo) AddScore(score int) {
+func (g *GameData) AddScore(score int) {
 	g.score += score
 	if g.score > g.highScore {
 		g.highScore = g.score
 	}
 }
 
-func (g *GameInfo) GetScore() int {
+func (g *GameData) GetScore() int {
 	return g.score
 }

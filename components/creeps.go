@@ -16,15 +16,11 @@ type CreepData struct {
 
 var Creep = donburi.NewComponentType[CreepData]()
 
-const (
-	yBorderBottom = 45
-)
-
-func NewCreep(w donburi.World, b *BoardInfo, x, y int) error {
+func NewCreep(w donburi.World, x, y int) error {
 	entity := w.Create(Creep, Position, Velocity, Render, Health, Attack)
 	entry := w.Entry(entity)
 	Position.SetValue(entry, PositionData{x: x, y: y})
-	Velocity.SetValue(entry, VelocityData{x: 0, y: 5})
+	Velocity.SetValue(entry, VelocityData{x: 0, y: 1})
 	choose := rand.Intn(2) + 1
 	name := fmt.Sprintf("creep%v", choose)
 	Render.SetValue(entry, RenderData{&SpriteData{image: assets.GetImage(name)}})

@@ -9,6 +9,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/yohamta/donburi"
 )
@@ -99,4 +100,10 @@ func (p *PlayerData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 		vector.StrokeLine(screen, float32(rect.Min.X), float32(rect.Min.Y), float32(rect.Max.X), float32(rect.Max.Y), 3, color.RGBA{255, 0, 0, 255}, true)
 		vector.StrokeLine(screen, float32(rect.Max.X), float32(rect.Min.Y), float32(rect.Min.X), float32(rect.Max.Y), 3, color.RGBA{255, 0, 0, 255}, true)
 	}
+
+	// draw player money
+	str := fmt.Sprintf("$ %d", p.GetMoney())
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(TextBorder, TextBorder)
+	text.Draw(screen, str, assets.ScoreFace, op)
 }

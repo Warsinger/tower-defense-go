@@ -9,9 +9,9 @@ import (
 )
 
 func main() {
-	width := flag.Int("width", 80, "Board width in cells")
-	height := flag.Int("height", 80, "Board height in cells")
-	speed := flag.Int("speed", 15, "Ticks per second, min 0 max 60, + or - to adjust in game")
+	width := flag.Int("width", 600, "Board width in pixels")
+	height := flag.Int("height", 800, "Board height in pixels")
+	speed := flag.Int("speed", 30, "Ticks per second, min 0 max 60, + or - to adjust in game")
 	debug := flag.Bool("debug", false, "Show debug info, D to toggle in game")
 	lines := flag.Bool("lines", false, "Draw grid lines, L to toggle in game")
 
