@@ -33,3 +33,4 @@ Simple tower defense game.
     * Computer players
     * Networking players
     * Simulation for testing
+    * Play simulated network opponent
