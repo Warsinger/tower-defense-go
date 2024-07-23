@@ -19,11 +19,14 @@ Simple tower defense game.
     * Against another player over network
 
 ## TODOS
-* Click to place towers
-* Spawn creeps and move towards base
-* Budget for towers, or cooldowns
-* Towers shoot creeps
+* ~~Click to place towers~~
+* ~~Spawn creeps and move towards base~~
+* ~~Budget for towers, or cooldowns~~
+* Towers attack creeps
 * Creeps attack towers
+* Collision detection for creep movement
+* Make player base more resilient
+* Add money on creep death
 * Multiple tower types
     * Player selects types
 * Multiple creep types
