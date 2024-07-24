@@ -42,18 +42,18 @@ func NewTower(w donburi.World, x, y int) error {
 	Position.SetValue(tower, PositionData{x, y})
 	Health.SetValue(tower, HealthData{20})
 	Render.SetValue(tower, *NewRenderer(&SpriteData{image: assets.GetImage("tower")}, &RangeRenderData{}, &TowerRenderData{}))
-	Attack.SetValue(tower, AttackData{Power: 1, AttackType: RangedSingle, Range: 40, Cooldown: 30})
+	Attack.SetValue(tower, AttackData{Power: 1, AttackType: RangedSingle, Range: 100, Cooldown: 30})
 	return nil
 }
 
 func (t *TowerData) Update(entry *donburi.Entry) error {
 	a := Attack.Get(entry)
-	a.AttackEnemyRange(entry, Creep, t.OnKillEnemy, t.AfterAttackEnemy)
+	a.AttackEnemyRange(entry, Creep, AfterTowerAttack)
 
 	return nil
 }
 
-func (t *TowerData) AfterAttackEnemy(towerEntry *donburi.Entry) {
+func AfterTowerAttack(towerEntry *donburi.Entry) {
 	towerHealth := Health.Get(towerEntry)
 	towerHealth.Health--
 	if towerHealth.Health <= 0 {
@@ -61,7 +61,7 @@ func (t *TowerData) AfterAttackEnemy(towerEntry *donburi.Entry) {
 	}
 }
 
-func (t *TowerData) OnKillEnemy(towerEntry *donburi.Entry, enemyEntry *donburi.Entry) {
+func OnKillCreep(towerEntry *donburi.Entry, enemyEntry *donburi.Entry) {
 	enemy := Creep.Get(enemyEntry)
 	score := enemy.GetScoreValue()
 

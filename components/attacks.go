@@ -125,27 +125,14 @@ func (a *AttackData) FindEnemyIntersect(entry *donburi.Entry, enemyType componen
 	return foundEnemy
 }
 
-func (a *AttackData) AttackEnemyRange(entry *donburi.Entry, enemyType component.IComponentType, afterKill func(*donburi.Entry, *donburi.Entry), afterAttack func(*donburi.Entry)) {
+func (a *AttackData) AttackEnemyRange(entry *donburi.Entry, enemyType component.IComponentType, afterAttack func(*donburi.Entry)) {
 	a.CheckCooldown()
 	if a.GetTicker() == 0 {
 		// fmt.Printf("finding enemies in range of %v\n", entry)
-		// look for a creep in range to shoot at
+		// look for a enemy in range to shoot at
 		enemy := a.FindEnemyRange(entry, enemyType)
 		if enemy != nil {
-			enemyHealth := Health.Get(enemy)
-			attack := Attack.Get(entry)
-			remainingHealth := enemyHealth.Health - attack.Power
-			if remainingHealth <= 0 {
-				// kill enemy, remove from board
-
-				// do some other stuff in a callback
-				if afterKill != nil {
-					afterKill(entry, enemy)
-				}
-				enemy.Remove()
-			} else {
-				enemyHealth.Health = remainingHealth
-			}
+			a.LaunchBullet(entry, enemy)
 			a.StartCooldown()
 			if afterAttack != nil {
 				afterAttack(entry)
@@ -153,6 +140,18 @@ func (a *AttackData) AttackEnemyRange(entry *donburi.Entry, enemyType component.
 		}
 	}
 	a.IncrementTicker()
+}
+
+func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
+	// create a bullet path from the midpoint of the launcher to the midpoint of the enemy
+
+	r1 := Render.Get(entry).GetRect(entry)
+	r2 := Render.Get(enemy).GetRect(enemy)
+
+	start := util.MidpointRect(r1)
+	end := util.MidpointRect(r2)
+
+	NewBullet(entry.World, start, end, enemy.HasComponent(Tower))
 }
 
 func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, enemyType component.IComponentType, afterKill func(*donburi.Entry, *donburi.Entry), afterAttack func(*donburi.Entry)) {

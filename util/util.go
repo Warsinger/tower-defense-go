@@ -3,6 +3,8 @@ package util
 import (
 	"image"
 	"math"
+
+	"golang.org/x/exp/constraints"
 )
 
 func DistanceRects(rect1, rect2 image.Rectangle) float64 {
@@ -20,4 +22,11 @@ func MidpointRect(rect image.Rectangle) image.Point {
 	midX := (rect.Max.X + rect.Min.X) / 2
 	midY := (rect.Max.Y + rect.Min.Y) / 2
 	return image.Pt(midX, midY)
+}
+
+func Abs[T constraints.Integer | constraints.Float](n T) T {
+	if n < T(0) {
+		return -n
+	}
+	return n
 }

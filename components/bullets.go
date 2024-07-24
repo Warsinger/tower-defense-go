@@ -1,8 +1,11 @@
 package components
 
 import (
+	"fmt"
 	"image"
 	"image/color"
+	"math"
+	"tower-defense/util"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -10,7 +13,9 @@ import (
 )
 
 type BulletData struct {
-	creep bool
+	start, end image.Point
+	speed      int
+	creep      bool
 }
 
 var Bullet = donburi.NewComponentType[BulletData]()
@@ -21,17 +26,17 @@ type BulletRenderData struct {
 }
 
 var creepBulletColor = color.RGBA{255, 0, 0, 255}
-var towerBulletColor = color.RGBA{255, 215, 0, 255}
+var towerBulletColor = color.RGBA{40, 255, 40, 255}
 
-func NewBullet(w donburi.World, x, y int, creep bool) {
+func NewBullet(w donburi.World, start, end image.Point, creep bool) {
 	bulletEntity := w.Create(Bullet, Position, Velocity, Render, Attack)
 	bullet := w.Entry(bulletEntity)
 
-	Position.SetValue(bullet, PositionData{x, y})
-	Velocity.SetValue(bullet, VelocityData{x: 4, y: 4})
+	Position.SetValue(bullet, PositionData{start.X, start.Y})
 
 	Render.SetValue(bullet, *NewRenderer(NewBulletRender(creep)))
-	Attack.SetValue(bullet, AttackData{Power: 1, AttackType: RangedSingle, Range: 40, Cooldown: 30})
+	Attack.SetValue(bullet, AttackData{Power: 1, AttackType: RangedSingle, Range: 1, Cooldown: 30})
+	Bullet.SetValue(bullet, BulletData{start: start, end: end, speed: 4, creep: creep})
 }
 
 func NewBulletRender(creep bool) *BulletRenderData {
@@ -49,29 +54,34 @@ func NewBulletRender(creep bool) *BulletRenderData {
 
 func (bd *BulletData) Update(entry *donburi.Entry) error {
 	pos := Position.Get(entry)
-	v := Velocity.Get(entry)
-	newX := pos.x + v.x
-	newY := pos.y + v.y
+	dist := util.DistancePoints(bd.start, bd.end)
+	ratio := dist / float64(bd.speed)
+	fmt.Printf("dist: %v, ratio: %v, start: %v, end: %v\n", dist, ratio, bd.start, bd.end)
+
+	newX := pos.x + int(math.Ceil(float64(bd.end.X-bd.start.X)/ratio))
+	newY := pos.y + int(math.Ceil(float64(bd.end.Y-bd.start.Y)/ratio))
+	fmt.Printf("newX, newY: %v, %v\n", newX, newY)
 	be := Board.MustFirst(entry.World)
 	board := Board.Get(be)
 
-	if newX < 0 || newY > board.Width || newY < 0 || newY > board.Height {
+	if newX < 0 || newX > board.Width || newY < 0 || newY > board.Height {
 		entry.Remove()
 	} else {
+		// if enemy in range, attack it
+		a := Attack.Get(entry)
+		if bd.IsCreep() {
+			a.AttackEnemyIntersect(entry, Tower, nil, AfterBulletAttack)
+		} else {
+			a.AttackEnemyIntersect(entry, Creep, OnKillCreep, AfterBulletAttack)
+		}
+
+		pos.x = newX
 		pos.y = newY
 	}
-
-	// if enemy in range, attack it
-	a := Attack.Get(entry)
-
-	if bd.IsCreep() {
-		a.AttackEnemyIntersect(entry, Tower, nil, nil)
-	} else {
-		tower := Tower.Get(entry)
-		a.AttackEnemyIntersect(entry, Creep, tower.OnKillEnemy, tower.AfterAttackEnemy)
-	}
-
 	return nil
+}
+func AfterBulletAttack(bulletEntry *donburi.Entry) {
+	bulletEntry.Remove()
 }
 
 func (brd *BulletRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {

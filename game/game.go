@@ -188,8 +188,7 @@ func (g *GameData) Update() error {
 	return nil
 }
 func (g *GameData) UpdateEntities() error {
-	// query for all entities that have position and velocity and ???
-	// and have them do their updates
+	// query for all entities and have them do their updates
 	query := donburi.NewQuery(
 		filter.And(
 			filter.Or(
