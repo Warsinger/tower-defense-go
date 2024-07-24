@@ -109,7 +109,7 @@ func (g *GameData) Clear() error {
 	g.gameOver = false
 	g.paused = false
 	g.score = 0
-	g.creepTimer = maxCreepTimer - 10
+	g.creepTimer = maxCreepTimer - 5
 	g.tickCounter = 0
 
 	query := donburi.NewQuery(filter.Or(
@@ -137,7 +137,9 @@ func (g *GameData) Update() error {
 		g.Init()
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
-		g.EndGame()
+		if err := g.EndGame(); err != nil {
+			return err
+		}
 		return ebiten.Termination
 	}
 
@@ -174,7 +176,7 @@ func (g *GameData) Update() error {
 
 	if g.speed != 0 && float32(g.tickCounter) > float32(ebiten.TPS())/float32(g.speed) {
 		g.tickCounter = 0
-		err := g.UpdateGame()
+		err := g.UpdateEntities()
 		if err != nil {
 			return err
 		}
@@ -184,7 +186,7 @@ func (g *GameData) Update() error {
 	}
 	return nil
 }
-func (g *GameData) UpdateGame() error {
+func (g *GameData) UpdateEntities() error {
 	// query for all entities that have position and velocity and ???
 	// and have them do their updates
 	query := donburi.NewQuery(
@@ -202,6 +204,14 @@ func (g *GameData) UpdateGame() error {
 		if entry.HasComponent(comp.Creep) {
 			creep := comp.Creep.Get(entry)
 			err = creep.Update(entry)
+			if err != nil {
+				return
+			}
+
+		}
+		if entry.HasComponent(comp.Tower) {
+			tower := comp.Tower.Get(entry)
+			err = tower.Update(entry)
 			if err != nil {
 				return
 			}
@@ -265,10 +275,13 @@ func (g *GameData) SpawnCreeps() {
 	}
 }
 
-func (g *GameData) EndGame() {
+func (g *GameData) EndGame() error {
 	assets.PlaySound("killed")
 	g.gameOver = true
-	g.SaveScores()
+	if err := g.SaveScores(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (g *GameData) CleanBoard() {
@@ -300,7 +313,10 @@ func (g *GameData) DetectCollisions() error {
 				playerRect := player.GetRect(pe)
 				if bulletRect.Overlaps(playerRect) {
 					player.Kill()
-					g.EndGame()
+					err = g.EndGame()
+					if err != nil {
+						return
+					}
 				}
 			} else if e.HasComponent(comp.Creep) {
 				creep := comp.Creep.Get(e)

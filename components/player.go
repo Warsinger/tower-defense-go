@@ -76,6 +76,9 @@ func (p *PlayerData) IsDead() bool {
 func (p *PlayerData) GetMoney() int {
 	return p.money
 }
+func (p *PlayerData) AddMoney(money int) {
+	p.money += money
+}
 
 func (p *PlayerData) Kill() {
 	p.dead = true
