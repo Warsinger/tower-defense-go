@@ -24,13 +24,13 @@ func NewCreep(w donburi.World, x, y int) error {
 	entity := w.Create(Creep, Position, Velocity, Render, Health, Attack)
 	entry := w.Entry(entity)
 	Position.SetValue(entry, PositionData{x: x, y: y})
-	Velocity.SetValue(entry, VelocityData{x: 0, y: 2})
+	Velocity.SetValue(entry, VelocityData{x: 0, y: 3})
 	choose := rand.Intn(2) + 1
 	name := fmt.Sprintf("creep%v", choose)
 	Render.SetValue(entry, *NewRenderer(&SpriteData{image: assets.GetImage(name)}, &RangeRenderData{}, &CreepRenderData{}))
 	Creep.SetValue(entry, CreepData{scoreValue: 10})
 	Health.SetValue(entry, HealthData{2})
-	Attack.SetValue(entry, AttackData{Power: 5, AttackType: RangedSingle, Range: 10})
+	Attack.SetValue(entry, AttackData{Power: 5, AttackType: RangedSingle, Range: 15, Cooldown: 15})
 	return nil
 }
 

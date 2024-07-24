@@ -40,26 +40,15 @@ func NewTower(w donburi.World, x, y int) error {
 	tower := w.Entry(towerEntity)
 
 	Position.SetValue(tower, PositionData{x, y})
-	Health.SetValue(tower, HealthData{50})
+	Health.SetValue(tower, HealthData{20})
 	Render.SetValue(tower, *NewRenderer(&SpriteData{image: assets.GetImage("tower")}, &RangeRenderData{}, &TowerRenderData{}))
-	Attack.SetValue(tower, AttackData{Power: 1, AttackType: RangedSingle, Range: 50, Cooldown: 30})
+	Attack.SetValue(tower, AttackData{Power: 1, AttackType: RangedSingle, Range: 40, Cooldown: 30})
 	return nil
 }
 
 func (t *TowerData) Update(entry *donburi.Entry) error {
 	a := Attack.Get(entry)
-	// a.CheckCooldown()
-	// if a.GetTicker() == 0 {
-	// 	// fmt.Printf("finding creeps in range of %v\n", e.Entity())
-	// 	// look for a enemy in range to shoot at
-	// 	enemy := a.FindEnemyInRange(e, Creep)
-	// 	if enemy != nil {
-	// 		t.AttackCreep(e, enemy)
-	// 		a.StartCooldown()
-	// 	}
-	// }
-	// a.IncrementTicker()
-	a.AttackEnemy(entry, Tower, t.OnKillEnemy, t.AfterAttackEnemy)
+	a.AttackEnemy(entry, Creep, t.OnKillEnemy, t.AfterAttackEnemy)
 
 	return nil
 }

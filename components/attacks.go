@@ -81,13 +81,14 @@ func (rr *RangeRenderData) GetRect(e *donburi.Entry) image.Rectangle {
 	return a.GetRect(e)
 }
 
-func (a *AttackData) FindEnemyInRange(e *donburi.Entry, enemyType component.IComponentType) *donburi.Entry {
+func (a *AttackData) FindEnemyInRange(entry *donburi.Entry, enemyType component.IComponentType) *donburi.Entry {
 	// query for enemies then find the closest one
-	aRect := a.GetRect(e)
+	aRect := a.GetRect(entry)
 	minDist := float64(a.Range + 1 + aRect.Dy()/2)
 	var foundEnemy *donburi.Entry = nil
 	query := donburi.NewQuery(filter.Contains(enemyType))
-	query.Each(e.World, func(enemyEntry *donburi.Entry) {
+	query.Each(entry.World, func(enemyEntry *donburi.Entry) {
+		// fmt.Printf("checking distance of %v\n", enemyEntry)
 		enemy := Render.Get(enemyEntry)
 		eRect := enemy.GetRect(enemyEntry)
 
@@ -105,7 +106,7 @@ func (a *AttackData) FindEnemyInRange(e *donburi.Entry, enemyType component.ICom
 func (a *AttackData) AttackEnemy(entry *donburi.Entry, enemyType component.IComponentType, afterKill func(*donburi.Entry, *donburi.Entry), afterAttack func(*donburi.Entry)) {
 	a.CheckCooldown()
 	if a.GetTicker() == 0 {
-		// fmt.Printf("finding enemies in range of %v\n", e.Entity())
+		// fmt.Printf("finding enemies in range of %v\n", entry)
 		// look for a creep in range to shoot at
 		enemy := a.FindEnemyInRange(entry, enemyType)
 		if enemy != nil {
@@ -124,10 +125,11 @@ func (a *AttackData) AttackEnemy(entry *donburi.Entry, enemyType component.IComp
 				enemyHealth.Health = remainingHealth
 			}
 			a.StartCooldown()
+			if afterAttack != nil {
+				afterAttack(entry)
+			}
 		}
 	}
 	a.IncrementTicker()
-	if afterAttack != nil {
-		afterAttack(entry)
-	}
+
 }
