@@ -25,9 +25,12 @@ const (
 type AttackData struct {
 	Power      int
 	Range      int
-	cooldown   int
+	Cooldown   int
 	ticker     int
 	AttackType AttackType
+}
+
+type RangeRenderData struct {
 }
 
 var Attack = donburi.NewComponentType[AttackData]()
@@ -35,7 +38,7 @@ var Health = donburi.NewComponentType[HealthData]()
 
 func (a *AttackData) GetRect(e *donburi.Entry) image.Rectangle {
 	r := Render.Get(e)
-	rect := r.primaryRenderer.GetRect(e)
+	rect := r.GetPrimaryRenderer().GetRect(e)
 	ptRange := image.Pt(a.Range, a.Range)
 	rect.Min = rect.Min.Sub(ptRange)
 	rect.Max = rect.Max.Add(ptRange)
@@ -48,8 +51,9 @@ func (a *AttackData) GetTicker() int {
 func (a *AttackData) IncrementTicker() {
 	a.ticker++
 }
+
 func (a *AttackData) CheckCooldown() {
-	if a.ticker >= a.cooldown {
+	if a.ticker >= a.Cooldown {
 		a.ticker = 0
 	}
 }

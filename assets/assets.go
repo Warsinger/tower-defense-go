@@ -21,6 +21,7 @@ var sounds map[string]*audio.Player = make(map[string]*audio.Player)
 var fs embed.FS
 
 var ScoreFace *text.GoTextFace
+var InfoFace *text.GoTextFace
 var audioContext *audio.Context
 
 func LoadAssets() error {
@@ -50,6 +51,10 @@ func loadFonts() error {
 	ScoreFace = &text.GoTextFace{
 		Source: s,
 		Size:   24,
+	}
+	InfoFace = &text.GoTextFace{
+		Source: s,
+		Size:   12,
 	}
 	return nil
 }

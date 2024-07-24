@@ -19,6 +19,8 @@ type PlayerData struct {
 	score int
 	dead  bool
 }
+type PlayerRenderData struct {
+}
 
 var Player = donburi.NewComponentType[PlayerData]()
 
@@ -30,7 +32,7 @@ func NewPlayer(w donburi.World) error {
 	board := Board.Get(be)
 
 	Position.SetValue(entry, PositionData{x: board.Width / 2, y: board.Height - yBorderBottom})
-	Render.SetValue(entry, RenderData{primaryRenderer: &SpriteData{image: assets.GetImage("base")}})
+	Render.SetValue(entry, *NewRenderer(&SpriteData{image: assets.GetImage("base")}, &PlayerRenderData{}))
 	Player.SetValue(entry, PlayerData{money: 500})
 	Health.SetValue(entry, HealthData{500})
 	return nil
@@ -85,14 +87,15 @@ func (p *PlayerData) Kill() {
 	p.dead = true
 }
 
-func (p *PlayerData) GetRect(entry *donburi.Entry) image.Rectangle {
+func (p *PlayerRenderData) GetRect(entry *donburi.Entry) image.Rectangle {
 	sprite := Render.Get(entry)
-	return sprite.primaryRenderer.GetRect(entry)
+	return sprite.GetPrimaryRenderer().GetRect(entry)
 }
 
-func (p *PlayerData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
+func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
+	p := Player.Get(entry)
 	if p.dead {
-		rect := p.GetRect(entry)
+		rect := pr.GetRect(entry)
 		vector.StrokeLine(screen, float32(rect.Min.X), float32(rect.Min.Y), float32(rect.Max.X), float32(rect.Max.Y), 3, color.RGBA{255, 0, 0, 255}, true)
 		vector.StrokeLine(screen, float32(rect.Max.X), float32(rect.Min.Y), float32(rect.Min.X), float32(rect.Max.Y), 3, color.RGBA{255, 0, 0, 255}, true)
 	}
@@ -107,13 +110,13 @@ func (p *PlayerData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	be := Board.MustFirst(entry.World)
 	board := Board.Get(be)
 	halfWidth, _ := float64(board.Width/2), float64(board.Height/2)
-
 	str = fmt.Sprintf("SCORE %05d", p.score)
 	op = &text.DrawOptions{}
 	x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
 	op.GeoM.Translate(halfWidth-x/2, TextBorder+y)
 	text.Draw(screen, str, assets.ScoreFace, op)
 }
+
 func (p *PlayerData) GetScore() int {
 	return p.score
 }

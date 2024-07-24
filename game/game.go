@@ -239,7 +239,8 @@ func (g *GameData) UpdateEntities() error {
 	// check for all creeps destroyed or creeps reaching bottom
 	pe := comp.Player.MustFirst(g.world)
 	player := comp.Player.Get(pe)
-	pRect := player.GetRect(pe)
+	pRender := comp.Render.Get(pe)
+	pRect := pRender.GetRect(pe)
 	query = donburi.NewQuery(filter.Contains(comp.Creep))
 	query.Each(g.world, func(ae *donburi.Entry) {
 		creep := comp.Creep.Get(ae)
@@ -309,9 +310,10 @@ func (g *GameData) DetectCollisions() error {
 		))
 		query.Each(g.world, func(e *donburi.Entry) {
 			pe := comp.Player.MustFirst(g.world)
+			pRender := comp.Render.Get(pe)
 			player := comp.Player.Get(pe)
 			if bullet.IsCreep() {
-				playerRect := player.GetRect(pe)
+				playerRect := pRender.GetRect(pe)
 				if bulletRect.Overlaps(playerRect) {
 					player.Kill()
 					err = g.EndGame()
@@ -355,11 +357,6 @@ func (g *GameData) Draw(screen *ebiten.Image) {
 	query.Each(g.world, func(entry *donburi.Entry) {
 		r := comp.Render.Get(entry)
 		r.Draw(screen, entry)
-		if entry.HasComponent(comp.Player) {
-			player := comp.Player.Get(entry)
-			player.Draw(screen, entry)
-
-		}
 	})
 
 	g.DrawText(screen)

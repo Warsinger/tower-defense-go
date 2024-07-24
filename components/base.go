@@ -26,19 +26,25 @@ type Renderer interface {
 }
 
 type RenderData struct {
-	primaryRenderer   Renderer
-	secondaryRenderer Renderer
+	renderers []Renderer
 }
 
 var Render = donburi.NewComponentType[RenderData]()
 
+func NewRenderer(renderers ...Renderer) *RenderData {
+	return &RenderData{renderers: renderers}
+}
+
 func (r *RenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
-	r.primaryRenderer.Draw(screen, entry)
-	if r.secondaryRenderer != nil {
-		r.secondaryRenderer.Draw(screen, entry)
+	for _, render := range r.renderers {
+		render.Draw(screen, entry)
 	}
 }
 
 func (r *RenderData) GetRect(entry *donburi.Entry) image.Rectangle {
-	return r.primaryRenderer.GetRect(entry)
+	return r.GetPrimaryRenderer().GetRect(entry)
+}
+
+func (r *RenderData) GetPrimaryRenderer() Renderer {
+	return r.renderers[0]
 }
