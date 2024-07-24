@@ -24,9 +24,9 @@ Simple tower defense game.
 * ~~Budget for towers, or cooldowns~~
 * ~~Towers attack creeps~~
     * Show bullets
-    * Fix cooldown
-* Show text for health and cooldown of towers and creeps
-* Creeps attack towers
+    * ~~Fix cooldown~~
+* ~~Show text for health and cooldown of towers and creeps~~
+* ~~Creeps attack towers~~
 * Collision detection for creep movement
 * Make player base more resilient
 * ~~Add money on creep death~~
