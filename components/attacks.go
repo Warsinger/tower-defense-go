@@ -59,7 +59,7 @@ func (rr *RangeRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	aRect := a.GetRect(entry)
 	aPt := util.MidpointRect(aRect)
 
-	vector.StrokeCircle(screen, float32(aPt.X), float32(aPt.Y), float32(a.Range+aRect.Dx()/2), 1, color.White, true)
+	vector.StrokeCircle(screen, float32(aPt.X), float32(aPt.Y), float32(aRect.Dx()/2), 1, color.White, true)
 }
 
 func (rr *RangeRenderData) GetRect(e *donburi.Entry) image.Rectangle {

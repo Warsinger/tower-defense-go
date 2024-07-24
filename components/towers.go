@@ -1,7 +1,6 @@
 package components
 
 import (
-	"fmt"
 	"tower-defense/assets"
 	"tower-defense/util"
 
@@ -40,7 +39,7 @@ func NewTower(w donburi.World, x, y int) error {
 	Position.SetValue(tower, PositionData{x, y})
 	Health.SetValue(tower, HealthData{50})
 	Render.SetValue(tower, RenderData{primaryRenderer: &SpriteData{image: assets.GetImage("tower")}, secondaryRenderer: &RangeRenderData{}})
-	Attack.SetValue(tower, AttackData{Power: 1, AttackType: RangedSingle, Range: 30, cooldown: 30})
+	Attack.SetValue(tower, AttackData{Power: 1, AttackType: RangedSingle, Range: 50, cooldown: 10})
 	return nil
 }
 
@@ -71,29 +70,30 @@ func (t *TowerData) FindCreepInRange(e *donburi.Entry) *donburi.Entry {
 		cRect := creep.GetRect(ce)
 
 		dist := util.DistanceRects(aRect, cRect)
-		fmt.Printf("creep at distance %v\n", dist)
+		// fmt.Printf("creep at distance %v\n", dist)
 		if dist < minDist {
 			minDist = dist
 			foundCreep = ce
-			fmt.Println("found creep")
+			// fmt.Println("found creep")
 		}
 	})
 	return foundCreep
 }
 
 func (t *TowerData) AttackCreep(ce *donburi.Entry) error {
-	fmt.Printf("attacking creep %v, %v\n", t, ce)
+	// fmt.Printf("attacking creep %v, %v\n", t, ce)
 	creepHealth := Health.Get(ce)
 	a := Attack.Get(ce)
 	remainingHealth := creepHealth.Health - a.Power
 	if remainingHealth <= 0 {
 		// kill creep, remove from board, take its money
 		creep := Creep.Get(ce)
-		money := creep.GetScoreValue()
+		score := creep.GetScoreValue()
 
 		pe := Player.MustFirst(ce.World)
 		player := Player.Get(pe)
-		player.AddMoney(money)
+		player.AddMoney(score)
+		player.AddScore(score)
 
 		ce.Remove()
 	} else {

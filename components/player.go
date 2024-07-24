@@ -16,6 +16,7 @@ import (
 
 type PlayerData struct {
 	money int
+	score int
 	dead  bool
 }
 
@@ -101,4 +102,21 @@ func (p *PlayerData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	op := &text.DrawOptions{}
 	op.GeoM.Translate(TextBorder, TextBorder)
 	text.Draw(screen, str, assets.ScoreFace, op)
+
+	// draw score
+	be := Board.MustFirst(entry.World)
+	board := Board.Get(be)
+	halfWidth, _ := float64(board.Width/2), float64(board.Height/2)
+
+	str = fmt.Sprintf("SCORE %05d", p.score)
+	op = &text.DrawOptions{}
+	x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
+	op.GeoM.Translate(halfWidth-x/2, TextBorder+y)
+	text.Draw(screen, str, assets.ScoreFace, op)
+}
+func (p *PlayerData) GetScore() int {
+	return p.score
+}
+func (p *PlayerData) AddScore(score int) {
+	p.score += score
 }

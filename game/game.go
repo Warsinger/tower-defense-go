@@ -23,7 +23,6 @@ type GameData struct {
 	ecs         *ecslib.ECS
 	gameOver    bool
 	paused      bool
-	score       int
 	highScore   int
 	width       int
 	height      int
@@ -108,7 +107,6 @@ const maxCreepTimer = 120
 func (g *GameData) Clear() error {
 	g.gameOver = false
 	g.paused = false
-	g.score = 0
 	g.creepTimer = maxCreepTimer - 5
 	g.tickCounter = 0
 
@@ -184,6 +182,9 @@ func (g *GameData) Update() error {
 	} else {
 		g.tickCounter++
 	}
+
+	g.highScore = max(player.GetScore(), g.highScore)
+
 	return nil
 }
 func (g *GameData) UpdateEntities() error {
@@ -307,9 +308,9 @@ func (g *GameData) DetectCollisions() error {
 			filter.Contains(comp.Creep),
 		))
 		query.Each(g.world, func(e *donburi.Entry) {
+			pe := comp.Player.MustFirst(g.world)
+			player := comp.Player.Get(pe)
 			if bullet.IsCreep() {
-				pe := comp.Player.MustFirst(g.world)
-				player := comp.Player.Get(pe)
 				playerRect := player.GetRect(pe)
 				if bulletRect.Overlaps(playerRect) {
 					player.Kill()
@@ -322,7 +323,7 @@ func (g *GameData) DetectCollisions() error {
 				creep := comp.Creep.Get(e)
 				creepRect := creep.GetRect(e)
 				if bulletRect.Overlaps(creepRect) {
-					g.AddScore(creep.GetScoreValue())
+					player.AddScore(creep.GetScoreValue())
 
 					// remove bullet and creep
 					e.Remove()
@@ -369,17 +370,10 @@ func (g *GameData) DrawText(screen *ebiten.Image) {
 	board := comp.Board.Get(be)
 	halfWidth, halfHeight := float64(board.Width/2), float64(board.Height/2)
 
-	// draw score
-	str := fmt.Sprintf("SCORE %05d", g.score)
-	op := &text.DrawOptions{}
-	x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(halfWidth-x/2, comp.TextBorder+y)
-	text.Draw(screen, str, assets.ScoreFace, op)
-
 	// draw high score
-	str = fmt.Sprintf("HIGH %05d", g.highScore)
-	op = &text.DrawOptions{}
-	x, _ = text.Measure(str, assets.ScoreFace, op.LineSpacing)
+	str := fmt.Sprintf("HIGH %05d", g.highScore)
+	op := &text.DrawOptions{}
+	x, _ := text.Measure(str, assets.ScoreFace, op.LineSpacing)
 	op.GeoM.Translate(float64(board.Width)-x-comp.TextBorder, comp.TextBorder)
 	text.Draw(screen, str, assets.ScoreFace, op)
 
@@ -407,15 +401,4 @@ func (g *GameData) DrawText(screen *ebiten.Image) {
 
 func (g *GameData) Layout(width, height int) (int, int) {
 	return width, height
-}
-
-func (g *GameData) AddScore(score int) {
-	g.score += score
-	if g.score > g.highScore {
-		g.highScore = g.score
-	}
-}
-
-func (g *GameData) GetScore() int {
-	return g.score
 }

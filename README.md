@@ -22,7 +22,8 @@ Simple tower defense game.
 * ~~Click to place towers~~
 * ~~Spawn creeps and move towards base~~
 * ~~Budget for towers, or cooldowns~~
-* Towers attack creeps
+* ~~Towers attack creeps~~
+    * Show bullets
 * Creeps attack towers
 * Collision detection for creep movement
 * Make player base more resilient
