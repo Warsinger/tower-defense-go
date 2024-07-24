@@ -29,7 +29,7 @@ func NewPlayer(w donburi.World) error {
 	board := Board.Get(be)
 
 	Position.SetValue(entry, PositionData{x: board.Width / 2, y: board.Height - yBorderBottom})
-	Render.SetValue(entry, RenderData{&SpriteData{image: assets.GetImage("base")}})
+	Render.SetValue(entry, RenderData{primaryRenderer: &SpriteData{image: assets.GetImage("base")}})
 	Player.SetValue(entry, PlayerData{money: 500})
 	Health.SetValue(entry, HealthData{500})
 	return nil
@@ -52,7 +52,6 @@ func (p *PlayerData) Update(entry *donburi.Entry) error {
 		cost := towerManager.GetCost("Ranged")
 		if p.money >= cost {
 			x, y := ebiten.CursorPosition()
-			fmt.Printf("left placing tower at %v, %v, cost %v\n", x, y, cost)
 			err := p.PlaceTower(entry.World, x, y)
 			if err != nil {
 				return err
@@ -67,15 +66,8 @@ func (p *PlayerData) Update(entry *donburi.Entry) error {
 }
 
 func (p *PlayerData) PlaceTower(w donburi.World, x, y int) error {
-	towerEntity := w.Create(Tower, Position, Render, Health, Attack)
-	tower := w.Entry(towerEntity)
 
-	Position.SetValue(tower, PositionData{x, y})
-	Health.SetValue(tower, HealthData{50})
-	Render.SetValue(tower, RenderData{&SpriteData{image: assets.GetImage("tower")}})
-	Attack.SetValue(tower, AttackData{Power: 1, AttackType: RangedSingle})
-
-	return nil
+	return NewTower(w, x, y)
 }
 
 func (p *PlayerData) IsDead() bool {
@@ -91,7 +83,7 @@ func (p *PlayerData) Kill() {
 
 func (p *PlayerData) GetRect(entry *donburi.Entry) image.Rectangle {
 	sprite := Render.Get(entry)
-	return sprite.renderer.GetRect(entry)
+	return sprite.primaryRenderer.GetRect(entry)
 }
 
 func (p *PlayerData) Draw(screen *ebiten.Image, entry *donburi.Entry) {

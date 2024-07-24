@@ -23,10 +23,10 @@ func NewCreep(w donburi.World, x, y int) error {
 	Velocity.SetValue(entry, VelocityData{x: 0, y: 1})
 	choose := rand.Intn(2) + 1
 	name := fmt.Sprintf("creep%v", choose)
-	Render.SetValue(entry, RenderData{&SpriteData{image: assets.GetImage(name)}})
+	Render.SetValue(entry, RenderData{primaryRenderer: &SpriteData{image: assets.GetImage(name)}, secondaryRenderer: &RangeRenderData{}})
 	Creep.SetValue(entry, CreepData{scoreValue: 10})
 	Health.SetValue(entry, HealthData{1})
-	Attack.SetValue(entry, AttackData{Power: 5, AttackType: MeleeSingle})
+	Attack.SetValue(entry, AttackData{Power: 5, AttackType: MeleeSingle, Range: 3})
 	return nil
 }
 
@@ -41,7 +41,7 @@ func (a *CreepData) Update(entry *donburi.Entry) error {
 
 func (a *CreepData) GetRect(entry *donburi.Entry) image.Rectangle {
 	sprite := Render.Get(entry)
-	return sprite.renderer.GetRect(entry)
+	return sprite.primaryRenderer.GetRect(entry)
 }
 
 func (a *CreepData) GetScoreValue() int {

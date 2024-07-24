@@ -232,9 +232,9 @@ func (g *GameData) UpdateGame() error {
 	query = donburi.NewQuery(filter.Contains(comp.Creep))
 	query.Each(g.world, func(ae *donburi.Entry) {
 		creep := comp.Creep.Get(ae)
-		aRect := creep.GetRect(ae)
+		cRect := creep.GetRect(ae)
 
-		if aRect.Max.Y >= pRect.Min.Y {
+		if cRect.Max.Y >= pRect.Min.Y {
 			player.Kill()
 			g.EndGame()
 		}

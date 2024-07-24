@@ -16,28 +16,9 @@ type VelocityData struct {
 	x, y int
 }
 
-type HealthData struct {
-	Health int
-}
-type AttackType int
-
-const (
-	MeleeSingle AttackType = iota
-	RangedSingle
-	MeleeArea
-	RangedArea
-)
-
-type AttackData struct {
-	Power      int
-	AttackType AttackType
-}
-
 // ComponentType represents kind of component which is used to create or query entities.
 var Position = donburi.NewComponentType[PositionData]()
 var Velocity = donburi.NewComponentType[VelocityData]()
-var Attack = donburi.NewComponentType[AttackData]()
-var Health = donburi.NewComponentType[HealthData]()
 
 type Renderer interface {
 	Draw(screen *ebiten.Image, entry *donburi.Entry)
@@ -45,15 +26,19 @@ type Renderer interface {
 }
 
 type RenderData struct {
-	renderer Renderer
+	primaryRenderer   Renderer
+	secondaryRenderer Renderer
 }
 
 var Render = donburi.NewComponentType[RenderData]()
 
 func (r *RenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
-	r.renderer.Draw(screen, entry)
+	r.primaryRenderer.Draw(screen, entry)
+	if r.secondaryRenderer != nil {
+		r.secondaryRenderer.Draw(screen, entry)
+	}
 }
 
 func (r *RenderData) GetRect(entry *donburi.Entry) image.Rectangle {
-	return r.renderer.GetRect(entry)
+	return r.primaryRenderer.GetRect(entry)
 }
