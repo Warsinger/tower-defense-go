@@ -41,7 +41,7 @@ func (c *CreepData) Update(entry *donburi.Entry) error {
 	pos.y += v.y
 
 	a := Attack.Get(entry)
-	a.AttackEnemy(entry, Tower, nil, nil)
+	a.AttackEnemyRange(entry, Tower, nil, nil)
 
 	return nil
 }

@@ -81,7 +81,7 @@ func (rr *RangeRenderData) GetRect(e *donburi.Entry) image.Rectangle {
 	return a.GetRect(e)
 }
 
-func (a *AttackData) FindEnemyInRange(entry *donburi.Entry, enemyType component.IComponentType) *donburi.Entry {
+func (a *AttackData) FindEnemyRange(entry *donburi.Entry, enemyType component.IComponentType) *donburi.Entry {
 	// query for enemies then find the closest one
 	aRect := a.GetRect(entry)
 	minDist := float64(a.Range + 1 + aRect.Dy()/2)
@@ -103,12 +103,34 @@ func (a *AttackData) FindEnemyInRange(entry *donburi.Entry, enemyType component.
 	return foundEnemy
 }
 
-func (a *AttackData) AttackEnemy(entry *donburi.Entry, enemyType component.IComponentType, afterKill func(*donburi.Entry, *donburi.Entry), afterAttack func(*donburi.Entry)) {
+func (a *AttackData) FindEnemyIntersect(entry *donburi.Entry, enemyType component.IComponentType) *donburi.Entry {
+	// query for first enemy we intersect with
+	aRect := a.GetRect(entry)
+
+	var foundEnemy *donburi.Entry = nil
+	query := donburi.NewQuery(filter.Contains(enemyType))
+	query.Each(entry.World, func(enemyEntry *donburi.Entry) {
+		if foundEnemy != nil {
+			return
+		}
+		// fmt.Printf("checking distance of %v\n", enemyEntry)
+		enemy := Render.Get(enemyEntry)
+		eRect := enemy.GetRect(enemyEntry)
+
+		if aRect.Overlaps(eRect) {
+			foundEnemy = enemyEntry
+			// fmt.Println("found enemy")
+		}
+	})
+	return foundEnemy
+}
+
+func (a *AttackData) AttackEnemyRange(entry *donburi.Entry, enemyType component.IComponentType, afterKill func(*donburi.Entry, *donburi.Entry), afterAttack func(*donburi.Entry)) {
 	a.CheckCooldown()
 	if a.GetTicker() == 0 {
 		// fmt.Printf("finding enemies in range of %v\n", entry)
 		// look for a creep in range to shoot at
-		enemy := a.FindEnemyInRange(entry, enemyType)
+		enemy := a.FindEnemyRange(entry, enemyType)
 		if enemy != nil {
 			enemyHealth := Health.Get(enemy)
 			attack := Attack.Get(entry)
@@ -131,5 +153,34 @@ func (a *AttackData) AttackEnemy(entry *donburi.Entry, enemyType component.IComp
 		}
 	}
 	a.IncrementTicker()
+}
 
+func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, enemyType component.IComponentType, afterKill func(*donburi.Entry, *donburi.Entry), afterAttack func(*donburi.Entry)) {
+	a.CheckCooldown()
+	if a.GetTicker() == 0 {
+		// fmt.Printf("finding enemies in range of %v\n", entry)
+		// look for a enemy we interect
+		enemy := a.FindEnemyIntersect(entry, enemyType)
+		if enemy != nil {
+			enemyHealth := Health.Get(enemy)
+			attack := Attack.Get(entry)
+			remainingHealth := enemyHealth.Health - attack.Power
+			if remainingHealth <= 0 {
+				// kill enemy, remove from board
+
+				// do some other stuff in a callback
+				if afterKill != nil {
+					afterKill(entry, enemy)
+				}
+				enemy.Remove()
+			} else {
+				enemyHealth.Health = remainingHealth
+			}
+			a.StartCooldown()
+			if afterAttack != nil {
+				afterAttack(entry)
+			}
+		}
+	}
+	a.IncrementTicker()
 }
