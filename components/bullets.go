@@ -91,7 +91,7 @@ func (brd *BulletRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 
 	config := config.Config.Get(config.Config.MustFirst(entry.World))
 	if config.IsDebug() {
-		vector.StrokeLine(screen, float32(bullet.start.X), float32(bullet.start.Y), float32(bullet.end.X), float32(bullet.end.Y), 1, color.White, true)
+		vector.StrokeLine(screen, float32(bullet.start.X), float32(bullet.start.Y), float32(bullet.end.X), float32(bullet.end.Y), 1, brd.color, true)
 	}
 }
 

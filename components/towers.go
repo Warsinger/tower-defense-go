@@ -42,7 +42,7 @@ func NewTower(w donburi.World, x, y int) error {
 	Position.SetValue(tower, PositionData{x, y})
 	Health.SetValue(tower, HealthData{20})
 	Render.SetValue(tower, *NewRenderer(&SpriteData{image: assets.GetImage("tower")}, &RangeRenderData{}, &TowerRenderData{}))
-	Attack.SetValue(tower, AttackData{Power: 1, AttackType: RangedSingle, Range: 100, Cooldown: 30})
+	Attack.SetValue(tower, AttackData{Power: 1, AttackType: RangedSingle, Range: 50, Cooldown: 30})
 	return nil
 }
 
