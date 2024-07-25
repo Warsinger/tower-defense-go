@@ -50,7 +50,7 @@ func (c *CreepData) Update(entry *donburi.Entry) error {
 			filter.Contains(Render, Position),
 			filter.Not(
 				filter.Or(
-					filter.Contains(Creep),
+					filter.Contains(Creep), // this allows creeps to overlap other creeps but if we don't filter here we deadlock when we get to the entity itself since we're already inside a query for creeps
 					filter.Contains(Bullet),
 					filter.Contains(Player),
 				),
@@ -71,6 +71,7 @@ func (c *CreepData) Update(entry *donburi.Entry) error {
 		pos.x += newPt.X
 		pos.y += newPt.Y
 	}
+	// TODO allow creeps to move sideways around the tower?
 	v.blocked = collision
 
 	a := Attack.Get(entry)
