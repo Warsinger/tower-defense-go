@@ -154,7 +154,7 @@ func (g *GameData) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyL) {
 		g.config.SetGridLines(!g.config.IsGridLines())
 	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyP) || inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		g.paused = !g.paused
 	}
 

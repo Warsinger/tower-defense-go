@@ -161,10 +161,13 @@ func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 	end := util.MidpointRect(r2)
 	const bulletSpeed = 8
 	if enemy.HasComponent(Velocity) {
-		// how far ahead to lead, distance to target divided by speed
-		lead := util.Abs(util.DistancePoints(start, end))/bulletSpeed - 0.5
-		velocity := Velocity.Get(enemy)
-		end.Y += int(float64(velocity.y) * lead)
+		v := Velocity.Get(enemy)
+		if !v.blocked {
+			// how far ahead to lead, distance to target divided by speed
+			lead := util.Abs(util.DistancePoints(start, end))/bulletSpeed - 0.5
+			velocity := Velocity.Get(enemy)
+			end.Y += int(float64(velocity.y) * lead)
+		}
 	}
 
 	NewBullet(entry.World, start, end, bulletSpeed, enemy.HasComponent(Tower))

@@ -18,15 +18,26 @@ Simple tower defense game.
     * Against computer to see who lasts longer
     * Against another player over network
 
+## Game Play
+* P or Spacebar to pause
+* R to reset game
+* Mouse left click to place a tower
+* '+' or '-' to adjust game speed
+* F for full screen
+* L to display grid lines (10x10 cells)
+* D to display debug info including range indicators and targeting lines
+* Q to quit
+
 ## TODOS
-* Pass thru debug flag to renderers
-* Collision detection for creep movement
+* ~~Pass thru debug flag to renderers~~
+* ~~Collision detection for creep movement, creeps stop when running into a tower~~
+    * Restrict creep and tower spawn on existing objects or partially off the board
 * Make player base more resilient
 * Multiple tower types
     * Player selects types
-* Multiple creep types
 * Tower art
 * Creep art
+* ~~Multiple creep types~~
 * ~~Click to place towers~~
 * ~~Spawn creeps and move towards base~~
 * ~~Budget for towers, or cooldowns~~

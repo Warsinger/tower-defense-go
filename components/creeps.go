@@ -10,6 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/yohamta/donburi"
+	"github.com/yohamta/donburi/filter"
 )
 
 type CreepData struct {
@@ -30,15 +31,47 @@ func NewCreep(w donburi.World, x, y int) error {
 	Render.SetValue(entry, *NewRenderer(&SpriteData{image: assets.GetImage(name)}, &RangeRenderData{}, &CreepRenderData{}))
 	Creep.SetValue(entry, CreepData{scoreValue: 10 * choose})
 	Health.SetValue(entry, HealthData{Health: 1 + 2*choose})
-	Attack.SetValue(entry, AttackData{Power: 2 + 2*choose, AttackType: RangedSingle, Range: 10 + 10*choose, Cooldown: 5 * 5 * choose})
+	Attack.SetValue(entry, AttackData{Power: 2 + 2*choose, AttackType: RangedSingle, Range: 10 + 10*choose, Cooldown: 5 + 5*choose})
 	return nil
 }
 
 func (c *CreepData) Update(entry *donburi.Entry) error {
 	pos := Position.Get(entry)
 	v := Velocity.Get(entry)
-	pos.x += v.x
-	pos.y += v.y
+	newPt := image.Pt(v.x, v.y)
+	// check whether there are any collisions in the new spot
+	collision := false
+	rect := c.GetRect(entry)
+	fmt.Printf("old rect %v\n", rect)
+	rect = rect.Add(newPt)
+	fmt.Printf("new rect %v\n", rect)
+	query := donburi.NewQuery(
+		filter.And(
+			filter.Contains(Render, Position),
+			filter.Not(
+				filter.Or(
+					filter.Contains(Creep),
+					filter.Contains(Bullet),
+					filter.Contains(Player),
+				),
+			),
+		),
+	)
+	query.Each(entry.World, func(testEntry *donburi.Entry) {
+		if !collision {
+			testRect := Render.Get(testEntry).GetRect(testEntry)
+			fmt.Printf("testing overlap of %v with %v\n", rect, testRect)
+			if rect.Overlaps(testRect) {
+				fmt.Printf("overlap of %v with %v\n", rect, testRect)
+				collision = true
+			}
+		}
+	})
+	if !collision {
+		pos.x += newPt.X
+		pos.y += newPt.Y
+	}
+	v.blocked = collision
 
 	a := Attack.Get(entry)
 	a.AttackEnemyRange(entry, Tower, nil)
@@ -47,8 +80,7 @@ func (c *CreepData) Update(entry *donburi.Entry) error {
 }
 
 func (a *CreepData) GetRect(entry *donburi.Entry) image.Rectangle {
-	sprite := Render.Get(entry)
-	return sprite.GetPrimaryRenderer().GetRect(entry)
+	return Render.Get(entry).GetRect(entry)
 }
 
 func (a *CreepData) GetScoreValue() int {

@@ -13,7 +13,8 @@ type PositionData struct {
 }
 
 type VelocityData struct {
-	x, y int
+	x, y    int
+	blocked bool
 }
 
 // ComponentType represents kind of component which is used to create or query entities.
