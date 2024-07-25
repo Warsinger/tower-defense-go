@@ -19,24 +19,25 @@ Simple tower defense game.
     * Against another player over network
 
 ## TODOS
+* Pass thru debug flag to renderers
+* Collision detection for creep movement
+* Make player base more resilient
+* Multiple tower types
+    * Player selects types
+* Multiple creep types
+* Tower art
+* Creep art
 * ~~Click to place towers~~
 * ~~Spawn creeps and move towards base~~
 * ~~Budget for towers, or cooldowns~~
 * ~~Towers attack creeps~~
-    * Show bullets
+    * ~~Show bullets~~
     * ~~Fix cooldown~~
 * ~~Show text for health and cooldown of towers and creeps~~
 * ~~Creeps attack towers~~
-* Collision detection for creep movement
-* Make player base more resilient
 * ~~Add money on creep death~~
-* Multiple tower types
-    * Player selects types
-* Multiple creep types
 * ~~Scores~~
     * ~~save high scores~~
-* Tower art
-* Creep art
 * Stretch
     * Computer players
     * Networking players
