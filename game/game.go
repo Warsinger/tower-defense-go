@@ -8,37 +8,34 @@ import (
 
 	"tower-defense/assets"
 	comp "tower-defense/components"
+	"tower-defense/config"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/yohamta/donburi"
-	ecslib "github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
 )
 
 type GameData struct {
 	world       donburi.World
-	ecs         *ecslib.ECS
 	gameOver    bool
 	paused      bool
 	highScore   int
 	width       int
 	height      int
 	speed       int
-	debug       bool
-	lines       bool
 	creepTimer  int
 	tickCounter int
+	config      *config.ConfigData
 }
 
 const minSpeed = 0
 const maxSpeed = 60
 
-func NewGame(width, height, speed int, debug, lines bool) (*GameData, error) {
+func NewGame(width, height, speed int, debug bool) (*GameData, error) {
 	world := donburi.NewWorld()
-	ecs := ecslib.NewECS(world)
 	board, err := comp.NewBoard(world, width, height)
 	if err != nil {
 		return nil, err
@@ -61,13 +58,11 @@ func NewGame(width, height, speed int, debug, lines bool) (*GameData, error) {
 
 	return &GameData{
 		world:     world,
-		ecs:       ecs,
 		highScore: highScore,
 		width:     width,
 		height:    height,
 		speed:     speed,
-		debug:     debug,
-		lines:     lines,
+		config:    config.NewConfig(world, debug),
 	}, nil
 }
 
@@ -125,9 +120,6 @@ func (g *GameData) Clear() error {
 func (g *GameData) GetWorld() donburi.World {
 	return g.world
 }
-func (g *GameData) GetECS() *ecslib.ECS {
-	return g.ecs
-}
 
 func (g *GameData) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
@@ -161,7 +153,7 @@ func (g *GameData) Update() error {
 		g.speed = (max(g.speed-5, minSpeed))
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyD) {
-		g.debug = !g.debug
+		g.config.SetDebug(!g.config.IsDebug())
 	}
 
 	// update player separately from other entities to allow user interactions outside of speed controls
@@ -230,10 +222,10 @@ func (g *GameData) UpdateEntities() error {
 	// get all the bullets, for each bullet loop through all the creeps (or other objects) and see if there are collisions
 	// if there is a collition, remove both objects (or subtract from their health)
 	// accumultate points for killing creeps
-	err = g.DetectCollisions()
-	if err != nil {
-		return err
-	}
+	// err = g.DetectCollisions()
+	// if err != nil {
+	// 	return err
+	// }
 
 	// check for all creeps destroyed or creeps reaching bottom
 	pe := comp.Player.MustFirst(g.world)
@@ -389,7 +381,7 @@ func (g *GameData) DrawText(screen *ebiten.Image) {
 		text.Draw(screen, str, assets.ScoreFace, op)
 	}
 
-	if g.debug {
+	if g.config.IsDebug() {
 		str := fmt.Sprintf("Speed %v\nTPS %2.1f", g.speed, ebiten.ActualTPS())
 		ebitenutil.DebugPrintAt(screen, str, 5, 50)
 	}

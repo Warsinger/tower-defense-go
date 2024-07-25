@@ -13,11 +13,10 @@ func main() {
 	height := flag.Int("height", 800, "Board height in pixels")
 	speed := flag.Int("speed", 30, "Ticks per second, min 0 max 60, + or - to adjust in game")
 	debug := flag.Bool("debug", false, "Show debug info, D to toggle in game")
-	lines := flag.Bool("lines", false, "Draw grid lines, L to toggle in game")
 
 	flag.Parse()
 
-	g, err := game.NewGame(*width, *height, *speed, *debug, *lines)
+	g, err := game.NewGame(*width, *height, *speed, *debug)
 	if err != nil {
 		log.Fatal(err)
 	}

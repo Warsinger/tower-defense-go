@@ -3,6 +3,8 @@ package components
 import (
 	"image"
 	"image/color"
+	"tower-defense/assets"
+	"tower-defense/config"
 	"tower-defense/util"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -69,11 +71,15 @@ func (a *AttackData) StartCooldown() {
 }
 
 func (rr *RangeRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
-	a := Attack.Get(entry)
-	aRect := a.GetRect(entry)
-	aPt := util.MidpointRect(aRect)
+	config := config.Config.Get(config.Config.MustFirst(entry.World))
 
-	vector.StrokeCircle(screen, float32(aPt.X), float32(aPt.Y), float32(aRect.Dx()/2), 1, color.White, true)
+	if config.IsDebug() {
+		a := Attack.Get(entry)
+		aRect := a.GetRect(entry)
+		aPt := util.MidpointRect(aRect)
+
+		vector.StrokeCircle(screen, float32(aPt.X), float32(aPt.Y), float32(aRect.Dx()/2), 1, color.White, true)
+	}
 }
 
 func (rr *RangeRenderData) GetRect(e *donburi.Entry) image.Rectangle {
@@ -159,6 +165,7 @@ func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 	}
 
 	NewBullet(entry.World, start, end, bulletSpeed, enemy.HasComponent(Tower))
+	assets.PlaySound("shoot")
 }
 
 func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, enemyType component.IComponentType, afterKill func(*donburi.Entry, *donburi.Entry), afterAttack func(*donburi.Entry)) {
@@ -172,7 +179,8 @@ func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, enemyType compon
 			attack := Attack.Get(entry)
 			remainingHealth := enemyHealth.Health - attack.Power
 			if remainingHealth <= 0 {
-				// kill enemy, remove from board
+				// kill enemy, remove from board, plays sound
+				assets.PlaySound("explosion")
 
 				// do some other stuff in a callback
 				if afterKill != nil {

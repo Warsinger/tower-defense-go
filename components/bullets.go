@@ -1,9 +1,9 @@
 package components
 
 import (
-	"fmt"
 	"image"
 	"image/color"
+	"tower-defense/config"
 	"tower-defense/util"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -56,11 +56,11 @@ func (bd *BulletData) Update(entry *donburi.Entry) error {
 	pos := Position.Get(entry)
 	dist := util.DistancePoints(bd.start, bd.end)
 	ratio := dist / float64(bd.speed)
-	fmt.Printf("dist: %v, ratio: %v, start: %v, end: %v\n", dist, ratio, bd.start, bd.end)
+	// fmt.Printf("dist: %v, ratio: %v, start: %v, end: %v\n", dist, ratio, bd.start, bd.end)
 
 	newX := pos.x + int(float64(bd.end.X-bd.start.X)/ratio)
 	newY := pos.y + int(float64(bd.end.Y-bd.start.Y)/ratio)
-	fmt.Printf("newX, newY: %v, %v\n", newX, newY)
+	// fmt.Printf("newX, newY: %v, %v\n", newX, newY)
 	be := Board.MustFirst(entry.World)
 	board := Board.Get(be)
 
@@ -88,7 +88,11 @@ func (brd *BulletRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	pos := Position.Get(entry)
 	bullet := Bullet.Get(entry)
 	vector.DrawFilledCircle(screen, float32(pos.x), float32(pos.y), float32(brd.size), brd.color, true)
-	vector.StrokeLine(screen, float32(bullet.start.X), float32(bullet.start.Y), float32(bullet.end.X), float32(bullet.end.Y), 1, color.White, true)
+
+	config := config.Config.Get(config.Config.MustFirst(entry.World))
+	if config.IsDebug() {
+		vector.StrokeLine(screen, float32(bullet.start.X), float32(bullet.start.Y), float32(bullet.end.X), float32(bullet.end.Y), 1, color.White, true)
+	}
 }
 
 func (brd *BulletRenderData) GetRect(entry *donburi.Entry) image.Rectangle {

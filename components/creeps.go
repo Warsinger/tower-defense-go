@@ -29,7 +29,7 @@ func NewCreep(w donburi.World, x, y int) error {
 	name := fmt.Sprintf("creep%v", choose)
 	Render.SetValue(entry, *NewRenderer(&SpriteData{image: assets.GetImage(name)}, &RangeRenderData{}, &CreepRenderData{}))
 	Creep.SetValue(entry, CreepData{scoreValue: 10})
-	Health.SetValue(entry, HealthData{10})
+	Health.SetValue(entry, HealthData{5})
 	Attack.SetValue(entry, AttackData{Power: 5, AttackType: RangedSingle, Range: 50, Cooldown: 15})
 	return nil
 }
