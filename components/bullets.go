@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"math"
 	"tower-defense/util"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -28,15 +27,16 @@ type BulletRenderData struct {
 var creepBulletColor = color.RGBA{255, 0, 0, 255}
 var towerBulletColor = color.RGBA{40, 255, 40, 255}
 
-func NewBullet(w donburi.World, start, end image.Point, creep bool) {
+func NewBullet(w donburi.World, start, end image.Point, speed int, creep bool) {
 	bulletEntity := w.Create(Bullet, Position, Velocity, Render, Attack)
 	bullet := w.Entry(bulletEntity)
 
 	Position.SetValue(bullet, PositionData{start.X, start.Y})
+	Velocity.SetValue(bullet, VelocityData{x: 6, y: 6})
 
 	Render.SetValue(bullet, *NewRenderer(NewBulletRender(creep)))
 	Attack.SetValue(bullet, AttackData{Power: 1, AttackType: RangedSingle, Range: 1, Cooldown: 30})
-	Bullet.SetValue(bullet, BulletData{start: start, end: end, speed: 4, creep: creep})
+	Bullet.SetValue(bullet, BulletData{start: start, end: end, speed: speed, creep: creep})
 }
 
 func NewBulletRender(creep bool) *BulletRenderData {
@@ -58,8 +58,8 @@ func (bd *BulletData) Update(entry *donburi.Entry) error {
 	ratio := dist / float64(bd.speed)
 	fmt.Printf("dist: %v, ratio: %v, start: %v, end: %v\n", dist, ratio, bd.start, bd.end)
 
-	newX := pos.x + int(math.Ceil(float64(bd.end.X-bd.start.X)/ratio))
-	newY := pos.y + int(math.Ceil(float64(bd.end.Y-bd.start.Y)/ratio))
+	newX := pos.x + int(float64(bd.end.X-bd.start.X)/ratio)
+	newY := pos.y + int(float64(bd.end.Y-bd.start.Y)/ratio)
 	fmt.Printf("newX, newY: %v, %v\n", newX, newY)
 	be := Board.MustFirst(entry.World)
 	board := Board.Get(be)
@@ -86,7 +86,9 @@ func AfterBulletAttack(bulletEntry *donburi.Entry) {
 
 func (brd *BulletRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	pos := Position.Get(entry)
+	bullet := Bullet.Get(entry)
 	vector.DrawFilledCircle(screen, float32(pos.x), float32(pos.y), float32(brd.size), brd.color, true)
+	vector.StrokeLine(screen, float32(bullet.start.X), float32(bullet.start.Y), float32(bullet.end.X), float32(bullet.end.Y), 1, color.White, true)
 }
 
 func (brd *BulletRenderData) GetRect(entry *donburi.Entry) image.Rectangle {
