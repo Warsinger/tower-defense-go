@@ -268,12 +268,12 @@ func (g *GameData) SpawnCreeps() {
 	for i := 0; i < count; i++ {
 		be := comp.Board.MustFirst(g.world)
 		board := comp.Board.Get(be)
-		const border = 60
+
 		x := rand.Intn(board.Width/count) + board.Width/count*(i)
 		// if count > 1 {
 		// 	fmt.Printf()
 		// }
-		y := border
+		y := comp.SpawnBorder
 		// TODO prevent from spawning from close to segment borders when another spawns there
 		// const creepSpread = 60
 		// for j:=0; j< len(xs); j++ {
@@ -286,10 +286,10 @@ func (g *GameData) SpawnCreeps() {
 		// 		}
 		// 	}
 		// }
-		if x < border {
-			x = border
-		} else if x > board.Width-border {
-			x = board.Width - border
+		if x < comp.SpawnBorder {
+			x = comp.SpawnBorder
+		} else if x > board.Width-comp.SpawnBorder {
+			x = board.Width - comp.SpawnBorder
 		}
 		comp.NewCreep(g.world, x, y)
 	}

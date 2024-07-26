@@ -1,19 +1,12 @@
 package components
 
 import (
-	"fmt"
-	"image"
 	"tower-defense/assets"
 
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/yohamta/donburi"
 )
 
 type TowerData struct {
-}
-
-type TowerRenderData struct {
 }
 
 var Tower = donburi.NewComponentType[TowerData]()
@@ -41,7 +34,7 @@ func NewTower(w donburi.World, x, y int) error {
 
 	Position.SetValue(tower, PositionData{x, y})
 	Health.SetValue(tower, HealthData{20})
-	Render.SetValue(tower, *NewRenderer(&SpriteData{image: assets.GetImage("tower")}, &RangeRenderData{}, &TowerRenderData{}))
+	Render.SetValue(tower, *NewRenderer(&SpriteData{image: assets.GetImage("tower")}, &RangeRenderData{}, &InfoRenderData{}))
 	Attack.SetValue(tower, AttackData{Power: 1, AttackType: RangedSingle, Range: 50, Cooldown: 30})
 	return nil
 }
@@ -69,25 +62,4 @@ func OnKillCreep(towerEntry *donburi.Entry, enemyEntry *donburi.Entry) {
 	player := Player.Get(pe)
 	player.AddMoney(score)
 	player.AddScore(score)
-}
-
-func (t *TowerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
-	a := Attack.Get(entry)
-	h := Health.Get(entry)
-	r := Render.Get(entry)
-	rect := r.GetRect(entry)
-
-	// draw health and cooldown
-	var cd int = 0
-	if a.inCooldown {
-		cd = a.Cooldown - a.GetTicker()
-	}
-	str := fmt.Sprintf("HP %d\\CD %d", h.Health, cd)
-	op := &text.DrawOptions{}
-	op.GeoM.Translate(float64(rect.Min.X), float64(rect.Min.Y-20))
-	text.Draw(screen, str, assets.InfoFace, op)
-}
-
-func (t *TowerRenderData) GetRect(entry *donburi.Entry) image.Rectangle {
-	panic("TowerRenderData.GetRect() unimplemented")
 }

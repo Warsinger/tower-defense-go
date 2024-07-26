@@ -12,6 +12,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/yohamta/donburi"
+	"github.com/yohamta/donburi/filter"
 )
 
 type PlayerData struct {
@@ -56,10 +57,17 @@ func (p *PlayerData) Update(entry *donburi.Entry) error {
 		if p.money >= cost {
 			x, y := ebiten.CursorPosition()
 			err := p.PlaceTower(entry.World, x, y)
+
 			if err != nil {
-				return err
+				switch err.(type) {
+				case *PlacementError:
+					fmt.Println(err.Error())
+				default:
+					return err
+				}
+			} else {
+				p.money -= cost
 			}
-			p.money -= cost
 		} else {
 			fmt.Printf("Not enough money for tower cost %v, remaining %v\n", cost, p.money)
 		}
@@ -68,9 +76,34 @@ func (p *PlayerData) Update(entry *donburi.Entry) error {
 	return nil
 }
 
-func (p *PlayerData) PlaceTower(w donburi.World, x, y int) error {
+type PlacementError struct {
+	message string
+}
 
-	return NewTower(w, x, y)
+func (e *PlacementError) Error() string {
+	return e.message
+}
+
+func (p *PlayerData) PlaceTower(world donburi.World, x, y int) error {
+	img := assets.GetImage("tower")
+	rect := img.Bounds().Add(image.Pt(x, y))
+	boardEntry := Board.MustFirst(world)
+	board := Board.Get(boardEntry)
+	if !rect.In(board.Bounds()) {
+		// TODO sound for invalid operation
+		assets.PlaySound("invalid1")
+		message := fmt.Sprintf("Invalid tower location %v, %v, image out of bounds", x, y)
+		return &PlacementError{message}
+	} else {
+		collision := DetectCollisions(world, rect, filter.Contains(Player))
+		if collision != nil {
+			// TODO sound for invalid operation
+			assets.PlaySound("invalid2")
+			message := fmt.Sprintf("Invalid tower location %v, %v, collision with entity collision\n", x, y)
+			return &PlacementError{message}
+		}
+	}
+	return NewTower(world, x, y)
 }
 
 func (p *PlayerData) IsDead() bool {

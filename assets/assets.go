@@ -5,6 +5,8 @@ import (
 	"embed"
 	"fmt"
 	"log"
+	"path/filepath"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
@@ -60,52 +62,24 @@ func loadFonts() error {
 }
 
 func loadImages() error {
-	names := []string{"creep1", "creep2", "tower", "base", "backgroundH", "backgroundV"}
-	for _, name := range names {
-		err := loadImageAsset(name)
-		if err != nil {
-			return err
-		}
+	dir, err := fs.ReadDir("images")
+	if err != nil {
+		return nil
 	}
-	return nil
-}
-
-func loadAudio() error {
-	audioContext = audio.NewContext(44100)
-	names := []string{"explosion", "killed", "shoot"}
-	for _, name := range names {
-		err := loadAudioAsset(name)
-		if err != nil {
-			return err
+	for _, file := range dir {
+		if !file.IsDir() && strings.HasSuffix(file.Name(), ".png") {
+			err := loadImageAsset(file.Name())
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
-
-func loadAudioAsset(name string) error {
-	filepath := fmt.Sprintf("sounds/%s.wav", name)
-	data, err := fs.ReadFile(filepath)
-	if err != nil {
-		return err
-	}
-
-	d, err := wav.DecodeWithoutResampling(bytes.NewReader(data))
-	if err != nil {
-		return err
-	}
-	player, err := audioContext.NewPlayer(d)
-	if err != nil {
-		return err
-	}
-	sounds[name] = player
-
-	return nil
-}
-
 func loadImageAsset(name string) error {
-	filepath := fmt.Sprintf("images/%s.png", name)
-	data, err := fs.ReadFile(filepath)
+	filename := fmt.Sprintf("images/%s", name)
+	data, err := fs.ReadFile(filename)
 	if err != nil {
 		log.Fatalf("failed to read embedded image %v: %v", name, err)
 		return err
@@ -116,7 +90,46 @@ func loadImageAsset(name string) error {
 		return err
 	}
 
-	images[name] = img
+	index := strings.TrimSuffix(name, filepath.Ext(name))
+	images[index] = img
+	return nil
+}
+
+func loadAudio() error {
+	dir, err := fs.ReadDir("sounds")
+	if err != nil {
+		return nil
+	}
+	audioContext = audio.NewContext(44100)
+	for _, file := range dir {
+		if !file.IsDir() && strings.HasSuffix(file.Name(), ".wav") {
+			err := loadAudioAsset(file.Name())
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func loadAudioAsset(name string) error {
+	filename := fmt.Sprintf("sounds/%s", name)
+	data, err := fs.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	d, err := wav.DecodeWithoutResampling(bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	player, err := audioContext.NewPlayer(d)
+	if err != nil {
+		return err
+	}
+	index := strings.TrimSuffix(name, filepath.Ext(name))
+	sounds[index] = player
+
 	return nil
 }
 
@@ -129,5 +142,9 @@ func PlaySound(name string) {
 }
 
 func GetImage(name string) *ebiten.Image {
-	return images[name]
+	image := images[name]
+	if image == nil {
+		log.Fatalf("Image asset not found %v", name)
+	}
+	return image
 }

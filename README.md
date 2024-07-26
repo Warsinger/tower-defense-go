@@ -31,7 +31,7 @@ Simple tower defense game.
 ## TODOS
 * ~~Pass thru debug flag to renderers~~
 * ~~Collision detection for creep movement, creeps stop when running into a tower~~
-    * Restrict creep and tower spawn on existing objects or partially off the board
+    * ~~Restrict creep and tower spawn on existing objects or partially off the board~~
 * Make player base more resilient
 * Multiple tower types
     * Player selects types

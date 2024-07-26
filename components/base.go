@@ -1,9 +1,13 @@
 package components
 
 import (
+	"fmt"
 	"image"
+	"tower-defense/assets"
+	"tower-defense/config"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/yohamta/donburi"
 )
 
@@ -48,4 +52,39 @@ func (r *RenderData) GetRect(entry *donburi.Entry) image.Rectangle {
 
 func (r *RenderData) GetPrimaryRenderer() Renderer {
 	return r.renderers[0]
+}
+
+type InfoRenderData struct {
+}
+
+func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
+	attack := Attack.Get(entry)
+	health := Health.Get(entry)
+	render := Render.Get(entry)
+	rect := render.GetRect(entry)
+
+	// draw health info centered below the entity
+	str := fmt.Sprintf("HP %d", health.Health)
+	op := &text.DrawOptions{}
+	w, h := text.Measure(str, assets.InfoFace, op.LineSpacing)
+	op.GeoM.Translate(float64(rect.Min.X)+(float64(rect.Dx())-w)/2, float64(rect.Max.Y))
+	text.Draw(screen, str, assets.InfoFace, op)
+
+	config := config.Config.Get(config.Config.MustFirst(entry.World))
+	if config.IsDebug() {
+		// draw cooldown info centered below the health
+		var cd int = 0
+		if attack.inCooldown {
+			cd = attack.Cooldown - attack.GetTicker()
+		}
+		str := fmt.Sprintf("CD %d", cd)
+		op := &text.DrawOptions{}
+		w, _ := text.Measure(str, assets.InfoFace, op.LineSpacing)
+		op.GeoM.Translate(float64(rect.Min.X)+(float64(rect.Dx())-w)/2, float64(rect.Max.Y)+h)
+		text.Draw(screen, str, assets.InfoFace, op)
+	}
+}
+
+func (t *InfoRenderData) GetRect(entry *donburi.Entry) image.Rectangle {
+	panic("InfoRenderData.GetRect() unimplemented")
 }

@@ -78,7 +78,7 @@ func (rr *RangeRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 		aPt := util.MidpointRect(aRect)
 
 		vector.StrokeCircle(screen, float32(aPt.X), float32(aPt.Y), float32(aRect.Dx()/2), 1, color.White, true)
-		vector.StrokeRect(screen, float32(aRect.Min.X), float32(aRect.Min.Y), float32(aRect.Dx()), float32(aRect.Dy()), 1, color.White, true)
+		//vector.StrokeRect(screen, float32(aRect.Min.X), float32(aRect.Min.Y), float32(aRect.Dx()), float32(aRect.Dy()), 1, color.White, true)
 	}
 }
 
@@ -170,8 +170,15 @@ func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 		}
 	}
 
-	NewBullet(entry.World, start, end, bulletSpeed, enemy.HasComponent(Tower))
-	assets.PlaySound("shoot")
+	creep := enemy.HasComponent(Tower)
+	NewBullet(entry.World, start, end, bulletSpeed, creep)
+	var sound string
+	if creep {
+		sound = "shoot1"
+	} else {
+		sound = "shoot2"
+	}
+	assets.PlaySound(sound)
 }
 
 func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, enemyType component.IComponentType, afterKill func(*donburi.Entry, *donburi.Entry), afterAttack func(*donburi.Entry)) {
