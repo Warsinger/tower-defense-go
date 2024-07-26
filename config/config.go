@@ -17,6 +17,10 @@ func NewConfig(w donburi.World, debug bool) *ConfigData {
 	return Config.Get(entry)
 }
 
+func GetConfig(world donburi.World) *ConfigData {
+	return Config.Get(Config.MustFirst(world))
+}
+
 func (c *ConfigData) IsDebug() bool {
 	return c.debug
 }

@@ -70,7 +70,7 @@ func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	op.GeoM.Translate(float64(rect.Min.X)+(float64(rect.Dx())-w)/2, float64(rect.Max.Y))
 	text.Draw(screen, str, assets.InfoFace, op)
 
-	config := config.Config.Get(config.Config.MustFirst(entry.World))
+	config := config.GetConfig(entry.World)
 	if config.IsDebug() {
 		// draw cooldown info centered below the health
 		var cd int = 0

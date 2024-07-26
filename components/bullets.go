@@ -90,7 +90,7 @@ func (brd *BulletRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	bullet := Bullet.Get(entry)
 	vector.DrawFilledCircle(screen, float32(pos.x), float32(pos.y), float32(brd.size), brd.color, true)
 
-	config := config.Config.Get(config.Config.MustFirst(entry.World))
+	config := config.GetConfig(entry.World)
 	if config.IsDebug() {
 		vector.StrokeLine(screen, float32(bullet.start.X), float32(bullet.start.Y), float32(bullet.end.X), float32(bullet.end.Y), 1, brd.color, true)
 	}

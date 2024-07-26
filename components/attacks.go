@@ -70,7 +70,7 @@ func (a *AttackData) StartCooldown() {
 }
 
 func (rr *RangeRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
-	config := config.Config.Get(config.Config.MustFirst(entry.World))
+	config := config.GetConfig(entry.World)
 
 	if config.IsDebug() {
 		a := Attack.Get(entry)
