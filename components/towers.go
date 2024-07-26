@@ -41,7 +41,7 @@ func NewTower(w donburi.World, x, y int) error {
 
 func (t *TowerData) Update(entry *donburi.Entry) error {
 	a := Attack.Get(entry)
-	a.AttackEnemyRange(entry, Creep, AfterTowerAttack)
+	a.AttackEnemyRange(entry, AfterTowerAttack, Creep)
 
 	return nil
 }

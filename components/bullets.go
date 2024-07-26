@@ -71,9 +71,9 @@ func (bd *BulletData) Update(entry *donburi.Entry) error {
 		// if enemy in range, attack it
 		a := Attack.Get(entry)
 		if bd.IsCreep() {
-			a.AttackEnemyIntersect(entry, Tower, nil, AfterBulletAttack)
+			a.AttackEnemyIntersect(entry, nil, AfterBulletAttack, Tower, Player)
 		} else {
-			a.AttackEnemyIntersect(entry, Creep, OnKillCreep, AfterBulletAttack)
+			a.AttackEnemyIntersect(entry, OnKillCreep, AfterBulletAttack, Creep)
 		}
 
 		pos.x = newX

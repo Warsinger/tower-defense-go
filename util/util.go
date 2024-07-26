@@ -4,6 +4,8 @@ import (
 	"image"
 	"math"
 
+	"github.com/yohamta/donburi/component"
+	"github.com/yohamta/donburi/filter"
 	"golang.org/x/exp/constraints"
 )
 
@@ -29,4 +31,18 @@ func Abs[T constraints.Integer | constraints.Float](n T) T {
 		return -n
 	}
 	return n
+}
+
+func CreateOrFilter(enemyTypes ...component.IComponentType) filter.LayoutFilter {
+	count := len(enemyTypes)
+	if count > 1 {
+		filters := make([]filter.LayoutFilter, count)
+		for i := 0; i < count; i++ {
+			filters[i] = filter.Contains(enemyTypes[i])
+		}
+		return filter.Or(filters...)
+	} else if count == 1 {
+		return filter.Contains(enemyTypes[0])
+	}
+	return filter.Or()
 }

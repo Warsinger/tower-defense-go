@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/yohamta/donburi"
+	"github.com/yohamta/donburi/filter"
 )
 
 // Component is any struct that holds some kind of data.
@@ -92,4 +93,24 @@ func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 
 func (t *InfoRenderData) GetRect(entry *donburi.Entry) image.Rectangle {
 	panic("InfoRenderData.GetRect() unimplemented")
+}
+
+func DetectCollisions(world donburi.World, rect image.Rectangle, excludeFilter filter.LayoutFilter) *donburi.Entry {
+	var collision *donburi.Entry = nil
+	query := donburi.NewQuery(
+		filter.And(
+			filter.Contains(Render, Position),
+			filter.Not(excludeFilter),
+		),
+	)
+
+	query.Each(world, func(testEntry *donburi.Entry) {
+		if collision == nil {
+			testRect := Render.Get(testEntry).GetRect(testEntry)
+			if rect.Overlaps(testRect) {
+				collision = testEntry
+			}
+		}
+	})
+	return collision
 }

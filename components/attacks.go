@@ -11,7 +11,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/component"
-	"github.com/yohamta/donburi/filter"
 )
 
 type HealthData struct {
@@ -86,14 +85,14 @@ func (rr *RangeRenderData) GetRect(e *donburi.Entry) image.Rectangle {
 	return Render.Get(e).GetRect(e)
 }
 
-func (a *AttackData) FindEnemyRange(entry *donburi.Entry, enemyType component.IComponentType) *donburi.Entry {
+func (a *AttackData) FindEnemyRange(entry *donburi.Entry, enemyType ...component.IComponentType) *donburi.Entry {
 	// query for enemies then find the closest one
 	aRect := a.GetExpandedRect(entry)
 	// this just sets an upper bounds on the distance
 	minDist := float64(aRect.Dx() + aRect.Dy())
 	// maxRange := float64(aRect.Dx()/2 + aRect.Dy()/2)
 	var foundEnemy *donburi.Entry = nil
-	query := donburi.NewQuery(filter.Contains(enemyType))
+	query := donburi.NewQuery(util.CreateOrFilter(enemyType...))
 	query.Each(entry.World, func(enemyEntry *donburi.Entry) {
 		// fmt.Printf("checking distance of %v\n", enemyEntry)
 		enemy := Render.Get(enemyEntry)
@@ -112,12 +111,12 @@ func (a *AttackData) FindEnemyRange(entry *donburi.Entry, enemyType component.IC
 	return foundEnemy
 }
 
-func (a *AttackData) FindEnemyIntersect(entry *donburi.Entry, enemyType component.IComponentType) *donburi.Entry {
+func (a *AttackData) FindEnemyIntersect(entry *donburi.Entry, enemyType ...component.IComponentType) *donburi.Entry {
 	// query for first enemy we intersect with
 	rect := a.GetExpandedRect(entry)
 
 	var foundEnemy *donburi.Entry = nil
-	query := donburi.NewQuery(filter.Contains(enemyType))
+	query := donburi.NewQuery(util.CreateOrFilter(enemyType...))
 	query.Each(entry.World, func(enemyEntry *donburi.Entry) {
 		if foundEnemy != nil {
 			return
@@ -134,12 +133,12 @@ func (a *AttackData) FindEnemyIntersect(entry *donburi.Entry, enemyType componen
 	return foundEnemy
 }
 
-func (a *AttackData) AttackEnemyRange(entry *donburi.Entry, enemyType component.IComponentType, afterAttack func(*donburi.Entry)) {
+func (a *AttackData) AttackEnemyRange(entry *donburi.Entry, afterAttack func(*donburi.Entry), enemyType ...component.IComponentType) {
 	a.CheckCooldown()
 	if a.GetTicker() == 0 {
 		// fmt.Printf("finding enemies in range of %v\n", entry)
 		// look for a enemy in range to shoot at
-		enemy := a.FindEnemyRange(entry, enemyType)
+		enemy := a.FindEnemyRange(entry, enemyType...)
 		if enemy != nil {
 			a.LaunchBullet(entry, enemy)
 			a.StartCooldown()
@@ -170,7 +169,7 @@ func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 		}
 	}
 
-	creep := enemy.HasComponent(Tower)
+	creep := entry.HasComponent(Creep)
 	NewBullet(entry.World, start, end, bulletSpeed, creep)
 	var sound string
 	if creep {
@@ -181,17 +180,17 @@ func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 	assets.PlaySound(sound)
 }
 
-func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, enemyType component.IComponentType, afterKill func(*donburi.Entry, *donburi.Entry), afterAttack func(*donburi.Entry)) {
+func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, afterKill func(*donburi.Entry, *donburi.Entry), afterAttack func(*donburi.Entry), enemyType ...component.IComponentType) {
 	a.CheckCooldown()
 	if a.GetTicker() == 0 {
 		// fmt.Printf("finding enemies in range of %v\n", entry)
 		// look for a enemy we interect
-		enemy := a.FindEnemyIntersect(entry, enemyType)
+		enemy := a.FindEnemyIntersect(entry, enemyType...)
 		if enemy != nil {
 			enemyHealth := Health.Get(enemy)
 			attack := Attack.Get(entry)
-			remainingHealth := enemyHealth.Health - attack.Power
-			if remainingHealth <= 0 {
+			enemyHealth.Health = enemyHealth.Health - attack.Power
+			if enemyHealth.Health <= 0 {
 				// kill enemy, remove from board, plays sound
 				assets.PlaySound("explosion")
 
@@ -199,9 +198,12 @@ func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, enemyType compon
 				if afterKill != nil {
 					afterKill(entry, enemy)
 				}
-				enemy.Remove()
+				// HACK Don't remove player upon kill, TODO find a better way to handle this
+				if !enemy.HasComponent(Player) {
+					enemy.Remove()
+				}
 			} else {
-				enemyHealth.Health = remainingHealth
+
 			}
 			a.StartCooldown()
 			if afterAttack != nil {

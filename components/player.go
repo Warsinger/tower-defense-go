@@ -69,7 +69,9 @@ func (p *PlayerData) Update(entry *donburi.Entry) error {
 				p.money -= cost
 			}
 		} else {
+			// TODO move into place tower
 			fmt.Printf("Not enough money for tower cost %v, remaining %v\n", cost, p.money)
+			assets.PlaySound("invalid2")
 		}
 	}
 

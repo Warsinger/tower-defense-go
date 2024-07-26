@@ -32,7 +32,8 @@ Simple tower defense game.
 * ~~Pass thru debug flag to renderers~~
 * ~~Collision detection for creep movement, creeps stop when running into a tower~~
     * ~~Restrict creep and tower spawn on existing objects or partially off the board~~
-* Make player base more resilient
+* ~~Make player base more resilient~~
+* Fix positioning of creeps when they run into something to make sure they're right up against it
 * Multiple tower types
     * Player selects types
 * Tower art
@@ -54,3 +55,4 @@ Simple tower defense game.
     * Networking players
     * Simulation for testing
     * Play simulated network opponent
+    * Investigate donburi systems and events
