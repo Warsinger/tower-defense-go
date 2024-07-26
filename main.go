@@ -20,10 +20,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = g.Init()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)

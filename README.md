@@ -33,7 +33,15 @@ Simple tower defense game.
 * ~~Collision detection for creep movement, creeps stop when running into a tower~~
     * ~~Restrict creep and tower spawn on existing objects or partially off the board~~
 * ~~Make player base more resilient~~
-* Fix positioning of creeps when they run into something to make sure they're right up against it
+* Creep bugs 
+    * Fix positioning of creeps when they run into something to make sure they're right up against it
+    * Fix creeps on edge of base not attacking
+* Game screen options
+    * Press some key to start
+    * Choose options for game difficulty
+        * Implement game difficult
+    * Set other options
+        * debug, range circles, etc
 * Multiple tower types
     * Player selects types
 * Tower art
@@ -56,3 +64,14 @@ Simple tower defense game.
     * Simulation for testing
     * Play simulated network opponent
     * Investigate donburi systems and events
+
+## Remote viewer
+* Make the current game update and draw into scenes
+    * Start scene
+    * Game scene
+    * Game viewer
+        * Try sending events out and have them represented in the game viewer
+        * Make side by side view in single window before breaking out into separate running app
+        * It could share draw logic with the main game scene but need it's own update which will just read the state off the event system
+        * Once we have events populating the viewer we can add networking and everything will just work
+    
