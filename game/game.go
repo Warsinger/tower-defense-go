@@ -35,6 +35,8 @@ type GameData struct {
 
 const minSpeed = 0
 const maxSpeed = 60
+const maxCreepTimer = 90
+const startCreepTimer = 30
 
 func NewGame(width, height, speed int, debug bool) (*GameData, error) {
 	world := donburi.NewWorld()
@@ -59,12 +61,13 @@ func NewGame(width, height, speed int, debug bool) (*GameData, error) {
 	}
 
 	return &GameData{
-		world:     world,
-		highScore: highScore,
-		width:     width,
-		height:    height,
-		speed:     speed,
-		config:    config.NewConfig(world, debug),
+		world:      world,
+		highScore:  highScore,
+		width:      width,
+		height:     height,
+		speed:      speed,
+		creepTimer: maxCreepTimer - startCreepTimer,
+		config:     config.NewConfig(world, debug),
 	}, nil
 }
 
@@ -99,12 +102,10 @@ func (g *GameData) Init() error {
 	return nil
 }
 
-const maxCreepTimer = 120
-
 func (g *GameData) Clear() error {
 	g.gameOver = false
 	g.paused = false
-	g.creepTimer = maxCreepTimer - 5
+	g.creepTimer = maxCreepTimer - startCreepTimer
 	g.tickCounter = 0
 
 	query := donburi.NewQuery(filter.Or(
@@ -258,9 +259,19 @@ func (g *GameData) UpdateEntities() error {
 }
 
 func (g *GameData) SpawnCreeps() {
-	const muiltiSpawnChance = 0.42
+	const spawn2Chance = 0.8
+	const spawn3Chance = 0.6
+	const spawn4Chance = 0.4
+	const spawn5Chance = 0.2
 	var count = 1
-	if rand.Float32() > 1-muiltiSpawnChance {
+	val := rand.Float32()
+	if val > 1-spawn5Chance {
+		count = 5
+	} else if val > 1-spawn4Chance {
+		count = 4
+	} else if val > 1-spawn3Chance {
+		count = 3
+	} else if val > 1-spawn2Chance {
 		count = 2
 	}
 

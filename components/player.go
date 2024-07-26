@@ -32,10 +32,10 @@ func NewPlayer(w donburi.World) error {
 	be := Board.MustFirst(entry.World)
 	board := Board.Get(be)
 
-	Position.SetValue(entry, PositionData{x: board.Width / 2, y: board.Height - yBorderBottom})
-	Render.SetValue(entry, *NewRenderer(&SpriteData{image: assets.GetImage("base")}, &PlayerRenderData{}))
+	Position.SetValue(entry, PositionData{x: 0, y: board.Height - yBorderBottom})
+	Render.SetValue(entry, *NewRenderer(&SpriteData{image: assets.GetImage("base")}, &PlayerRenderData{}, &InfoRenderData{}))
 	Player.SetValue(entry, PlayerData{money: 500})
-	Health.SetValue(entry, HealthData{500})
+	Health.SetValue(entry, HealthData{50})
 	return nil
 }
 
@@ -99,7 +99,7 @@ func (p *PlayerData) PlaceTower(world donburi.World, x, y int) error {
 		if collision != nil {
 			// TODO sound for invalid operation
 			assets.PlaySound("invalid2")
-			message := fmt.Sprintf("Invalid tower location %v, %v, collision with entity collision\n", x, y)
+			message := fmt.Sprintf("Invalid tower location %v, %v, collision with entity collision", x, y)
 			return &PlacementError{message}
 		}
 	}
