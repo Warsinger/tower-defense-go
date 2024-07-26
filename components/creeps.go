@@ -21,63 +21,65 @@ type CreepRenderData struct {
 
 var Creep = donburi.NewComponentType[CreepData]()
 
-func NewCreep(w donburi.World, x, y int) error {
+func NewCreep(w donburi.World, x, y int) *donburi.Entry {
 	entity := w.Create(Creep, Position, Velocity, Render, Health, Attack)
-	entry := w.Entry(entity)
-	Position.SetValue(entry, PositionData{x: x, y: y})
+	creep := w.Entry(entity)
+	Position.SetValue(creep, PositionData{x: x, y: y})
 	choose := rand.Intn(2) + 1
-	Velocity.SetValue(entry, VelocityData{x: 0, y: 2 + choose})
+	Velocity.SetValue(creep, VelocityData{x: 0, y: 2 + choose})
 	name := fmt.Sprintf("creep%v", choose)
-	Render.SetValue(entry, *NewRenderer(&SpriteData{image: assets.GetImage(name)}, &RangeRenderData{}, &CreepRenderData{}))
-	Creep.SetValue(entry, CreepData{scoreValue: 10 * choose})
-	Health.SetValue(entry, HealthData{Health: 1 + 2*choose})
-	Attack.SetValue(entry, AttackData{Power: 2 + 2*choose, AttackType: RangedSingle, Range: 10 + 10*choose, Cooldown: 5 + 5*choose})
-	return nil
+	Render.SetValue(creep, *NewRenderer(&SpriteData{image: assets.GetImage(name)}, &RangeRenderData{}, &CreepRenderData{}))
+	Creep.SetValue(creep, CreepData{scoreValue: 10 * choose})
+	Health.SetValue(creep, HealthData{Health: 1 + 2*choose})
+	Attack.SetValue(creep, AttackData{Power: 2 + 2*choose, AttackType: RangedSingle, Range: 10 + 10*choose, Cooldown: 5 + 5*choose})
+	return creep
 }
 
 func (c *CreepData) Update(entry *donburi.Entry) error {
 	pos := Position.Get(entry)
 	v := Velocity.Get(entry)
-	newPt := image.Pt(v.x, v.y)
 	// check whether there are any collisions in the new spot
-	collision := false
+
+	newPt := image.Pt(v.x, v.y)
 	rect := c.GetRect(entry)
-	fmt.Printf("old rect %v\n", rect)
 	rect = rect.Add(newPt)
-	fmt.Printf("new rect %v\n", rect)
-	query := donburi.NewQuery(
-		filter.And(
-			filter.Contains(Render, Position),
-			filter.Not(
-				filter.Or(
-					filter.Contains(Creep), // this allows creeps to overlap other creeps but if we don't filter here we deadlock when we get to the entity itself since we're already inside a query for creeps
-					filter.Contains(Bullet),
-					filter.Contains(Player),
-				),
-			),
-		),
-	)
-	query.Each(entry.World, func(testEntry *donburi.Entry) {
-		if !collision {
-			testRect := Render.Get(testEntry).GetRect(testEntry)
-			fmt.Printf("testing overlap of %v with %v\n", rect, testRect)
-			if rect.Overlaps(testRect) {
-				fmt.Printf("overlap of %v with %v\n", rect, testRect)
-				collision = true
-			}
-		}
-	})
-	if !collision {
+
+	collision := DetectCollisions(entry.World, rect, filter.Or(
+		filter.Contains(Creep), // this allows creeps to overlap other creeps but if we don't filter here we deadlock when we get to the entity itself since we're already inside a query for creeps
+		filter.Contains(Bullet),
+		filter.Contains(Player),
+	))
+	if collision == nil {
 		pos.x += newPt.X
 		pos.y += newPt.Y
 	}
 	// TODO allow creeps to move sideways around the tower?
-	v.blocked = collision
+	v.blocked = collision != nil
 
 	a := Attack.Get(entry)
 	a.AttackEnemyRange(entry, Tower, nil)
 
 	return nil
+}
+
+func DetectCollisions(world donburi.World, rect image.Rectangle, excludeFilter filter.LayoutFilter) *donburi.Entry {
+	var collision *donburi.Entry = nil
+	query := donburi.NewQuery(
+		filter.And(
+			filter.Contains(Render, Position),
+			filter.Not(excludeFilter),
+		),
+	)
+
+	query.Each(world, func(testEntry *donburi.Entry) {
+		if collision == nil {
+			testRect := Render.Get(testEntry).GetRect(testEntry)
+			if rect.Overlaps(testRect) {
+				collision = testEntry
+			}
+		}
+	})
+	return collision
 }
 
 func (a *CreepData) GetRect(entry *donburi.Entry) image.Rectangle {

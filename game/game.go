@@ -257,22 +257,54 @@ func (g *GameData) UpdateEntities() error {
 	return err
 }
 
-const muiltiSpawnChance = 0.8
-
 func (g *GameData) SpawnCreeps() {
+	const muiltiSpawnChance = 0.42
 	var count = 1
-	if rand.Float32() > muiltiSpawnChance {
+	if rand.Float32() > 1-muiltiSpawnChance {
 		count = 2
 	}
+
+	// xs := make([]int, count-1)
 	for i := 0; i < count; i++ {
 		be := comp.Board.MustFirst(g.world)
 		board := comp.Board.Get(be)
 		const border = 60
-		x := rand.Intn(board.Width-border) + border/2
+		x := rand.Intn(board.Width/count) + board.Width/count*(i)
+		// if count > 1 {
+		// 	fmt.Printf()
+		// }
 		y := border
+		// TODO prevent from spawning from close to segment borders when another spawns there
+		// const creepSpread = 60
+		// for j:=0; j< len(xs); j++ {
+		// 	spread:=x - xs[j];
+		// 	if (util.Abs(spread) < creepSpread) {
+		// 		if (spread < 0 ) {
+		// 			x -= creepSpread
+		// 		} else {
+		// 			x += creepSpread
+		// 		}
+		// 	}
+		// }
+		if x < border {
+			x = border
+		} else if x > board.Width-border {
+			x = board.Width - border
+		}
 		comp.NewCreep(g.world, x, y)
 	}
 }
+
+// func adjustPosition(entry *donburi.Entry, board *comp.BoardInfo) {
+// 	collision:= comp.DetectCollisions(entry.World, comp.Render.Get(entry).GetRect(entry), filter.Contains(comp.Bullet))
+
+// 		pos:= comp.Position.Get(entry)
+// 		posCollision := comp.Position.Get(collision)
+// 		if (pos.x < pos.collision) {
+// 			pos.x -= comp.Render.Get(entry)
+// 		}
+// 	}
+// }
 
 func (g *GameData) EndGame() error {
 	assets.PlaySound("killed")

@@ -14,7 +14,7 @@ import (
 type BulletData struct {
 	start, end image.Point
 	speed      int
-	creep      bool
+	creep      bool // TODO switch to using a component tag EnemyTag https://pkg.go.dev/github.com/yohamta/donburi@v1.4.4#readme-tags
 }
 
 var Bullet = donburi.NewComponentType[BulletData]()
@@ -27,7 +27,7 @@ type BulletRenderData struct {
 var creepBulletColor = color.RGBA{255, 0, 0, 255}
 var towerBulletColor = color.RGBA{40, 255, 40, 255}
 
-func NewBullet(w donburi.World, start, end image.Point, speed int, creep bool) {
+func NewBullet(w donburi.World, start, end image.Point, speed int, creep bool) *donburi.Entry {
 	bulletEntity := w.Create(Bullet, Position, Velocity, Render, Attack)
 	bullet := w.Entry(bulletEntity)
 
@@ -37,6 +37,7 @@ func NewBullet(w donburi.World, start, end image.Point, speed int, creep bool) {
 	Render.SetValue(bullet, *NewRenderer(NewBulletRender(creep)))
 	Attack.SetValue(bullet, AttackData{Power: 1, AttackType: RangedSingle, Range: 1, Cooldown: 30})
 	Bullet.SetValue(bullet, BulletData{start: start, end: end, speed: speed, creep: creep})
+	return bullet
 }
 
 func NewBulletRender(creep bool) *BulletRenderData {

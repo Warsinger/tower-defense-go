@@ -88,8 +88,7 @@ func (p *PlayerData) Kill() {
 }
 
 func (p *PlayerRenderData) GetRect(entry *donburi.Entry) image.Rectangle {
-	sprite := Render.Get(entry)
-	return sprite.GetPrimaryRenderer().GetRect(entry)
+	return Render.Get(entry).GetRect(entry)
 }
 
 func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
