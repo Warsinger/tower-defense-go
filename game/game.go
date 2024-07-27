@@ -16,7 +16,7 @@ type Scene interface {
 	Draw(screen *ebiten.Image)
 }
 type GameData struct {
-	scene                Scene
+	scenes               []Scene
 	width, height, speed int
 	highScore            int
 	debug                bool
@@ -28,11 +28,9 @@ func NewGame(width, height, speed int, debug bool) (*GameData, error) {
 		return nil, err
 	}
 
-	ebiten.SetWindowSize(int(width), int(height))
 	ebiten.SetWindowTitle("Tower Defense")
 
 	highScore := LoadScores()
-	fmt.Printf("hs load %v\n", highScore)
 
 	game := &GameData{width: width, height: height, speed: speed, highScore: highScore, debug: debug}
 
@@ -42,14 +40,36 @@ func NewGame(width, height, speed int, debug bool) (*GameData, error) {
 	}
 	return game, nil
 }
-func (g *GameData) switchToBattle() error {
+func (g *GameData) switchToBattle(viewerMode bool) error {
 	battle, err := scenes.NewBattleScene(g.width, g.height, g.speed, g.highScore, g.debug, g.switchToTitle)
 	if err != nil {
 		return err
 	}
 	battle.Init()
-	g.scene = battle
+	g.scenes = []Scene{battle}
+
+	if viewerMode {
+		viewer, err := scenes.NewViewerScene(battle.World(), g.width, g.height)
+		if err != nil {
+			return err
+		}
+		ebiten.SetWindowSize(g.width*2, g.height)
+		g.adjustWindowPosition()
+		g.scenes = append(g.scenes, viewer)
+	} else {
+		ebiten.SetWindowSize(g.width, g.height)
+	}
 	return nil
+}
+func (g *GameData) adjustWindowPosition() {
+	monWidth, _ := ebiten.Monitor().Size()
+	winX, winY := ebiten.WindowPosition()
+	winWidth, _ := ebiten.WindowSize()
+	if winX+winWidth > monWidth {
+		winX = monWidth - winWidth
+	}
+
+	ebiten.SetWindowPosition(winX, winY)
 }
 
 func (g *GameData) switchToTitle(score int) error {
@@ -62,7 +82,8 @@ func (g *GameData) switchToTitle(score int) error {
 		return err
 	}
 
-	g.scene = title
+	ebiten.SetWindowSize(g.width, g.height)
+	g.scenes = []Scene{title}
 	return nil
 }
 
@@ -98,11 +119,18 @@ func (g *GameData) Update() error {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
 
-	return g.scene.Update()
+	for _, scene := range g.scenes {
+		if err := scene.Update(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (g *GameData) Draw(screen *ebiten.Image) {
-	g.scene.Draw(screen)
+	for _, scene := range g.scenes {
+		scene.Draw(screen)
+	}
 }
 
 func (g *GameData) Layout(width, height int) (int, int) {

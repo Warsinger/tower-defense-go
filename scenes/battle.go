@@ -70,6 +70,9 @@ func (b *BattleScene) Init() error {
 
 	return nil
 }
+func (b *BattleScene) World() donburi.World {
+	return b.world
+}
 
 func (b *BattleScene) Clear() error {
 	b.gameOver = false
@@ -335,8 +338,4 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 		str := fmt.Sprintf("Speed %v\nTPS %2.1f", b.speed, ebiten.ActualTPS())
 		ebitenutil.DebugPrintAt(screen, str, 5, 50)
 	}
-}
-
-func (b *BattleScene) Layout(width, height int) (int, int) {
-	return width, height
 }

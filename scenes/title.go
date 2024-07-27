@@ -14,17 +14,20 @@ type TitleScene struct {
 	width           int
 	height          int
 	highScore       int
-	newGameCallback func() error
+	newGameCallback func(bool) error
+	viewer          bool
 }
 
-func NewTitleScene(width, height, highScore int, newGameCallback func() error) (*TitleScene, error) {
+func NewTitleScene(width, height, highScore int, newGameCallback func(bool) error) (*TitleScene, error) {
 	return &TitleScene{width: width, height: height, highScore: highScore, newGameCallback: newGameCallback}, nil
 }
 
 func (t *TitleScene) Update() error {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || ebiten.IsKeyPressed(ebiten.KeySpace) {
-		t.newGameCallback()
-		return nil
+		return t.newGameCallback(t.viewer)
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyV) {
+		t.viewer = !t.viewer
 	}
 	return nil
 }
@@ -74,7 +77,13 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 
 	str = "Click or press space to start"
 	op = &text.DrawOptions{}
-	x, _ = text.Measure(str, assets.ScoreFace, op.LineSpacing)
+	x, y = text.Measure(str, assets.ScoreFace, op.LineSpacing)
 	op.GeoM.Translate(halfWidth-x/2, 600)
 	text.Draw(screen, str, assets.ScoreFace, op)
+
+	str = fmt.Sprintf("Viewer mode %v (Press V to toggle)", t.viewer)
+	op = &text.DrawOptions{}
+	x, _ = text.Measure(str, assets.InfoFace, op.LineSpacing)
+	op.GeoM.Translate(halfWidth-x/2, 600+y)
+	text.Draw(screen, str, assets.InfoFace, op)
 }
