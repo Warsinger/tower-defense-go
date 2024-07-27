@@ -3,7 +3,7 @@ package components
 import (
 	"fmt"
 	"image"
-	"math/rand"
+	"math/rand/v2"
 
 	"tower-defense/assets"
 	"tower-defense/util"
@@ -29,7 +29,7 @@ func NewCreep(w donburi.World, x, y int) *donburi.Entry {
 		choose = 4
 		augment = 2
 	} else {
-		choose += rand.Intn(3)
+		choose += rand.IntN(3)
 	}
 	Velocity.SetValue(creep, VelocityData{x: 0, y: 5 - augment})
 	name := fmt.Sprintf("creep%v", choose)

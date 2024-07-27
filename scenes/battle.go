@@ -3,7 +3,7 @@ package scenes
 import (
 	"fmt"
 	"image/color"
-	"math/rand"
+	"math/rand/v2"
 
 	"tower-defense/assets"
 	comp "tower-defense/components"
@@ -225,7 +225,7 @@ func (b *BattleScene) SpawnCreeps() {
 		be := comp.Board.MustFirst(b.world)
 		board := comp.Board.Get(be)
 
-		x := rand.Intn(board.Width/count) + board.Width/count*(i)
+		x := rand.IntN(board.Width/count) + board.Width/count*(i)
 		// if count > 1 {
 		// 	fmt.Printf()
 		// }
