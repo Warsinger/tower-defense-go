@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"image/color"
 	"math/rand"
-	"os"
-	"strconv"
 
 	"tower-defense/assets"
 	comp "tower-defense/components"
@@ -21,16 +19,17 @@ import (
 )
 
 type BattleScene struct {
-	world       donburi.World
-	gameOver    bool
-	paused      bool
-	highScore   int
-	width       int
-	height      int
-	speed       int
-	creepTimer  int
-	tickCounter int
-	config      *config.ConfigData
+	world           donburi.World
+	gameOver        bool
+	paused          bool
+	highScore       int
+	width           int
+	height          int
+	speed           int
+	creepTimer      int
+	tickCounter     int
+	config          *config.ConfigData
+	endGameCallback func(int) error
 }
 
 const minSpeed = 0
@@ -38,7 +37,7 @@ const maxSpeed = 60
 const maxCreepTimer = 90
 const startCreepTimer = 30
 
-func NewBattleScene(width, height, speed int, debug bool) (*BattleScene, error) {
+func NewBattleScene(width, height, speed, highScore int, debug bool, endGameCallback func(int) error) (*BattleScene, error) {
 	world := donburi.NewWorld()
 	_, err := comp.NewBoard(world, width, height)
 	if err != nil {
@@ -51,16 +50,15 @@ func NewBattleScene(width, height, speed int, debug bool) (*BattleScene, error) 
 		speed = maxSpeed
 	}
 
-	highScore := LoadScores()
-
 	return &BattleScene{
-		world:      world,
-		highScore:  highScore,
-		width:      width,
-		height:     height,
-		speed:      speed,
-		creepTimer: maxCreepTimer - startCreepTimer,
-		config:     config.NewConfig(world, debug),
+		world:           world,
+		highScore:       highScore,
+		width:           width,
+		height:          height,
+		speed:           speed,
+		creepTimer:      maxCreepTimer - startCreepTimer,
+		config:          config.NewConfig(world, debug),
+		endGameCallback: endGameCallback,
 	}, nil
 }
 
@@ -91,14 +89,12 @@ func (b *BattleScene) Clear() error {
 	return nil
 }
 
-func (b *BattleScene) GetWorld() donburi.World {
-	return b.world
-}
-
 func (b *BattleScene) Update() error {
+	pe := comp.Player.MustFirst(b.world)
+	player := comp.Player.Get(pe)
+
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
-		b.Clear()
-		b.Init()
+		b.endGameCallback(player.GetScore())
 	}
 
 	if b.gameOver {
@@ -127,8 +123,6 @@ func (b *BattleScene) Update() error {
 	}
 
 	// update player separately from other entities to allow user interactions outside of speed controls
-	pe := comp.Player.MustFirst(b.world)
-	player := comp.Player.Get(pe)
 	err := player.Update(pe)
 	if err != nil {
 		return err
@@ -265,34 +259,9 @@ func (b *BattleScene) SpawnCreeps() {
 // 	}
 // }
 
-func (b *BattleScene) End() error {
+func (b *BattleScene) End() {
 	assets.PlaySound("killed")
 	b.gameOver = true
-	if err := b.SaveScores(); err != nil {
-		return err
-	}
-	return nil
-}
-
-const highScoreFile = "score/highscore.txt"
-
-func LoadScores() int {
-	var highScore int = 0
-	bytes, err := os.ReadFile(highScoreFile)
-	if err == nil {
-		highScore, err = strconv.Atoi(string(bytes))
-		if err != nil {
-			fmt.Printf("WARN high score formatting err %v\n", err)
-		}
-	}
-
-	return highScore
-}
-func (b *BattleScene) SaveScores() error {
-	str := strconv.Itoa(b.highScore)
-
-	err := os.WriteFile(highScoreFile, []byte(str), 0644)
-	return err
 }
 
 func (b *BattleScene) Draw(screen *ebiten.Image) {
@@ -347,6 +316,12 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 		x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
 		op.GeoM.Translate(halfWidth-x/2, halfHeight-y/2)
 		text.Draw(screen, str, assets.ScoreFace, op)
+		str = "Press R to reset game"
+		op = &text.DrawOptions{}
+		x, _ = text.Measure(str, assets.InfoFace, op.LineSpacing)
+		op.GeoM.Translate(halfWidth-x/2, halfHeight+y/2)
+		text.Draw(screen, str, assets.InfoFace, op)
+
 	} else if b.paused {
 		// draw paused
 		str := "PAUSED"

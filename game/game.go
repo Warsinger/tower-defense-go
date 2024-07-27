@@ -1,6 +1,9 @@
 package game
 
 import (
+	"fmt"
+	"os"
+	"strconv"
 	"tower-defense/assets"
 	"tower-defense/scenes"
 
@@ -11,10 +14,12 @@ import (
 type Scene interface {
 	Update() error
 	Draw(screen *ebiten.Image)
-	End() error
 }
 type GameData struct {
-	scene Scene
+	scene                Scene
+	width, height, speed int
+	highScore            int
+	debug                bool
 }
 
 func NewGame(width, height, speed int, debug bool) (*GameData, error) {
@@ -26,21 +31,65 @@ func NewGame(width, height, speed int, debug bool) (*GameData, error) {
 	ebiten.SetWindowSize(int(width), int(height))
 	ebiten.SetWindowTitle("Tower Defense")
 
-	scene, err := scenes.NewBattleScene(width, height, speed, debug)
+	highScore := LoadScores()
+	fmt.Printf("hs load %v\n", highScore)
+
+	game := &GameData{width: width, height: height, speed: speed, highScore: highScore, debug: debug}
+
+	err = game.switchToTitle(highScore)
 	if err != nil {
 		return nil, err
 	}
-	err = scene.Init()
-	if err != nil {
-		return nil, err
-	}
-	game := &GameData{scene: scene}
 	return game, nil
+}
+func (g *GameData) switchToBattle() error {
+	battle, err := scenes.NewBattleScene(g.width, g.height, g.speed, g.highScore, g.debug, g.switchToTitle)
+	if err != nil {
+		return err
+	}
+	battle.Init()
+	g.scene = battle
+	return nil
+}
+
+func (g *GameData) switchToTitle(score int) error {
+	if score > g.highScore {
+		g.highScore = score
+		g.SaveScores()
+	}
+	title, err := scenes.NewTitleScene(g.width, g.height, g.highScore, g.switchToBattle)
+	if err != nil {
+		return err
+	}
+
+	g.scene = title
+	return nil
+}
+
+const highScoreFile = "score/highscore.txt"
+
+func LoadScores() int {
+	var highScore int = 0
+	bytes, err := os.ReadFile(highScoreFile)
+	if err == nil {
+		highScore, err = strconv.Atoi(string(bytes))
+		if err != nil {
+			fmt.Printf("WARN high score formatting err %v\n", err)
+		}
+	}
+
+	return highScore
+}
+func (g *GameData) SaveScores() error {
+	str := strconv.Itoa(g.highScore)
+
+	err := os.WriteFile(highScoreFile, []byte(str), 0644)
+	return err
 }
 
 func (g *GameData) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
-		if err := g.scene.End(); err != nil {
+		if err := g.SaveScores(); err != nil {
 			return err
 		}
 		return ebiten.Termination
