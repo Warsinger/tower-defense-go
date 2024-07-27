@@ -2,11 +2,10 @@ package server
 
 import (
 	"fmt"
-	"github.com/leap-fish/necs/esync/srvsync"
-	"github.com/yohamta/donburi"
 	"log"
-	"net"
 	"time"
+
+	"github.com/yohamta/donburi"
 )
 
 const (
@@ -26,7 +25,6 @@ func NewServer(world donburi.World, port uint, address string) *Server {
 }
 
 func (s *Server) Start() {
-	srvsync.UseEsync(s.world)
 
 	go s.startTicking()
 
@@ -47,12 +45,13 @@ func (s *Server) DoSync() error {
 	fmt.Println("syncing...")
 	err := s.SerializeWorld()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	err = s.SendWorld()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
 
 func (s *Server) SerializeWorld() error {

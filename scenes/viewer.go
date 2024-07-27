@@ -8,7 +8,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"github.com/leap-fish/necs/esync/srvsync"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/filter"
 )
@@ -25,7 +24,6 @@ func NewViewerScene(world donburi.World, width, height int) (*ViewerScene, error
 }
 
 func (v *ViewerScene) Update() error {
-	srvsync.UseEsync()
 	return nil
 }
 
