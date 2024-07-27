@@ -1,6 +1,16 @@
 # Tower Defense
 Simple tower defense game.
 
+## Graphics assets
+Graphics and sounds by Matt. Nathan created the Lego builds that were used for the assets. I took pictures of the ships and use the iPhone forground cutting tool and some recoloration to create the spites. Then I shrunk them down to appropriate size.
+### Creeps
+![](assets/images/creep1.png) ![](assets/images/creep2.png) ![](assets/images/creep3.png) ![](assets/images/creep4.png)
+
+### Towers
+![](assets/images/tower.png)
+### Base
+![](assets/images/base.png)
+
 ## Rules
 * Towers can shoot and have health equal to their ammo.
     * When ammo or health runs out it disappears.
@@ -19,15 +29,24 @@ Simple tower defense game.
     * Against another player over network
 
 ## Game Play
-* P or Spacebar to pause
-* R to reset game
-* Mouse left click to place a tower
-* '+' or '-' to adjust game speed
-* F for full screen
-* L to display grid lines (10x10 cells)
-* D to display debug info including range indicators and targeting lines
-* Q to quit
-
+* In Battle
+    * P or Spacebar to pause
+    * R to reset game
+    * Mouse left click to place a tower
+    * '+' or '-' to adjust game speed
+    * Q to quit
+* Title screen
+    * V to toggle viewer mode
+* Display
+    * F for full screen
+    * L to display grid lines (10x10 cells)
+    * D to display debug info including range indicators and targeting lines
+### Title Screen
+![Title Screen](docs/titlescreen.png)
+### Gameplay
+![Gameplay](docs/gameplay.png)
+### Viewer Mode
+![Viewer mode](docs/viewermode.png)
 ## TODOS
 * ~~Pass thru debug flag to renderers~~
 * ~~Collision detection for creep movement, creeps stop when running into a tower~~

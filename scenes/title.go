@@ -70,10 +70,16 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(halfWidth-x/2, 400)
 	text.Draw(screen, str, assets.ScoreFace, op)
 
-	creepImage := assets.GetImage("creep2")
-	opts = &ebiten.DrawImageOptions{}
-	opts.GeoM.Translate(halfWidth-float64(creepImage.Bounds().Dx()/2), 400+y)
-	screen.DrawImage(creepImage, opts)
+	const creepCount = 4
+	const creepSize = 48
+	x = halfWidth - creepSize*creepCount/2
+	for i := 1; i <= creepCount; i++ {
+		creepImage := assets.GetImage(fmt.Sprintf("creep%v", i))
+		opts = &ebiten.DrawImageOptions{}
+		opts.GeoM.Translate(x, 400+y)
+		screen.DrawImage(creepImage, opts)
+		x += float64(creepImage.Bounds().Dx())
+	}
 
 	str = "Click or press space to start"
 	op = &text.DrawOptions{}

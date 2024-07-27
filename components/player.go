@@ -88,24 +88,23 @@ func (e *PlacementError) Error() string {
 
 func (p *PlayerData) PlaceTower(world donburi.World, x, y int) error {
 	img := assets.GetImage("tower")
-	rect := img.Bounds().Add(image.Pt(x, y))
+	bounds := img.Bounds()
+	rect := bounds.Add(image.Pt(x-bounds.Dx()/2, y-bounds.Dy()/2))
 	boardEntry := Board.MustFirst(world)
 	board := Board.Get(boardEntry)
 	if !rect.In(board.Bounds()) {
-		// TODO sound for invalid operation
 		assets.PlaySound("invalid1")
 		message := fmt.Sprintf("Invalid tower location %v, %v, image out of bounds", x, y)
 		return &PlacementError{message}
 	} else {
 		collision := DetectCollisions(world, rect, filter.Contains(Player))
 		if collision != nil {
-			// TODO sound for invalid operation
 			assets.PlaySound("invalid2")
 			message := fmt.Sprintf("Invalid tower location %v, %v, collision with entity collision", x, y)
 			return &PlacementError{message}
 		}
 	}
-	return NewTower(world, x, y)
+	return NewTower(world, rect.Min.X, rect.Min.Y)
 }
 
 func (p *PlayerData) IsDead() bool {
