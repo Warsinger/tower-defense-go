@@ -29,14 +29,18 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
     * Against another player over network
 
 ## Game Play
-* P or Spacebar to pause
-* R to reset game
-* Mouse left click to place a tower
-* '+' or '-' to adjust game speed
-* F for full screen
-* L to display grid lines (10x10 cells)
-* D to display debug info including range indicators and targeting lines
-* Q to quit
+* In Battle
+    * P or Spacebar to pause
+    * R to reset game
+    * Mouse left click to place a tower
+    * '+' or '-' to adjust game speed
+    * Q to quit
+* Title screen
+    * V to toggle viewer mode
+* Display
+    * F for full screen
+    * L to display grid lines (10x10 cells)
+    * D to display debug info including range indicators and targeting lines
 ### Title Screen
 ![Title Screen](docs/titlescreen.png)
 ### Gameplay
