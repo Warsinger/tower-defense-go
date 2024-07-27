@@ -60,7 +60,7 @@ Simple tower defense game.
     * ~~save high scores~~
 * Stretch
     * Computer players
-    * Networking players
+    * Networking players, possibly using [text](https://github.com/leap-fish/necs)
     * Simulation for testing
     * Play simulated network opponent
     * Investigate donburi systems and events

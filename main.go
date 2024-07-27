@@ -13,6 +13,8 @@ func main() {
 	height := flag.Int("height", 800, "Board height in pixels")
 	speed := flag.Int("speed", 60, "Ticks per second, min 0 max 60, + or - to adjust in game")
 	debug := flag.Bool("debug", false, "Show debug info, D to toggle in game")
+	server := flag.Int("server", 53838, "Startup multiplayer server on port")
+	client := flag.String("client", "localhost:53838", "For multiplayer client connect to server:port")
 
 	flag.Parse()
 
