@@ -1,6 +1,9 @@
 # Tower Defense
 Simple tower defense game.
 
+Graphics and sounds by Matt, with photos of Lego creations by Nathan.
+
+
 ## Rules
 * Towers can shoot and have health equal to their ammo.
     * When ammo or health runs out it disappears.

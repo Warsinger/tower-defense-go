@@ -24,15 +24,19 @@ func NewCreep(w donburi.World, x, y int) *donburi.Entry {
 
 	const bigCreepChance = 0.3
 	choose := 1
+	augment := 1
 	if rand.Float32() < bigCreepChance {
-		choose = 2
+		choose = 4
+		augment = 2
+	} else {
+		choose += rand.Intn(3)
 	}
-	Velocity.SetValue(creep, VelocityData{x: 0, y: 5 - choose})
+	Velocity.SetValue(creep, VelocityData{x: 0, y: 5 - augment})
 	name := fmt.Sprintf("creep%v", choose)
 	Render.SetValue(creep, *NewRenderer(&SpriteData{image: assets.GetImage(name)}, &RangeRenderData{}, &InfoRenderData{}))
-	Creep.SetValue(creep, CreepData{scoreValue: 10 * choose})
-	Health.SetValue(creep, HealthData{Health: 1 + 2*choose})
-	Attack.SetValue(creep, AttackData{Power: 2 + 2*choose, AttackType: RangedSingle, Range: 10 + 10*choose, Cooldown: 5 + 5*choose})
+	Creep.SetValue(creep, CreepData{scoreValue: 10 * augment})
+	Health.SetValue(creep, HealthData{Health: 1 + 2*augment})
+	Attack.SetValue(creep, AttackData{Power: 2 + 2*augment, AttackType: RangedSingle, Range: 10 + 10*augment, Cooldown: 5 + 5*augment})
 	return creep
 }
 
