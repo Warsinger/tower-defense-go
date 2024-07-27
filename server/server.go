@@ -1,13 +1,12 @@
 package server
 
 import (
-	"log"
-	"time"
-
+	"fmt"
 	"github.com/leap-fish/necs/esync/srvsync"
-	"github.com/leap-fish/necs/transports"
 	"github.com/yohamta/donburi"
-	"nhooyr.io/websocket"
+	"log"
+	"net"
+	"time"
 )
 
 const (
@@ -15,20 +14,14 @@ const (
 )
 
 type Server struct {
-	host  transports.NetworkTransport
+	host  string
 	world donburi.World
 }
 
 func NewServer(world donburi.World, port uint, address string) *Server {
 	return &Server{
 		world: world,
-		host: transports.NewWsServerTransport(
-			port,
-			address,
-			&websocket.AcceptOptions{
-				InsecureSkipVerify: true,
-			},
-		),
+		host:  fmt.Sprintf("%v:%v", address, port),
 	}
 }
 
@@ -37,18 +30,36 @@ func (s *Server) Start() {
 
 	go s.startTicking()
 
-	err := s.host.Start()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// TODO start listening
 }
 
 func (s *Server) startTicking() {
 	for range time.NewTicker(time.Second / TickRate).C {
 
-		err := srvsync.DoSync()
+		err := s.DoSync()
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
+}
+
+func (s *Server) DoSync() error {
+	fmt.Println("syncing...")
+	err := s.SerializeWorld()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = s.SendWorld()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (s *Server) SerializeWorld() error {
+	fmt.Println("serializing world...")
+	return nil
+}
+func (s *Server) SendWorld() error {
+	fmt.Println("sending world...")
+	return nil
 }
