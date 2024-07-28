@@ -32,7 +32,7 @@ jobs:
         go-version-file: './go.mod'
 
     - name: Build
-      run: go build -v -o ./...
+      run: go build -v -o tower-defense
 
     - name: Upload Go test results
       uses: actions/upload-artifact@v4
