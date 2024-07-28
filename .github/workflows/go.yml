@@ -34,8 +34,8 @@ jobs:
     - name: Build
       run: go build -v -o ./...
 
-    # - name: Upload Go test results
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: tower-defense-app
-    #     path: tower-defense
+    - name: Upload Go test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: tower-defense-app
+        path: tower-defense
