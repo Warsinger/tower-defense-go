@@ -11,15 +11,47 @@ on:
 jobs:
 
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install dependencies
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install libasound2-dev libgl1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev
+
+    - name: Xvfb
+      if: runner.os == 'Linux'
+      run: |
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
-        go-version: '1.22'
+        go-version-file: './go.mod'
 
-    - name: Build
-      run: go build -v -o tower-defense
+    - name: Build (Linux, Windows)
+      if: runner.os == 'Linux'
+      run: |
+        go build -v -o build/tower-defense-lin
 
+    - name: Build (Linux, Windows)
+      if: runner.os == 'Windows'
+      run: |
+        env GOOS=windows GOARCH=amd64 go build -v -o build/tower-defense-win
+       
+    - name: go build (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        env CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -v -o build/tower-defense-mac-arm
+        env CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -v -o build/tower-defense-mac-int
+
+    - name: Upload Go test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ runner.os }}
+        path: build/*
