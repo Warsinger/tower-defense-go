@@ -3,14 +3,17 @@ package game
 import (
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"strconv"
 	"tower-defense/assets"
+	"tower-defense/network"
 	"tower-defense/scenes"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/yohamta/donburi"
 )
 
 type Scene interface {
@@ -18,13 +21,16 @@ type Scene interface {
 	Draw(screen *ebiten.Image)
 }
 type GameData struct {
+	world                donburi.World
 	scenes               []Scene
 	width, height, speed int
 	highScore            int
 	debug                bool
+	server               *network.Server
+	client               *network.Client
 }
 
-func NewGame(width, height, speed int, debug bool) (*GameData, error) {
+func NewGame(width, height, speed int, debug bool, server, client string) (*GameData, error) {
 	err := assets.LoadAssets()
 	if err != nil {
 		return nil, err
@@ -34,7 +40,29 @@ func NewGame(width, height, speed int, debug bool) (*GameData, error) {
 
 	highScore := LoadScores()
 
-	game := &GameData{width: width, height: height, speed: speed, highScore: highScore, debug: debug}
+	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, highScore: highScore, debug: debug}
+
+	fmt.Printf("server port %v\n", server)
+	if server != "" {
+		game.server = network.NewServer(game.world, "127.0.0.1", server)
+		err = game.server.Start()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	fmt.Printf("client connection %v\n", client)
+	if client != "" {
+		host, port, err := net.SplitHostPort(client)
+		if err != nil {
+			return nil, err
+		}
+		game.client = network.NewClient(game.world, host, port)
+		err = game.client.Start()
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	err = game.switchToTitle(highScore)
 	if err != nil {
@@ -43,7 +71,7 @@ func NewGame(width, height, speed int, debug bool) (*GameData, error) {
 	return game, nil
 }
 func (g *GameData) switchToBattle(viewerMode bool) error {
-	battle, err := scenes.NewBattleScene(g.width, g.height, g.speed, g.highScore, g.debug, g.switchToTitle)
+	battle, err := scenes.NewBattleScene(g.world, g.width, g.height, g.speed, g.highScore, g.debug, g.switchToTitle)
 	if err != nil {
 		return err
 	}
@@ -51,7 +79,7 @@ func (g *GameData) switchToBattle(viewerMode bool) error {
 	g.scenes = []Scene{battle}
 
 	if viewerMode {
-		viewer, err := scenes.NewViewerScene(battle.World(), g.width, g.height)
+		viewer, err := scenes.NewViewerScene(g.world, g.width, g.height)
 		if err != nil {
 			return err
 		}

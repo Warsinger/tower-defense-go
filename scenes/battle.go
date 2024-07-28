@@ -37,8 +37,7 @@ const maxSpeed = 60
 const maxCreepTimer = 90
 const startCreepTimer = 30
 
-func NewBattleScene(width, height, speed, highScore int, debug bool, endGameCallback func(int) error) (*BattleScene, error) {
-	world := donburi.NewWorld()
+func NewBattleScene(world donburi.World, width, height, speed, highScore int, debug bool, endGameCallback func(int) error) (*BattleScene, error) {
 	_, err := comp.NewBoard(world, width, height)
 	if err != nil {
 		return nil, err
@@ -69,9 +68,6 @@ func (b *BattleScene) Init() error {
 	}
 
 	return nil
-}
-func (b *BattleScene) World() donburi.World {
-	return b.world
 }
 
 func (b *BattleScene) Clear() error {
