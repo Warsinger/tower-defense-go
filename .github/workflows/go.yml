@@ -42,7 +42,7 @@ jobs:
     - name: Build (Linux, Windows)
       if: runner.os == 'Windows'
       run: |
-        env GOOS=windows GOARCH=amd64 go build -v -o build/tower-defense-win
+        env GOOS=windows GOARCH=amd64 go build -v -o build/tower-defense.exe
        
     - name: go build (macOS)
       if: runner.os == 'macOS'
