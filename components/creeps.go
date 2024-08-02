@@ -35,7 +35,7 @@ func NewCreep(w donburi.World, x, y int) *donburi.Entry {
 	name := fmt.Sprintf("creep%v", choose)
 	Render.SetValue(creep, *NewRenderer(&SpriteData{image: assets.GetImage(name)}, &RangeRenderData{}, &InfoRenderData{}))
 	Creep.SetValue(creep, CreepData{scoreValue: 10 * augment})
-	Health.SetValue(creep, HealthData{Health: 1 + 2*augment})
+	Health.SetValue(creep, NewHealthData(1+2*augment))
 	Attack.SetValue(creep, AttackData{Power: 2 + 2*augment, AttackType: RangedSingle, Range: 10 + 10*augment, Cooldown: 5 + 5*augment})
 	return creep
 }

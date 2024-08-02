@@ -11,7 +11,7 @@ type BoardInfo struct {
 }
 
 const (
-	yBorderBottom         = 45
+	yBorderBottom         = 70
 	TextBorder    float64 = 5
 	SpawnBorder           = 60
 )

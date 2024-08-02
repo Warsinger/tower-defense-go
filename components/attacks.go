@@ -14,7 +14,8 @@ import (
 )
 
 type HealthData struct {
-	Health int
+	Health    int
+	MaxHealth int
 }
 type AttackType int
 
@@ -39,6 +40,10 @@ type RangeRenderData struct {
 
 var Attack = donburi.NewComponentType[AttackData]()
 var Health = donburi.NewComponentType[HealthData]()
+
+func NewHealthData(health int) HealthData {
+	return HealthData{Health: health, MaxHealth: health}
+}
 
 func (a *AttackData) GetExpandedRect(e *donburi.Entry) image.Rectangle {
 	rect := Render.Get(e).GetRect(e)
@@ -202,8 +207,6 @@ func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, afterKill func(*
 				if !enemy.HasComponent(Player) {
 					enemy.Remove()
 				}
-			} else {
-
 			}
 			a.StartCooldown()
 			if afterAttack != nil {
