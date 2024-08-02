@@ -35,7 +35,7 @@ func NewPlayer(w donburi.World) error {
 	Position.SetValue(entry, PositionData{x: 0, y: board.Height - yBorderBottom})
 	Render.SetValue(entry, *NewRenderer(&SpriteData{image: assets.GetImage("base")}, &PlayerRenderData{}, &InfoRenderData{}))
 	Player.SetValue(entry, PlayerData{money: 500})
-	Health.SetValue(entry, HealthData{50})
+	Health.SetValue(entry, NewHealthData(50))
 	return nil
 }
 

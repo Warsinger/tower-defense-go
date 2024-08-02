@@ -3,11 +3,13 @@ package components
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"tower-defense/assets"
 	"tower-defense/config"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/filter"
 )
@@ -65,11 +67,19 @@ func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	var textWidth, textHeight float64 = 0, 0
 	if entry.HasComponent(Health) {
 		health := Health.Get(entry)
+
 		// draw health info centered below the entity
 		str := fmt.Sprintf("HP %d", health.Health)
 		op := &text.DrawOptions{}
 		textWidth, textHeight = text.Measure(str, assets.InfoFace, op.LineSpacing)
-		op.GeoM.Translate(float64(rect.Min.X)+(float64(rect.Dx())-textWidth)/2, float64(rect.Max.Y))
+
+		percentHealth := float32(health.Health) / float32(health.MaxHealth)
+		// draw a green filled rect with health below entity the height of the text
+		const barHeight = 4
+		vector.StrokeRect(screen, float32(rect.Min.X), float32(rect.Max.Y), float32(rect.Dx()), barHeight, 1, color.RGBA{0, 255, 0, 255}, true)
+		vector.DrawFilledRect(screen, float32(rect.Min.X), float32(rect.Max.Y), float32(rect.Dx())*percentHealth, barHeight, color.RGBA{0, 255, 0, 255}, true)
+
+		op.GeoM.Translate(float64(rect.Min.X)+(float64(rect.Dx())-textWidth)/2, float64(rect.Max.Y+barHeight))
 		text.Draw(screen, str, assets.InfoFace, op)
 	}
 
