@@ -94,7 +94,7 @@ func (a *AttackData) FindEnemyRange(entry *donburi.Entry, enemyType ...component
 	// query for enemies then find the closest one
 	aRect := a.GetExpandedRect(entry)
 	// this just sets an upper bounds on the distance
-	minDist := float64(aRect.Dx() + aRect.Dy())
+	minDist := 2000.0
 	// maxRange := float64(aRect.Dx()/2 + aRect.Dy()/2)
 	var foundEnemy *donburi.Entry = nil
 	query := donburi.NewQuery(util.CreateOrFilter(enemyType...))
