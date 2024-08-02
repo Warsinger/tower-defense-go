@@ -204,10 +204,10 @@ func (b *BattleScene) UpdateEntities() error {
 }
 
 func (b *BattleScene) SpawnCreeps() {
-	const spawn2Chance = 0.8
-	const spawn3Chance = 0.6
-	const spawn4Chance = 0.4
-	const spawn5Chance = 0.2
+	const spawn2Chance = 0.7
+	const spawn3Chance = 0.25
+	const spawn4Chance = 0.1
+	const spawn5Chance = 0.05
 	var count = 1
 	val := rand.Float32()
 	if val < spawn5Chance {
