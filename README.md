@@ -121,3 +121,7 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
     * Make side by side view in single window before breaking out into separate running app
     * It could share draw logic with the main game scene but need it's own update which will just read the state off the event system
     * Once we have events populating the viewer we can add networking and everything will just work
+
+## Network play
+
+Things to send over network: Position, Health, Creep, Player, Tower, Bullet (and render), Game.highScore, Attack (mainly for cooldown, also debug info), Sprite renders (maybe just image name), gameover/paused status
