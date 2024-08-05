@@ -3,7 +3,6 @@ package game
 import (
 	"errors"
 	"fmt"
-	"net"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -53,23 +52,34 @@ func NewGame(width, height, speed int, debug bool, server, client string) (*Game
 
 	fmt.Printf("client connection %v\n", client)
 	if client != "" {
-		host, port, err := net.SplitHostPort(client)
-		if err != nil {
-			return nil, err
-		}
-		game.client = network.NewClient(game.world, host, port)
+		game.client = network.NewClientNewWorld(client)
 		err = game.client.Start()
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	err = game.switchToTitle(highScore)
+	if game.client != nil {
+		err = game.switchToViewer()
+	} else {
+		err = game.switchToTitle(highScore)
+	}
 	if err != nil {
 		return nil, err
 	}
 	return game, nil
 }
+
+func (g *GameData) switchToViewer() error {
+	scene, err := scenes.NewViewerScene(g.client.World, g.width, g.height)
+	if err != nil {
+		return err
+	}
+	ebiten.SetWindowSize(g.width, g.height)
+	g.scenes = []Scene{scene}
+	return nil
+}
+
 func (g *GameData) switchToBattle(viewerMode bool) error {
 	battle, err := scenes.NewBattleScene(g.world, g.width, g.height, g.speed, g.highScore, g.debug, g.switchToTitle)
 	if err != nil {
@@ -78,14 +88,20 @@ func (g *GameData) switchToBattle(viewerMode bool) error {
 	battle.Init()
 	g.scenes = []Scene{battle}
 
-	if viewerMode {
-		viewer, err := scenes.NewViewerScene(g.world, g.width, g.height)
+	if viewerMode || g.client != nil {
+		var world donburi.World
+		if g.client != nil {
+			world = g.client.World
+		} else {
+			world = g.world
+		}
+		scene, err := scenes.NewViewerScene(world, g.width, g.height)
 		if err != nil {
 			return err
 		}
 		ebiten.SetWindowSize(g.width*2, g.height)
 		g.adjustWindowPosition()
-		g.scenes = append(g.scenes, viewer)
+		g.scenes = append(g.scenes, scene)
 	} else {
 		ebiten.SetWindowSize(g.width, g.height)
 	}
@@ -166,6 +182,7 @@ func (g *GameData) Update() error {
 		if err := g.SaveScores(); err != nil {
 			return err
 		}
+
 		return ebiten.Termination
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) {

@@ -8,15 +8,15 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 
 ### Creeps
 
-![](assets/images/creep1.png) ![](assets/images/creep2.png) ![](assets/images/creep3.png) ![](assets/images/creep4.png)
+![Creep1](assets/images/creep1.png) ![Creep2](assets/images/creep2.png) ![Creep3](assets/images/creep3.png) ![Creep4](assets/images/creep4.png)
 
 ### Towers
 
-![](assets/images/tower.png)
+![Tower](assets/images/tower.png)
 
 ### Base
 
-![](assets/images/base.png)
+![Base](assets/images/base.png)
 
 ## Rules
 

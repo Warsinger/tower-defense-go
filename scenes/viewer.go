@@ -19,6 +19,8 @@ type ViewerScene struct {
 	image  *ebiten.Image
 }
 
+const translate = false
+
 func NewViewerScene(world donburi.World, width, height int) (*ViewerScene, error) {
 	return &ViewerScene{world: world, width: width, height: height}, nil
 }
@@ -37,8 +39,9 @@ func (v *ViewerScene) Draw(screen *ebiten.Image) {
 	opts := &ebiten.DrawImageOptions{}
 	v.image.DrawImage(img, opts)
 
-	vector.StrokeLine(v.image, 0, 0, 0, float32(v.height), 3, color.White, true)
-
+	if translate {
+		vector.StrokeLine(v.image, 0, 0, 0, float32(v.height), 3, color.White, true)
+	}
 	// query for all entities
 	query := donburi.NewQuery(
 		filter.And(
@@ -55,19 +58,16 @@ func (v *ViewerScene) Draw(screen *ebiten.Image) {
 	v.DrawText(v.image)
 
 	opts = &ebiten.DrawImageOptions{}
-	opts.GeoM.Translate(float64(v.width), 0)
+	if translate {
+		opts.GeoM.Translate(float64(v.width), 0)
+	}
 	screen.DrawImage(v.image, opts)
 }
 
 func (v *ViewerScene) DrawText(image *ebiten.Image) {
-	be := comp.Board.MustFirst(v.world)
-	board := comp.Board.Get(be)
-
-	// draw high score
 	str := "Viewer Mode"
 	op := &text.DrawOptions{}
 	x, _ := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(float64(board.Width)-x-comp.TextBorder, comp.TextBorder)
+	op.GeoM.Translate(float64(v.width)-x-comp.TextBorder, comp.TextBorder)
 	text.Draw(image, str, assets.InfoFace, op)
-
 }

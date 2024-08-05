@@ -1,12 +1,14 @@
 package network
 
 import (
-	"fmt"
-	"io"
 	"log"
-	"net"
+	"strconv"
+	"time"
 
+	"github.com/leap-fish/necs/esync/srvsync"
+	"github.com/leap-fish/necs/transports"
 	"github.com/yohamta/donburi"
+	"nhooyr.io/websocket"
 )
 
 const (
@@ -14,81 +16,44 @@ const (
 )
 
 type Server struct {
-	host     string
-	world    donburi.World
-	listener net.Listener
-	conn     net.Conn
+	host  transports.NetworkTransport
+	world donburi.World
 }
 
-func NewServer(world donburi.World, host, port string) *Server {
+func NewServer(world donburi.World, address, port string) *Server {
+	portNum, _ := strconv.Atoi(port)
 	return &Server{
-		world: world,
-		host:  net.JoinHostPort(host, port),
+		host: transports.NewWsServerTransport(
+			uint(portNum),
+			address,
+			&websocket.AcceptOptions{
+				InsecureSkipVerify: true,
+			},
+		),
 	}
 }
 
 func (s *Server) Start() error {
-	listener, err := net.Listen("tcp", s.host)
-	if err != nil {
-		return err
-	}
-	s.listener = listener
-	fmt.Printf("listening %v\n", s.host)
+	RegisterComponenets()
+	srvsync.UseEsync(s.world)
 
-	go func() error {
-		conn, err := s.listener.Accept()
+	go s.startTicking()
+	go s.StartHost()
+
+	return nil
+}
+
+func (s *Server) StartHost() {
+	err := s.host.Start()
+	if err != nil {
+		log.Fatalf("Error starting host server: %v", err)
+	}
+}
+func (s *Server) startTicking() {
+	for range time.NewTicker(time.Second / TickRate).C {
+		err := srvsync.DoSync()
 		if err != nil {
-			return err
+			log.Fatalf("Unable to perform esync.DoSync: %v", err)
 		}
-		s.conn = conn
-
-		go func(conn net.Conn) {
-			data, err := io.ReadAll(conn)
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Printf("data after connection %v\n", string(data))
-			conn.Write([]byte("Connection Success\n"))
-		}(conn)
-		return nil
-	}()
-	// go s.startTicking()
-	return nil
-}
-
-func (s *Server) Close() {
-	s.conn.Close()
-	s.listener.Close()
-}
-
-// func (s *Server) startTicking() {
-// 	for range time.NewTicker(time.Second / TickRate).C {
-
-// 		err := s.DoSync()
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 	}
-// }
-
-func (s *Server) DoSync() error {
-	fmt.Println("syncing...")
-	err := s.SerializeWorld()
-	if err != nil {
-		return err
 	}
-	err = s.SendWorld()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Server) SerializeWorld() error {
-	fmt.Println("serializing world...")
-	return nil
-}
-func (s *Server) SendWorld() error {
-	fmt.Println("sending world...")
-	return nil
 }
