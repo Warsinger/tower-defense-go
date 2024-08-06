@@ -24,7 +24,7 @@ type BulletRenderData struct {
 
 var Bullet = donburi.NewComponentType[BulletData]()
 var BulletRender = donburi.NewComponentType[BulletRenderData]()
-var ColorComponent = donburi.NewComponentType[color.Color]()
+var ColorComponent = donburi.NewComponentType[color.RGBA]()
 
 var creepBulletColor = color.RGBA{255, 0, 0, 255}
 var towerBulletColor = color.RGBA{40, 255, 40, 255}
@@ -40,7 +40,7 @@ func NewBullet(world donburi.World, start, end image.Point, speed int, creep boo
 	Position.Set(bullet, &PositionData{start.X, start.Y})
 	Velocity.Set(bullet, &VelocityData{X: 6, Y: 6})
 
-	var color color.Color
+	var color color.RGBA
 	var size int
 	if creep {
 		color = creepBulletColor
