@@ -1,8 +1,7 @@
 package components
 
 import (
-	"tower-defense/assets"
-
+	"github.com/leap-fish/necs/esync/srvsync"
 	"github.com/yohamta/donburi"
 )
 
@@ -28,14 +27,15 @@ func (tm *TowerManagerData) GetCost(name string) int {
 
 var towerManager = &TowerManagerData{}
 
-func NewTower(w donburi.World, x, y int) error {
-	towerEntity := w.Create(Tower, Position, Render, Health, Attack)
-	tower := w.Entry(towerEntity)
+func NewTower(world donburi.World, x, y int) error {
+	towerEntity := world.Create(Tower, Position, Render, Health, Attack)
+	_ = srvsync.NetworkSync(world, &towerEntity, Tower, Position, Render, Health, Attack)
+	tower := world.Entry(towerEntity)
 
-	Position.SetValue(tower, PositionData{x, y})
-	Health.SetValue(tower, NewHealthData(20))
-	Render.SetValue(tower, *NewRenderer(&SpriteData{image: assets.GetImage("tower")}, &RangeRenderData{}, &InfoRenderData{}))
-	Attack.SetValue(tower, AttackData{Power: 1, AttackType: RangedSingle, Range: 50, Cooldown: 30})
+	Position.Set(tower, &PositionData{x, y})
+	Health.Set(tower, NewHealthData(20))
+	Render.Set(tower, NewRenderer(NewSprite("tower"), &RangeRenderData{}, &InfoRenderData{}))
+	Attack.Set(tower, &AttackData{Power: 1, AttackType: RangedSingle, Range: 50, Cooldown: 30})
 	return nil
 }
 

@@ -2,6 +2,7 @@ package network
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/leap-fish/necs/esync/clisync"
 	"github.com/leap-fish/necs/router"
@@ -30,10 +31,18 @@ func NewClientNewWorld(address string) *Client {
 }
 
 func (c *Client) Start() error {
+	router.OnConnect(func(client *router.NetworkClient) {
+		fmt.Println("Client connected")
+	})
 	RegisterComponenets()
 	clisync.RegisterClient(c.World)
-	c.Transport.Start(func(conn *websocket.Conn) {
-		c.Network = router.NewNetworkClient(context.Background(), conn)
-	})
+
+	go func() {
+		c.Transport.Start(func(conn *websocket.Conn) {
+			c.Network = router.NewNetworkClient(context.Background(), conn)
+		})
+	}()
+
+	fmt.Println("post Client connected")
 	return nil
 }

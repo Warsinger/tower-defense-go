@@ -16,17 +16,13 @@ import (
 
 // Component is any struct that holds some kind of data.
 type PositionData struct {
-	x, y int
+	X, Y int
 }
 
 type VelocityData struct {
-	x, y    int
+	X, Y    int
 	blocked bool
 }
-
-// ComponentType represents kind of component which is used to create or query entities.
-var Position = donburi.NewComponentType[PositionData]()
-var Velocity = donburi.NewComponentType[VelocityData]()
 
 type Renderer interface {
 	Draw(screen *ebiten.Image, entry *donburi.Entry)
@@ -37,7 +33,13 @@ type RenderData struct {
 	renderers []Renderer
 }
 
+type InfoRenderData struct {
+}
+
+var Position = donburi.NewComponentType[PositionData]()
+var Velocity = donburi.NewComponentType[VelocityData]()
 var Render = donburi.NewComponentType[RenderData]()
+var InfoRender = donburi.NewComponentType[InfoRenderData]()
 
 func NewRenderer(renderers ...Renderer) *RenderData {
 	return &RenderData{renderers: renderers}
@@ -55,9 +57,6 @@ func (r *RenderData) GetRect(entry *donburi.Entry) image.Rectangle {
 
 func (r *RenderData) GetPrimaryRenderer() Renderer {
 	return r.renderers[0]
-}
-
-type InfoRenderData struct {
 }
 
 func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {

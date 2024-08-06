@@ -41,17 +41,17 @@ func NewGame(width, height, speed int, debug bool, server, client string) (*Game
 
 	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, highScore: highScore, debug: debug}
 
-	fmt.Printf("server port %v\n", server)
 	if server != "" {
-		game.server = network.NewServer(game.world, "127.0.0.1", server)
+		fmt.Printf("server port %v\n", server)
+		game.server = network.NewServer(game.world, "", server)
 		err = game.server.Start()
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	fmt.Printf("client connection %v\n", client)
 	if client != "" {
+		fmt.Printf("client connection %v\n", client)
 		game.client = network.NewClientNewWorld(client)
 		err = game.client.Start()
 		if err != nil {
@@ -71,7 +71,7 @@ func NewGame(width, height, speed int, debug bool, server, client string) (*Game
 }
 
 func (g *GameData) switchToViewer() error {
-	scene, err := scenes.NewViewerScene(g.client.World, g.width, g.height)
+	scene, err := scenes.NewViewerScene(g.client.World, g.width, g.height, g.debug)
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (g *GameData) switchToBattle(viewerMode bool) error {
 		} else {
 			world = g.world
 		}
-		scene, err := scenes.NewViewerScene(world, g.width, g.height)
+		scene, err := scenes.NewViewerScene(world, g.width, g.height, g.debug)
 		if err != nil {
 			return err
 		}

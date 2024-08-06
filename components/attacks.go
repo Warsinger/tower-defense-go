@@ -40,9 +40,10 @@ type RangeRenderData struct {
 
 var Attack = donburi.NewComponentType[AttackData]()
 var Health = donburi.NewComponentType[HealthData]()
+var RangeRender = donburi.NewComponentType[RangeRenderData]()
 
-func NewHealthData(health int) HealthData {
-	return HealthData{Health: health, MaxHealth: health}
+func NewHealthData(health int) *HealthData {
+	return &HealthData{Health: health, MaxHealth: health}
 }
 
 func (a *AttackData) GetExpandedRect(e *donburi.Entry) image.Rectangle {
@@ -170,7 +171,7 @@ func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 			// how far ahead to lead, distance to target divided by speed
 			lead := util.Abs(util.DistancePoints(start, end))/bulletSpeed - 0.5
 			velocity := Velocity.Get(enemy)
-			end.Y += int(float64(velocity.y) * lead)
+			end.Y += int(float64(velocity.Y) * lead)
 		}
 	}
 

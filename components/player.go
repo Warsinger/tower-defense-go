@@ -11,6 +11,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/leap-fish/necs/esync/srvsync"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/filter"
 )
@@ -24,18 +25,20 @@ type PlayerRenderData struct {
 }
 
 var Player = donburi.NewComponentType[PlayerData]()
+var PlayerRender = donburi.NewComponentType[PlayerRenderData]()
 
-func NewPlayer(w donburi.World) error {
-	entity := w.Create(Player, Position, Render, Health)
-	entry := w.Entry(entity)
+func NewPlayer(world donburi.World) error {
+	entity := world.Create(Player, Position, Render, Health)
+	_ = srvsync.NetworkSync(world, &entity, Player, Position, Render, Health)
+	entry := world.Entry(entity)
 
 	be := Board.MustFirst(entry.World)
 	board := Board.Get(be)
 
-	Position.SetValue(entry, PositionData{x: 0, y: board.Height - yBorderBottom})
-	Render.SetValue(entry, *NewRenderer(&SpriteData{image: assets.GetImage("base")}, &PlayerRenderData{}, &InfoRenderData{}))
-	Player.SetValue(entry, PlayerData{money: 500})
-	Health.SetValue(entry, NewHealthData(50))
+	Position.Set(entry, &PositionData{X: 0, Y: board.Height - yBorderBottom})
+	Render.Set(entry, NewRenderer(NewSprite("base"), &PlayerRenderData{}, &InfoRenderData{}))
+	Player.Set(entry, &PlayerData{money: 500})
+	Health.Set(entry, NewHealthData(50))
 	return nil
 }
 

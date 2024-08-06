@@ -9,11 +9,11 @@ type ConfigData struct {
 
 var Config = donburi.NewComponentType[ConfigData]()
 
-func NewConfig(w donburi.World, debug bool) *ConfigData {
-	entity := w.Create(Config)
-	entry := w.Entry(entity)
+func NewConfig(world donburi.World, debug bool) *ConfigData {
+	entity := world.Create(Config)
+	entry := world.Entry(entity)
 
-	Config.SetValue(entry, ConfigData{debug: debug, gridLines: false})
+	Config.Set(entry, &ConfigData{debug: debug, gridLines: false})
 	return Config.Get(entry)
 }
 

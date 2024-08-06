@@ -3,6 +3,7 @@ package components
 import (
 	"image"
 
+	"github.com/leap-fish/necs/esync/srvsync"
 	"github.com/yohamta/donburi"
 )
 
@@ -18,12 +19,13 @@ const (
 
 var Board = donburi.NewComponentType[BoardData]()
 
-func NewBoard(w donburi.World, width, height int) (BoardData, error) {
-	entity := w.Create(Board)
-	entry := w.Entry(entity)
-	b := BoardData{Width: width, Height: height}
-	Board.SetValue(entry, b)
-	return b, nil
+func NewBoard(world donburi.World, width, height int) (*BoardData, error) {
+	entity := world.Create(Board)
+	_ = srvsync.NetworkSync(world, &entity, Board)
+	entry := world.Entry(entity)
+	board := &BoardData{Width: width, Height: height}
+	Board.Set(entry, board)
+	return board, nil
 }
 
 func (b *BoardData) Bounds() image.Rectangle {

@@ -5,9 +5,9 @@ import (
 	"image"
 	"math/rand/v2"
 
-	"tower-defense/assets"
 	"tower-defense/util"
 
+	"github.com/leap-fish/necs/esync/srvsync"
 	"github.com/yohamta/donburi"
 )
 
@@ -17,10 +17,11 @@ type CreepData struct {
 
 var Creep = donburi.NewComponentType[CreepData]()
 
-func NewCreep(w donburi.World, x, y int) *donburi.Entry {
-	entity := w.Create(Creep, Position, Velocity, Render, Health, Attack)
-	creep := w.Entry(entity)
-	Position.SetValue(creep, PositionData{x: x, y: y})
+func NewCreep(world donburi.World, x, y int) *donburi.Entry {
+	entity := world.Create(Creep, Position, Velocity, Render, Health, Attack)
+	_ = srvsync.NetworkSync(world, &entity, Creep, Position, Render, Health, Attack)
+	creep := world.Entry(entity)
+	Position.Set(creep, &PositionData{X: x, Y: y})
 
 	const bigCreepChance = 0.3
 	choose := 1
@@ -31,12 +32,12 @@ func NewCreep(w donburi.World, x, y int) *donburi.Entry {
 	} else {
 		choose += rand.IntN(3)
 	}
-	Velocity.SetValue(creep, VelocityData{x: 0, y: 5 - augment})
+	Velocity.Set(creep, &VelocityData{X: 0, Y: 5 - augment})
 	name := fmt.Sprintf("creep%v", choose)
-	Render.SetValue(creep, *NewRenderer(&SpriteData{image: assets.GetImage(name)}, &RangeRenderData{}, &InfoRenderData{}))
-	Creep.SetValue(creep, CreepData{scoreValue: 10 * augment})
-	Health.SetValue(creep, NewHealthData(1+2*augment))
-	Attack.SetValue(creep, AttackData{Power: 2 + 2*augment, AttackType: RangedSingle, Range: 10 + 10*augment, Cooldown: 5 + 5*augment})
+	Render.Set(creep, NewRenderer(NewSprite(name), &RangeRenderData{}, &InfoRenderData{}))
+	Creep.Set(creep, &CreepData{scoreValue: 10 * augment})
+	Health.Set(creep, NewHealthData(1+2*augment))
+	Attack.Set(creep, &AttackData{Power: 2 + 2*augment, AttackType: RangedSingle, Range: 10 + 10*augment, Cooldown: 5 + 5*augment})
 	return creep
 }
 
@@ -45,7 +46,7 @@ func (c *CreepData) Update(entry *donburi.Entry) error {
 	v := Velocity.Get(entry)
 	// check whether there are any collisions in the new spot
 
-	newPt := image.Pt(v.x, v.y)
+	newPt := image.Pt(v.X, v.Y)
 	rect := c.GetRect(entry)
 	rect = rect.Add(newPt)
 
@@ -53,8 +54,8 @@ func (c *CreepData) Update(entry *donburi.Entry) error {
 	// but if we don't filter here we deadlock when we get to the entity itself since we're already inside a query for creeps
 	collision := DetectCollisions(entry.World, rect, util.CreateOrFilter(Creep, Bullet))
 	if collision == nil {
-		pos.x += newPt.X
-		pos.y += newPt.Y
+		pos.X += newPt.X
+		pos.Y += newPt.Y
 	}
 	// TODO allow creeps to move sideways around the tower? (if so don't allow for player)
 	v.blocked = collision != nil
