@@ -28,17 +28,25 @@ var Player = donburi.NewComponentType[PlayerData]()
 var PlayerRender = donburi.NewComponentType[PlayerRenderData]()
 
 func NewPlayer(world donburi.World) error {
-	entity := world.Create(Player, Position, Render, Health)
-	_ = srvsync.NetworkSync(world, &entity, Player, Position, Render, Health)
+	entity := world.Create(Player, Position, Health, SpriteRender, PlayerRender, InfoRender, NameComponent)
+	err := srvsync.NetworkSync(world, &entity, Player, Position, Health, SpriteRender, PlayerRender, InfoRender, NameComponent)
+	if err != nil {
+		return err
+	}
 	entry := world.Entry(entity)
 
 	be := Board.MustFirst(entry.World)
 	board := Board.Get(be)
 
 	Position.Set(entry, &PositionData{X: 0, Y: board.Height - yBorderBottom})
-	Render.Set(entry, NewRenderer(NewSprite("base"), &PlayerRenderData{}, &InfoRenderData{}))
 	Player.Set(entry, &PlayerData{money: 500})
 	Health.Set(entry, NewHealthData(50))
+	name := Name("base")
+	NameComponent.Set(entry, &name)
+	SpriteRender.Set(entry, &SpriteRenderData{})
+	PlayerRender.Set(entry, &PlayerRenderData{})
+	InfoRender.Set(entry, &InfoRenderData{})
+
 	return nil
 }
 
@@ -124,14 +132,10 @@ func (p *PlayerData) Kill() {
 	p.dead = true
 }
 
-func (p *PlayerRenderData) GetRect(entry *donburi.Entry) image.Rectangle {
-	return Render.Get(entry).GetRect(entry)
-}
-
 func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	p := Player.Get(entry)
 	if p.dead {
-		rect := pr.GetRect(entry)
+		rect := GetRect(entry)
 		vector.StrokeLine(screen, float32(rect.Min.X), float32(rect.Min.Y), float32(rect.Max.X), float32(rect.Max.Y), 3, color.RGBA{255, 0, 0, 255}, true)
 		vector.StrokeLine(screen, float32(rect.Max.X), float32(rect.Min.Y), float32(rect.Min.X), float32(rect.Max.Y), 3, color.RGBA{255, 0, 0, 255}, true)
 	}

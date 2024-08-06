@@ -28,14 +28,21 @@ func (tm *TowerManagerData) GetCost(name string) int {
 var towerManager = &TowerManagerData{}
 
 func NewTower(world donburi.World, x, y int) error {
-	towerEntity := world.Create(Tower, Position, Render, Health, Attack)
-	_ = srvsync.NetworkSync(world, &towerEntity, Tower, Position, Render, Health, Attack)
+	towerEntity := world.Create(Tower, Position, Health, Attack, SpriteRender, RangeRender, InfoRender, NameComponent)
+	err := srvsync.NetworkSync(world, &towerEntity, Tower, Position, Health, Attack, SpriteRender, RangeRender, InfoRender, NameComponent)
+	if err != nil {
+		return err
+	}
 	tower := world.Entry(towerEntity)
 
 	Position.Set(tower, &PositionData{x, y})
 	Health.Set(tower, NewHealthData(20))
-	Render.Set(tower, NewRenderer(NewSprite("tower"), &RangeRenderData{}, &InfoRenderData{}))
 	Attack.Set(tower, &AttackData{Power: 1, AttackType: RangedSingle, Range: 50, Cooldown: 30})
+	name := Name("tower")
+	NameComponent.Set(tower, &name)
+	SpriteRender.Set(tower, &SpriteRenderData{})
+	RangeRender.Set(tower, &RangeRenderData{})
+	InfoRender.Set(tower, &InfoRenderData{})
 	return nil
 }
 

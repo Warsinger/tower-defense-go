@@ -21,7 +21,10 @@ var Board = donburi.NewComponentType[BoardData]()
 
 func NewBoard(world donburi.World, width, height int) (*BoardData, error) {
 	entity := world.Create(Board)
-	_ = srvsync.NetworkSync(world, &entity, Board)
+	err := srvsync.NetworkSync(world, &entity, Board)
+	if err != nil {
+		return nil, err
+	}
 	entry := world.Entry(entity)
 	board := &BoardData{Width: width, Height: height}
 	Board.Set(entry, board)

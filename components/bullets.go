@@ -19,31 +19,27 @@ type BulletData struct {
 }
 
 type BulletRenderData struct {
-	color color.Color
-	size  int
+	size int
 }
 
 var Bullet = donburi.NewComponentType[BulletData]()
 var BulletRender = donburi.NewComponentType[BulletRenderData]()
+var ColorComponent = donburi.NewComponentType[color.Color]()
 
 var creepBulletColor = color.RGBA{255, 0, 0, 255}
 var towerBulletColor = color.RGBA{40, 255, 40, 255}
 
-func NewBullet(world donburi.World, start, end image.Point, speed int, creep bool) *donburi.Entry {
-	bulletEntity := world.Create(Bullet, Position, Velocity, Render, Attack)
-	_ = srvsync.NetworkSync(world, &bulletEntity, Bullet, Position, Render, Attack)
+func NewBullet(world donburi.World, start, end image.Point, speed int, creep bool) (*donburi.Entry, error) {
+	bulletEntity := world.Create(Bullet, Position, Velocity, Attack, BulletRender, ColorComponent)
+	err := srvsync.NetworkSync(world, &bulletEntity, Bullet, Position, Attack, BulletRender, ColorComponent)
+	if err != nil {
+		return nil, err
+	}
 	bullet := world.Entry(bulletEntity)
 
 	Position.Set(bullet, &PositionData{start.X, start.Y})
 	Velocity.Set(bullet, &VelocityData{X: 6, Y: 6})
 
-	Render.Set(bullet, NewRenderer(NewBulletRender(creep)))
-	Attack.Set(bullet, &AttackData{Power: 1, AttackType: RangedSingle, Range: 1, Cooldown: 30})
-	Bullet.Set(bullet, &BulletData{start: start, end: end, speed: speed, creep: creep})
-	return bullet
-}
-
-func NewBulletRender(creep bool) *BulletRenderData {
 	var color color.Color
 	var size int
 	if creep {
@@ -53,7 +49,11 @@ func NewBulletRender(creep bool) *BulletRenderData {
 		color = towerBulletColor
 		size = 4
 	}
-	return &BulletRenderData{color: color, size: size}
+	BulletRender.Set(bullet, &BulletRenderData{size})
+	ColorComponent.Set(bullet, &color)
+	Attack.Set(bullet, &AttackData{Power: 1, AttackType: RangedSingle, Range: 1, Cooldown: 30})
+	Bullet.Set(bullet, &BulletData{start: start, end: end, speed: speed, creep: creep})
+	return bullet, nil
 }
 
 func (bd *BulletData) Update(entry *donburi.Entry) error {
@@ -91,11 +91,12 @@ func AfterBulletAttack(bulletEntry *donburi.Entry) {
 func (brd *BulletRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	pos := Position.Get(entry)
 	bullet := Bullet.Get(entry)
-	vector.DrawFilledCircle(screen, float32(pos.X), float32(pos.Y), float32(brd.size), brd.color, true)
+	color := *ColorComponent.Get(entry)
+	vector.DrawFilledCircle(screen, float32(pos.X), float32(pos.Y), float32(brd.size), color, true)
 
 	config := config.GetConfig(entry.World)
 	if config.IsDebug() {
-		vector.StrokeLine(screen, float32(bullet.start.X), float32(bullet.start.Y), float32(bullet.end.X), float32(bullet.end.Y), 1, brd.color, true)
+		vector.StrokeLine(screen, float32(bullet.start.X), float32(bullet.start.Y), float32(bullet.end.X), float32(bullet.end.Y), 1, color, true)
 	}
 }
 

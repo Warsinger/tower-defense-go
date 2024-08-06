@@ -11,27 +11,25 @@ import (
 	"github.com/yohamta/donburi"
 )
 
-type SpriteData struct {
-	name  string
+type SpriteRenderData struct {
 	image *ebiten.Image
 }
 
-func NewSprite(name string) *SpriteData {
-	image := assets.GetImage(name)
-	return &SpriteData{name: name, image: image}
-}
+var SpriteRender = donburi.NewComponentType[SpriteRenderData]()
 
-func (s *SpriteData) ensureImage() {
+func (s *SpriteRenderData) GetImage(entry *donburi.Entry) *ebiten.Image {
 	if s.image == nil {
-		s.image = assets.GetImage(s.name)
+		name := NameComponent.GetValue(entry)
+		s.image = assets.GetImage(string(name))
 	}
+	return s.image
 }
-func (s *SpriteData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
-	s.ensureImage()
+func (s *SpriteRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
+	image := s.GetImage(entry)
 	pos := Position.Get(entry)
 	opts := &ebiten.DrawImageOptions{}
 	opts.GeoM.Translate(float64(pos.X), float64(pos.Y))
-	screen.DrawImage(s.image, opts)
+	screen.DrawImage(image, opts)
 
 	config := config.GetConfig(entry.World)
 	if config.IsDebug() {
@@ -41,9 +39,9 @@ func (s *SpriteData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	}
 }
 
-func (s *SpriteData) GetRect(entry *donburi.Entry) image.Rectangle {
-	s.ensureImage()
+func (s *SpriteRenderData) GetRect(entry *donburi.Entry) image.Rectangle {
+	img := s.GetImage(entry)
 	pos := Position.Get(entry)
-	rect := s.image.Bounds()
+	rect := img.Bounds()
 	return rect.Add(image.Pt(pos.X, pos.Y))
 }

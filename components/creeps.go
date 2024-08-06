@@ -17,9 +17,12 @@ type CreepData struct {
 
 var Creep = donburi.NewComponentType[CreepData]()
 
-func NewCreep(world donburi.World, x, y int) *donburi.Entry {
-	entity := world.Create(Creep, Position, Velocity, Render, Health, Attack)
-	_ = srvsync.NetworkSync(world, &entity, Creep, Position, Render, Health, Attack)
+func NewCreep(world donburi.World, x, y int) (*donburi.Entry, error) {
+	entity := world.Create(Creep, Position, Velocity, Health, Attack, SpriteRender, RangeRender, InfoRender, NameComponent)
+	err := srvsync.NetworkSync(world, &entity, Creep, Position, Health, Attack, SpriteRender, RangeRender, InfoRender, NameComponent)
+	if err != nil {
+		return nil, err
+	}
 	creep := world.Entry(entity)
 	Position.Set(creep, &PositionData{X: x, Y: y})
 
@@ -33,12 +36,15 @@ func NewCreep(world donburi.World, x, y int) *donburi.Entry {
 		choose += rand.IntN(3)
 	}
 	Velocity.Set(creep, &VelocityData{X: 0, Y: 5 - augment})
-	name := fmt.Sprintf("creep%v", choose)
-	Render.Set(creep, NewRenderer(NewSprite(name), &RangeRenderData{}, &InfoRenderData{}))
+	name := Name(fmt.Sprintf("creep%v", choose))
+	NameComponent.Set(creep, &name)
 	Creep.Set(creep, &CreepData{scoreValue: 10 * augment})
 	Health.Set(creep, NewHealthData(1+2*augment))
 	Attack.Set(creep, &AttackData{Power: 2 + 2*augment, AttackType: RangedSingle, Range: 10 + 10*augment, Cooldown: 5 + 5*augment})
-	return creep
+	SpriteRender.Set(creep, &SpriteRenderData{})
+	RangeRender.Set(creep, &RangeRenderData{})
+	InfoRender.Set(creep, &InfoRenderData{})
+	return creep, nil
 }
 
 func (c *CreepData) Update(entry *donburi.Entry) error {
@@ -47,7 +53,7 @@ func (c *CreepData) Update(entry *donburi.Entry) error {
 	// check whether there are any collisions in the new spot
 
 	newPt := image.Pt(v.X, v.Y)
-	rect := c.GetRect(entry)
+	rect := GetRect(entry)
 	rect = rect.Add(newPt)
 
 	// HACK: Creep must be in the exclusion filter, this allows creeps to overlap other creeps
@@ -64,10 +70,6 @@ func (c *CreepData) Update(entry *donburi.Entry) error {
 	a.AttackEnemyRange(entry, nil, Tower, Player)
 
 	return nil
-}
-
-func (a *CreepData) GetRect(entry *donburi.Entry) image.Rectangle {
-	return Render.Get(entry).GetRect(entry)
 }
 
 func (a *CreepData) GetScoreValue() int {

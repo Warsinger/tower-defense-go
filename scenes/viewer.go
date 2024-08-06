@@ -1,6 +1,7 @@
 package scenes
 
 import (
+	"bytes"
 	"fmt"
 	"image/color"
 	"tower-defense/assets"
@@ -13,25 +14,26 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/yohamta/donburi"
+	"github.com/yohamta/donburi/features/debug"
 	"github.com/yohamta/donburi/filter"
 )
 
 type ViewerScene struct {
-	world  donburi.World
-	width  int
-	height int
-	image  *ebiten.Image
-	config *config.ConfigData
+	world     donburi.World
+	width     int
+	height    int
+	image     *ebiten.Image
+	config    *config.ConfigData
+	translate bool
 }
 
-const translate = false
-
-func NewViewerScene(world donburi.World, width, height int, debug bool) (*ViewerScene, error) {
+func NewViewerScene(world donburi.World, width, height int, debug, translate bool) (*ViewerScene, error) {
 	return &ViewerScene{
-		world:  world,
-		width:  width,
-		height: height,
-		config: config.NewConfig(world, debug),
+		world:     world,
+		width:     width,
+		height:    height,
+		config:    config.NewConfig(world, debug),
+		translate: translate,
 	}, nil
 }
 
@@ -46,7 +48,7 @@ func (v *ViewerScene) Update() error {
 }
 
 func (v *ViewerScene) Draw(screen *ebiten.Image) {
-	if translate {
+	if v.translate {
 		if v.image == nil {
 			v.image = ebiten.NewImage(v.width, v.height)
 		}
@@ -59,34 +61,40 @@ func (v *ViewerScene) Draw(screen *ebiten.Image) {
 	opts := &ebiten.DrawImageOptions{}
 	v.image.DrawImage(img, opts)
 
-	if translate {
+	if v.translate {
 		vector.StrokeLine(v.image, 0, 0, 0, float32(v.height), 3, color.White, true)
 	}
 
-	// query for all entities
-	query := donburi.NewQuery(
-		filter.And(
-			filter.Contains(comp.Position, comp.Render),
-		),
-	)
-	ebitenutil.DebugPrint(v.image, fmt.Sprintf("entities in draw %d\n", query.Count(v.world)))
+	DebugPrint(v)
 
+	// query for all entities with Position component
+	query := donburi.NewQuery(filter.Contains(comp.Position))
+	// ebitenutil.DebugPrint(v.image, fmt.Sprintf("entities in draw %d\n", query.Count(v.world)))
 	// draw all entities
 	query.Each(v.world, func(entry *donburi.Entry) {
-		r := comp.Render.Get(entry)
-		p := comp.Position.Get(entry)
-		fmt.Printf("%v\n", r)
-		ebitenutil.DebugPrintAt(v.image, fmt.Sprintf("%v", r), p.X, p.Y)
-		r.Draw(v.image, entry)
+		comp.DrawEntry(v.image, entry)
 	})
 
 	v.DrawText(v.image)
 
-	if translate {
+	if v.translate {
 		opts = &ebiten.DrawImageOptions{}
 		opts.GeoM.Translate(float64(v.width), 0)
 		screen.DrawImage(v.image, opts)
 	}
+}
+
+func DebugPrint(v *ViewerScene) {
+	var out bytes.Buffer
+	out.WriteString("Entity Counts:\n")
+	for _, c := range debug.GetEntityCounts(v.world) {
+		out.WriteString(c.String())
+		out.WriteString("\n")
+	}
+	out.WriteString("\n")
+	msg := fmt.Sprint(out.String())
+
+	ebitenutil.DebugPrint(v.image, msg)
 }
 
 func (v *ViewerScene) DrawText(image *ebiten.Image) {

@@ -33,16 +33,16 @@ func Abs[T constraints.Integer | constraints.Float](n T) T {
 	return n
 }
 
-func CreateOrFilter(enemyTypes ...component.IComponentType) filter.LayoutFilter {
-	count := len(enemyTypes)
+func CreateOrFilter(compTypes ...component.IComponentType) filter.LayoutFilter {
+	count := len(compTypes)
 	if count > 1 {
 		filters := make([]filter.LayoutFilter, count)
 		for i := 0; i < count; i++ {
-			filters[i] = filter.Contains(enemyTypes[i])
+			filters[i] = filter.Contains(compTypes[i])
 		}
 		return filter.Or(filters...)
 	} else if count == 1 {
-		return filter.Contains(enemyTypes[0])
+		return filter.Contains(compTypes[0])
 	}
 	return filter.Or()
 }

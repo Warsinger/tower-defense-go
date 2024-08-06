@@ -43,6 +43,5 @@ func (c *Client) Start() error {
 		})
 	}()
 
-	fmt.Println("post Client connected")
 	return nil
 }

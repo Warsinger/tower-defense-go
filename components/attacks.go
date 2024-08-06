@@ -47,7 +47,7 @@ func NewHealthData(health int) *HealthData {
 }
 
 func (a *AttackData) GetExpandedRect(e *donburi.Entry) image.Rectangle {
-	rect := Render.Get(e).GetRect(e)
+	rect := GetRect(e)
 	ptRange := image.Pt(a.Range, a.Range)
 	rect.Min = rect.Min.Sub(ptRange)
 	rect.Max = rect.Max.Add(ptRange)
@@ -87,10 +87,6 @@ func (rr *RangeRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	}
 }
 
-func (rr *RangeRenderData) GetRect(e *donburi.Entry) image.Rectangle {
-	return Render.Get(e).GetRect(e)
-}
-
 func (a *AttackData) FindEnemyRange(entry *donburi.Entry, enemyType ...component.IComponentType) *donburi.Entry {
 	// query for enemies then find the closest one
 	aRect := a.GetExpandedRect(entry)
@@ -101,8 +97,7 @@ func (a *AttackData) FindEnemyRange(entry *donburi.Entry, enemyType ...component
 	query := donburi.NewQuery(util.CreateOrFilter(enemyType...))
 	query.Each(entry.World, func(enemyEntry *donburi.Entry) {
 		// fmt.Printf("checking distance of %v\n", enemyEntry)
-		enemy := Render.Get(enemyEntry)
-		eRect := enemy.GetRect(enemyEntry)
+		eRect := GetRect(enemyEntry)
 
 		dist := util.DistanceRects(aRect, eRect)
 
@@ -128,8 +123,7 @@ func (a *AttackData) FindEnemyIntersect(entry *donburi.Entry, enemyType ...compo
 			return
 		}
 		// fmt.Printf("checking distance of %v\n", enemyEntry)
-		enemy := Render.Get(enemyEntry)
-		eRect := enemy.GetRect(enemyEntry)
+		eRect := GetRect(enemyEntry)
 
 		if rect.Overlaps(eRect) {
 			foundEnemy = enemyEntry
@@ -159,8 +153,8 @@ func (a *AttackData) AttackEnemyRange(entry *donburi.Entry, afterAttack func(*do
 func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 	// create a bullet path from the midpoint of the launcher to the midpoint of the enemy
 
-	r1 := Render.Get(entry).GetRect(entry)
-	r2 := Render.Get(enemy).GetRect(enemy)
+	r1 := GetRect(entry)
+	r2 := GetRect(enemy)
 
 	start := util.MidpointRect(r1)
 	end := util.MidpointRect(r2)

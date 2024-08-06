@@ -199,7 +199,7 @@ func (b *BattleScene) UpdateEntities() error {
 	return err
 }
 
-func (b *BattleScene) SpawnCreeps() {
+func (b *BattleScene) SpawnCreeps() error {
 	const spawn2Chance = 0.7
 	const spawn3Chance = 0.25
 	const spawn4Chance = 0.1
@@ -243,12 +243,16 @@ func (b *BattleScene) SpawnCreeps() {
 		} else if x > board.Width-comp.SpawnBorder {
 			x = board.Width - comp.SpawnBorder
 		}
-		comp.NewCreep(b.world, x, y)
+		_, err := comp.NewCreep(b.world, x, y)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // func adjustPosition(entry *donburi.Entry, board *comp.BoardInfo) {
-// 	collision:= comp.DetectCollisions(entry.World, comp.Render.Get(entry).GetRect(entry), filter.Contains(comp.Bullet))
+// 	collision:= comp.DetectCollisions(entry.World, comp.GetRect(entry), filter.Contains(comp.Bullet))
 
 // 		pos:= comp.Position.Get(entry)
 // 		posCollision := comp.Position.Get(collision)
@@ -283,14 +287,13 @@ func (b *BattleScene) Draw(screen *ebiten.Image) {
 	// query for all entities
 	query := donburi.NewQuery(
 		filter.And(
-			filter.Contains(comp.Position, comp.Render),
+			filter.Contains(comp.Position),
 		),
 	)
 
 	// draw all entities
 	query.Each(b.world, func(entry *donburi.Entry) {
-		r := comp.Render.Get(entry)
-		r.Draw(screen, entry)
+		comp.DrawEntry(screen, entry)
 	})
 
 	b.DrawText(screen)

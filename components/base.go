@@ -24,44 +24,17 @@ type VelocityData struct {
 	blocked bool
 }
 
-type Renderer interface {
-	Draw(screen *ebiten.Image, entry *donburi.Entry)
-	GetRect(entry *donburi.Entry) image.Rectangle
-}
-
-type RenderData struct {
-	renderers []Renderer
-}
-
 type InfoRenderData struct {
 }
+type Name string
 
 var Position = donburi.NewComponentType[PositionData]()
 var Velocity = donburi.NewComponentType[VelocityData]()
-var Render = donburi.NewComponentType[RenderData]()
+var NameComponent = donburi.NewComponentType[Name]()
 var InfoRender = donburi.NewComponentType[InfoRenderData]()
 
-func NewRenderer(renderers ...Renderer) *RenderData {
-	return &RenderData{renderers: renderers}
-}
-
-func (r *RenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
-	for _, render := range r.renderers {
-		render.Draw(screen, entry)
-	}
-}
-
-func (r *RenderData) GetRect(entry *donburi.Entry) image.Rectangle {
-	return r.GetPrimaryRenderer().GetRect(entry)
-}
-
-func (r *RenderData) GetPrimaryRenderer() Renderer {
-	return r.renderers[0]
-}
-
 func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
-	render := Render.Get(entry)
-	rect := render.GetRect(entry)
+	rect := GetRect(entry)
 
 	var textWidth, textHeight float64 = 0, 0
 	if entry.HasComponent(Health) {
@@ -100,26 +73,56 @@ func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	}
 }
 
-func (t *InfoRenderData) GetRect(entry *donburi.Entry) image.Rectangle {
-	panic("InfoRenderData.GetRect() unimplemented")
-}
-
 func DetectCollisions(world donburi.World, rect image.Rectangle, excludeFilter filter.LayoutFilter) *donburi.Entry {
 	var collision *donburi.Entry = nil
 	query := donburi.NewQuery(
 		filter.And(
-			filter.Contains(Render, Position),
+			filter.Contains(SpriteRender, Position),
 			filter.Not(excludeFilter),
 		),
 	)
 
 	query.Each(world, func(testEntry *donburi.Entry) {
 		if collision == nil {
-			testRect := Render.Get(testEntry).GetRect(testEntry)
+			testRect := GetRect(testEntry)
 			if rect.Overlaps(testRect) {
 				collision = testEntry
 			}
 		}
 	})
 	return collision
+}
+
+func DrawEntry(screen *ebiten.Image, entry *donburi.Entry) {
+	if entry.HasComponent(SpriteRender) {
+		render := SpriteRender.Get(entry)
+		render.Draw(screen, entry)
+	}
+	if entry.HasComponent(InfoRender) {
+		info := InfoRender.Get(entry)
+		info.Draw(screen, entry)
+	}
+	if entry.HasComponent(RangeRender) {
+		rangeRender := RangeRender.Get(entry)
+		rangeRender.Draw(screen, entry)
+	}
+	if entry.HasComponent(PlayerRender) {
+		playerRender := PlayerRender.Get(entry)
+		playerRender.Draw(screen, entry)
+	}
+	if entry.HasComponent(BulletRender) {
+		projectileRender := BulletRender.Get(entry)
+		projectileRender.Draw(screen, entry)
+	}
+}
+
+func GetRect(entry *donburi.Entry) image.Rectangle {
+	if entry.HasComponent(SpriteRender) {
+		render := SpriteRender.Get(entry)
+		return render.GetRect(entry)
+	} else if entry.HasComponent(BulletRender) {
+		render := BulletRender.Get(entry)
+		return render.GetRect(entry)
+	}
+	panic("GetRect() unimplemented for entry without SpriteRender or BulletRender component")
 }
