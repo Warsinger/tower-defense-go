@@ -33,6 +33,7 @@ type AttackData struct {
 	ticker     int
 	inCooldown bool
 	AttackType AttackType
+	noLead     bool
 }
 
 type RangeRenderData struct {
@@ -159,7 +160,7 @@ func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 	start := util.MidpointRect(r1)
 	end := util.MidpointRect(r2)
 	const bulletSpeed = 8
-	if enemy.HasComponent(Velocity) {
+	if !a.noLead && enemy.HasComponent(Velocity) {
 		v := Velocity.Get(enemy)
 		if !v.blocked {
 			// how far ahead to lead, distance to target divided by speed

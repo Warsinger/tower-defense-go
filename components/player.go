@@ -28,8 +28,8 @@ var Player = donburi.NewComponentType[PlayerData]()
 var PlayerRender = donburi.NewComponentType[PlayerRenderData]()
 
 func NewPlayer(world donburi.World) error {
-	entity := world.Create(Player, Position, Health, SpriteRender, PlayerRender, InfoRender, NameComponent)
-	err := srvsync.NetworkSync(world, &entity, Player, Position, Health, SpriteRender, PlayerRender, InfoRender, NameComponent)
+	entity := world.Create(Player, Position, Health, Attack, SpriteRender, PlayerRender, InfoRender, NameComponent)
+	err := srvsync.NetworkSync(world, &entity, Player, Position, Health, Attack, SpriteRender, PlayerRender, InfoRender, NameComponent)
 	if err != nil {
 		return err
 	}
@@ -41,6 +41,7 @@ func NewPlayer(world donburi.World) error {
 	Position.Set(entry, &PositionData{X: 0, Y: board.Height - yBorderBottom})
 	Player.Set(entry, &PlayerData{Money: 500})
 	Health.Set(entry, NewHealthData(50))
+	Attack.Set(entry, &AttackData{Power: 1, AttackType: RangedSingle, Range: 15, Cooldown: 10, noLead: true})
 	name := Name("base")
 	NameComponent.Set(entry, &name)
 	SpriteRender.Set(entry, &SpriteRenderData{})
@@ -59,7 +60,7 @@ const (
 	Right
 )
 
-func (p *PlayerData) Update(entry *donburi.Entry) error {
+func (p *PlayerData) UserSpeedUpdate(entry *donburi.Entry) error {
 	if p.Dead {
 		return nil
 	}
@@ -86,6 +87,11 @@ func (p *PlayerData) Update(entry *donburi.Entry) error {
 		}
 	}
 
+	return nil
+}
+func (p *PlayerData) GameSpeedUpdate(entry *donburi.Entry) error {
+	a := Attack.Get(entry)
+	a.AttackEnemyRange(entry, nil, Creep)
 	return nil
 }
 

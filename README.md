@@ -76,7 +76,7 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 * Game screen options
   * Press some key to start
   * Choose options for game difficulty
-    * Implement game difficult
+    * Implement game difficulty
   * Set other options
     * debug, range circles, etc
 * Multiple tower types
@@ -89,7 +89,7 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * More powerful creeps
   * Money generates over time
   * Power up towers
-* Base can shoot back
+* ~~Base can shoot back~~
 * Tower art
 * Creep art
 * ~~Multiple creep types~~

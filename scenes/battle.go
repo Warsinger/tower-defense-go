@@ -121,7 +121,7 @@ func (b *BattleScene) Update() error {
 	}
 
 	// update player separately from other entities to allow user interactions outside of speed controls
-	err := player.Update(pe)
+	err := player.UserSpeedUpdate(pe)
 	if err != nil {
 		return err
 	}
@@ -129,6 +129,11 @@ func (b *BattleScene) Update() error {
 	if b.speed != 0 && float32(b.tickCounter) > float32(ebiten.TPS())/float32(b.speed) {
 		b.tickCounter = 0
 		err := b.UpdateEntities()
+		if err != nil {
+			return err
+		}
+		// have player attack at game speed
+		err = player.GameSpeedUpdate(pe)
 		if err != nil {
 			return err
 		}
