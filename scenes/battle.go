@@ -60,6 +60,7 @@ func NewBattleScene(world donburi.World, width, height, speed, highScore int, de
 }
 
 func (b *BattleScene) Init() error {
+	b.Clear()
 	err := comp.NewPlayer(b.world)
 	if err != nil {
 		return err
