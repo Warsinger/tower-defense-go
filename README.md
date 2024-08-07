@@ -70,7 +70,7 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * ~~Restrict creep and tower spawn on existing objects or partially off the board~~
 * ~~Make player base more resilient~~
 * Creep bugs
-  * Fix positioning of creeps when they run into something to make sure they're right up against it
+  * ~~Fix positioning of creeps when they run into something to make sure they're right up against it~~
   * ~~Fix creeps on edge of base not attacking~~
   * Don't let creeps overlap each other, stack on top
 * Game screen options
