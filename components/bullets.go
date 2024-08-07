@@ -19,19 +19,19 @@ type BulletData struct {
 }
 
 type BulletRenderData struct {
-	size int
+	Size       int
+	R, G, B, A uint8
 }
 
 var Bullet = donburi.NewComponentType[BulletData]()
 var BulletRender = donburi.NewComponentType[BulletRenderData]()
-var ColorComponent = donburi.NewComponentType[color.RGBA]()
 
 var creepBulletColor = color.RGBA{255, 0, 0, 255}
 var towerBulletColor = color.RGBA{40, 255, 40, 255}
 
 func NewBullet(world donburi.World, start, end image.Point, speed int, creep bool) (*donburi.Entry, error) {
-	bulletEntity := world.Create(Bullet, Position, Velocity, Attack, BulletRender, ColorComponent)
-	err := srvsync.NetworkSync(world, &bulletEntity, Bullet, Position, Attack, BulletRender, ColorComponent)
+	bulletEntity := world.Create(Bullet, Position, Velocity, Attack, BulletRender)
+	err := srvsync.NetworkSync(world, &bulletEntity, Bullet, Position, Attack, BulletRender)
 	if err != nil {
 		return nil, err
 	}
@@ -49,11 +49,21 @@ func NewBullet(world donburi.World, start, end image.Point, speed int, creep boo
 		color = towerBulletColor
 		size = 4
 	}
-	BulletRender.Set(bullet, &BulletRenderData{size})
-	ColorComponent.Set(bullet, &color)
+	BulletRender.Set(bullet, NewBulletRender(size, color))
 	Attack.Set(bullet, &AttackData{Power: 1, AttackType: RangedSingle, Range: 1, Cooldown: 30})
 	Bullet.Set(bullet, &BulletData{start: start, end: end, speed: speed, creep: creep})
 	return bullet, nil
+}
+
+func NewBulletRender(size int, clr color.Color) *BulletRenderData {
+	brd := BulletRenderData{Size: size}
+	r, g, b, a := clr.RGBA()
+	brd.R, brd.G, brd.B, brd.A = uint8(r), uint8(g), uint8(b), uint8(a)
+	return &brd
+}
+
+func (brd *BulletRenderData) GetColor() color.Color {
+	return color.RGBA{brd.R, brd.G, brd.B, brd.A}
 }
 
 func (bd *BulletData) Update(entry *donburi.Entry) error {
@@ -91,8 +101,8 @@ func AfterBulletAttack(bulletEntry *donburi.Entry) {
 func (brd *BulletRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	pos := Position.Get(entry)
 	bullet := Bullet.Get(entry)
-	color := *ColorComponent.Get(entry)
-	vector.DrawFilledCircle(screen, float32(pos.X), float32(pos.Y), float32(brd.size), color, true)
+	color := brd.GetColor()
+	vector.DrawFilledCircle(screen, float32(pos.X), float32(pos.Y), float32(brd.Size), color, true)
 
 	config := config.GetConfig(entry.World)
 	if config.IsDebug() {
@@ -102,7 +112,7 @@ func (brd *BulletRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 
 func (brd *BulletRenderData) GetRect(entry *donburi.Entry) image.Rectangle {
 	pos := Position.Get(entry)
-	return image.Rect(pos.X, pos.Y, pos.X+brd.size, pos.Y+brd.size)
+	return image.Rect(pos.X, pos.Y, pos.X+brd.Size, pos.Y+brd.Size)
 }
 
 func (b *BulletData) IsCreep() bool {

@@ -13,14 +13,15 @@ import (
 
 type SpriteRenderData struct {
 	image *ebiten.Image
+	Name  string
 }
 
 var SpriteRender = donburi.NewComponentType[SpriteRenderData]()
 
 func (s *SpriteRenderData) GetImage(entry *donburi.Entry) *ebiten.Image {
 	if s.image == nil {
-		name := NameComponent.GetValue(entry)
-		s.image = assets.GetImage(string(name))
+		s.Name = string(NameComponent.GetValue(entry))
+		s.image = assets.GetImage(s.Name)
 	}
 	return s.image
 }

@@ -2,7 +2,6 @@ package scenes
 
 import (
 	"fmt"
-	"image/color"
 	"math/rand/v2"
 
 	"tower-defense/assets"
@@ -13,7 +12,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/filter"
 )
@@ -268,35 +266,7 @@ func (b *BattleScene) End() {
 }
 
 func (b *BattleScene) Draw(screen *ebiten.Image) {
-	screen.Clear()
-
-	img := assets.GetImage("backgroundV")
-	opts := &ebiten.DrawImageOptions{}
-	screen.DrawImage(img, opts)
-
-	if b.config.IsGridLines() {
-		size := screen.Bounds().Size()
-		cellSize := 10
-		for i := 0; i <= size.Y; i += cellSize {
-			vector.StrokeLine(screen, 0, float32(i), float32(size.X), float32(i), 1, color.White, true)
-		}
-		for i := 0; i <= size.X; i += cellSize {
-			vector.StrokeLine(screen, float32(i), 0, float32(i), float32(size.Y), 1, color.White, true)
-		}
-	}
-	// query for all entities
-	query := donburi.NewQuery(
-		filter.And(
-			filter.Contains(comp.Position),
-		),
-	)
-
-	// draw all entities
-	query.Each(b.world, func(entry *donburi.Entry) {
-		comp.DrawEntry(screen, entry)
-	})
-
-	b.DrawText(screen)
+	comp.DrawBoard(screen, b.world, b.config, b.DrawText)
 }
 
 func (b *BattleScene) DrawText(screen *ebiten.Image) {

@@ -17,9 +17,9 @@ import (
 )
 
 type PlayerData struct {
-	money int
-	score int
-	dead  bool
+	Money int
+	Score int
+	Dead  bool
 }
 type PlayerRenderData struct {
 }
@@ -39,7 +39,7 @@ func NewPlayer(world donburi.World) error {
 	board := Board.Get(be)
 
 	Position.Set(entry, &PositionData{X: 0, Y: board.Height - yBorderBottom})
-	Player.Set(entry, &PlayerData{money: 500})
+	Player.Set(entry, &PlayerData{Money: 500})
 	Health.Set(entry, NewHealthData(50))
 	name := Name("base")
 	NameComponent.Set(entry, &name)
@@ -60,12 +60,12 @@ const (
 )
 
 func (p *PlayerData) Update(entry *donburi.Entry) error {
-	if p.dead {
+	if p.Dead {
 		return nil
 	}
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButton0) {
 		cost := towerManager.GetCost("Ranged")
-		if p.money >= cost {
+		if p.Money >= cost {
 			x, y := ebiten.CursorPosition()
 			err := p.PlaceTower(entry.World, x, y)
 
@@ -77,11 +77,11 @@ func (p *PlayerData) Update(entry *donburi.Entry) error {
 					return err
 				}
 			} else {
-				p.money -= cost
+				p.Money -= cost
 			}
 		} else {
 			// TODO move into place tower
-			fmt.Printf("Not enough money for tower cost %v, remaining %v\n", cost, p.money)
+			fmt.Printf("Not enough money for tower cost %v, remaining %v\n", cost, p.Money)
 			assets.PlaySound("invalid2")
 		}
 	}
@@ -119,22 +119,22 @@ func (p *PlayerData) PlaceTower(world donburi.World, x, y int) error {
 }
 
 func (p *PlayerData) IsDead() bool {
-	return p.dead
+	return p.Dead
 }
 func (p *PlayerData) GetMoney() int {
-	return p.money
+	return p.Money
 }
 func (p *PlayerData) AddMoney(money int) {
-	p.money += money
+	p.Money += money
 }
 
 func (p *PlayerData) Kill() {
-	p.dead = true
+	p.Dead = true
 }
 
 func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	p := Player.Get(entry)
-	if p.dead {
+	if p.Dead {
 		rect := GetRect(entry)
 		vector.StrokeLine(screen, float32(rect.Min.X), float32(rect.Min.Y), float32(rect.Max.X), float32(rect.Max.Y), 3, color.RGBA{255, 0, 0, 255}, true)
 		vector.StrokeLine(screen, float32(rect.Max.X), float32(rect.Min.Y), float32(rect.Min.X), float32(rect.Max.Y), 3, color.RGBA{255, 0, 0, 255}, true)
@@ -150,7 +150,7 @@ func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	be := Board.MustFirst(entry.World)
 	board := Board.Get(be)
 	halfWidth, _ := float64(board.Width/2), float64(board.Height/2)
-	str = fmt.Sprintf("SCORE %05d", p.score)
+	str = fmt.Sprintf("SCORE %05d", p.Score)
 	op = &text.DrawOptions{}
 	x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
 	op.GeoM.Translate(halfWidth-x/2, TextBorder+y)
@@ -158,8 +158,8 @@ func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 }
 
 func (p *PlayerData) GetScore() int {
-	return p.score
+	return p.Score
 }
 func (p *PlayerData) AddScore(score int) {
-	p.score += score
+	p.Score += score
 }

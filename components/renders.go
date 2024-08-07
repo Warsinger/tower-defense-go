@@ -1,6 +1,7 @@
 package components
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"image/color"
@@ -8,29 +9,17 @@ import (
 	"tower-defense/config"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/yohamta/donburi"
+	"github.com/yohamta/donburi/features/debug"
 	"github.com/yohamta/donburi/filter"
 )
 
-// Component is any struct that holds some kind of data.
-type PositionData struct {
-	X, Y int
-}
-
-type VelocityData struct {
-	X, Y    int
-	blocked bool
-}
-
 type InfoRenderData struct {
 }
-type Name string
 
-var Position = donburi.NewComponentType[PositionData]()
-var Velocity = donburi.NewComponentType[VelocityData]()
-var NameComponent = donburi.NewComponentType[Name]()
 var InfoRender = donburi.NewComponentType[InfoRenderData]()
 
 func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
@@ -73,30 +62,24 @@ func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	}
 }
 
-func DetectCollisions(world donburi.World, rect image.Rectangle, excludeFilter filter.LayoutFilter) *donburi.Entry {
-	var collision *donburi.Entry = nil
-	query := donburi.NewQuery(
-		filter.And(
-			filter.Contains(SpriteRender, Position),
-			filter.Not(excludeFilter),
-		),
-	)
-
-	query.Each(world, func(testEntry *donburi.Entry) {
-		if collision == nil {
-			testRect := GetRect(testEntry)
-			if rect.Overlaps(testRect) {
-				collision = testEntry
-			}
-		}
-	})
-	return collision
+func DrawGridLines(screen *ebiten.Image) {
+	size := screen.Bounds().Size()
+	cellSize := 10
+	for i := 0; i <= size.Y; i += cellSize {
+		vector.StrokeLine(screen, 0, float32(i), float32(size.X), float32(i), 1, color.White, true)
+	}
+	for i := 0; i <= size.X; i += cellSize {
+		vector.StrokeLine(screen, float32(i), 0, float32(i), float32(size.Y), 1, color.White, true)
+	}
 }
 
-func DrawEntry(screen *ebiten.Image, entry *donburi.Entry) {
+func DrawEntry(screen *ebiten.Image, entry *donburi.Entry, debug bool) {
 	if entry.HasComponent(SpriteRender) {
 		render := SpriteRender.Get(entry)
 		render.Draw(screen, entry)
+		if debug {
+			ebitenutil.DebugPrintAt(screen, render.Name, GetRect(entry).Min.X, GetRect(entry).Min.Y-10)
+		}
 	}
 	if entry.HasComponent(InfoRender) {
 		info := InfoRender.Get(entry)
@@ -111,8 +94,8 @@ func DrawEntry(screen *ebiten.Image, entry *donburi.Entry) {
 		playerRender.Draw(screen, entry)
 	}
 	if entry.HasComponent(BulletRender) {
-		projectileRender := BulletRender.Get(entry)
-		projectileRender.Draw(screen, entry)
+		bulletRender := BulletRender.Get(entry)
+		bulletRender.Draw(screen, entry)
 	}
 }
 
@@ -125,4 +108,44 @@ func GetRect(entry *donburi.Entry) image.Rectangle {
 		return render.GetRect(entry)
 	}
 	panic("GetRect() unimplemented for entry without SpriteRender or BulletRender component")
+}
+
+func DrawBoard(image *ebiten.Image, world donburi.World, config *config.ConfigData, drawText func(*ebiten.Image)) {
+	image.Clear()
+
+	background := assets.GetImage("backgroundV")
+	opts := &ebiten.DrawImageOptions{}
+	image.DrawImage(background, opts)
+
+	DebugPrint(image, world, config)
+
+	if config.IsGridLines() {
+		DrawGridLines(image)
+	}
+
+	query := donburi.NewQuery(filter.Contains(Position))
+
+	query.Each(world, func(entry *donburi.Entry) {
+		DrawEntry(image, entry, config.IsDebug())
+	})
+
+	if drawText != nil {
+		drawText(image)
+	}
+}
+
+func DebugPrint(image *ebiten.Image, world donburi.World, config *config.ConfigData) {
+	if !config.IsDebug() {
+		return
+	}
+	var out bytes.Buffer
+	out.WriteString("Entity Counts:\n")
+	for _, c := range debug.GetEntityCounts(world) {
+		out.WriteString(c.String())
+		out.WriteString("\n")
+	}
+	out.WriteString("\n")
+	msg := fmt.Sprint(out.String())
+
+	ebitenutil.DebugPrint(image, msg)
 }

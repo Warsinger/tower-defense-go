@@ -1,7 +1,6 @@
 package network
 
 import (
-	"image/color"
 	comp "tower-defense/components"
 
 	"github.com/leap-fish/necs/esync"
@@ -22,5 +21,4 @@ func RegisterComponenets() {
 	_ = esync.RegisterComponent(21, comp.InfoRenderData{}, comp.InfoRender)
 	_ = esync.RegisterComponent(22, comp.BulletRenderData{}, comp.BulletRender)
 	_ = esync.RegisterComponent(23, comp.Name(""), comp.NameComponent)
-	_ = esync.RegisterComponent(24, color.White, comp.ColorComponent)
 }
