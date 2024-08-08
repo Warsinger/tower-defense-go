@@ -158,13 +158,18 @@ func (b *BattleScene) UpdateEntities() error {
 		),
 	)
 	var err error = nil
+	entries := make([]*donburi.Entry, 0, query.Count(b.world))
 	// update all entities
 	query.Each(b.world, func(entry *donburi.Entry) {
+		entries = append(entries, entry)
+	})
+
+	for _, entry := range entries {
 		if entry.HasComponent(comp.Creep) {
 			creep := comp.Creep.Get(entry)
 			err = creep.Update(entry)
 			if err != nil {
-				return
+				return err
 			}
 
 		}
@@ -172,7 +177,7 @@ func (b *BattleScene) UpdateEntities() error {
 			tower := comp.Tower.Get(entry)
 			err = tower.Update(entry)
 			if err != nil {
-				return
+				return err
 			}
 
 		}
@@ -181,10 +186,10 @@ func (b *BattleScene) UpdateEntities() error {
 			b := comp.Bullet.Get(entry)
 			err = b.Update(entry)
 			if err != nil {
-				return
+				return err
 			}
 		}
-	})
+	}
 	// if the player's health drops to 0 then it is dead and the game is over
 	pe := comp.Player.MustFirst(b.world)
 	player := comp.Player.Get(pe)

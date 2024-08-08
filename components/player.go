@@ -150,7 +150,7 @@ func (p *PlayerData) PlaceTower(world donburi.World, x, y int) error {
 		message := fmt.Sprintf("Invalid tower location %v, %v, image out of bounds", x, y)
 		return &PlacementError{message}
 	} else {
-		collision := DetectCollisions(world, rect, filter.Contains(Player))
+		collision := DetectCollisionsWorld(world, rect, filter.Contains(Player))
 		if collision != nil {
 			assets.PlaySound("invalid2")
 			message := fmt.Sprintf("Invalid tower location %v, %v, collision with entity collision", x, y)

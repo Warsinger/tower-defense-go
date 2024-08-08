@@ -58,7 +58,7 @@ func (c *CreepData) Update(entry *donburi.Entry) error {
 
 	// HACK: Creep must be in the exclusion filter, this allows creeps to overlap other creeps
 	// but if we don't filter here we deadlock when we get to the entity itself since we're already inside a query for creeps
-	collision := DetectCollisions(entry.World, rect, util.CreateOrFilter(Creep, Bullet))
+	collision := DetectCollisionsEntry(entry, rect, util.CreateOrFilter(Bullet))
 	if collision == nil {
 		pos.X += newPt.X
 		pos.Y += newPt.Y
