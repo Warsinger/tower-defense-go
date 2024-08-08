@@ -2,6 +2,7 @@ package network
 
 import (
 	comp "tower-defense/components"
+	"tower-defense/scenes"
 
 	"github.com/leap-fish/necs/esync"
 )
@@ -21,4 +22,5 @@ func RegisterComponenets() {
 	_ = esync.RegisterComponent(21, comp.InfoRenderData{}, comp.InfoRender)
 	_ = esync.RegisterComponent(22, comp.BulletRenderData{}, comp.BulletRender)
 	_ = esync.RegisterComponent(23, comp.LevelData{}, comp.Level)
+	_ = esync.RegisterComponent(24, scenes.BattleSceneState{}, scenes.BattleState)
 }

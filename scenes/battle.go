@@ -12,14 +12,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/leap-fish/necs/esync/srvsync"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/filter"
 )
 
 type BattleScene struct {
 	world           donburi.World
-	gameOver        bool
-	paused          bool
 	highScore       int
 	width           int
 	height          int
@@ -27,8 +26,16 @@ type BattleScene struct {
 	creepTimer      int
 	tickCounter     int
 	config          *config.ConfigData
+	battleState     *BattleSceneState
 	endGameCallback func(int) error
 }
+
+type BattleSceneState struct {
+	GameOver bool
+	Paused   bool
+}
+
+var BattleState = donburi.NewComponentType[BattleSceneState]()
 
 const minSpeed = 0
 const maxSpeed = 60
@@ -40,6 +47,7 @@ func NewBattleScene(world donburi.World, width, height, speed, highScore int, de
 	if err != nil {
 		return nil, err
 	}
+	bss := &BattleSceneState{}
 
 	if speed < minSpeed {
 		speed = max(1, minSpeed)
@@ -55,13 +63,22 @@ func NewBattleScene(world donburi.World, width, height, speed, highScore int, de
 		speed:           speed,
 		creepTimer:      maxCreepTimer - startCreepTimer,
 		config:          config.NewConfig(world, debug),
+		battleState:     bss,
 		endGameCallback: endGameCallback,
 	}, nil
 }
 
 func (b *BattleScene) Init() error {
 	b.Clear()
-	err := comp.NewPlayer(b.world)
+
+	entity := b.world.Create(BattleState)
+	err := srvsync.NetworkSync(b.world, &entity, BattleState)
+	if err != nil {
+		return err
+	}
+	BattleState.Set(b.world.Entry(entity), b.battleState)
+
+	err = comp.NewPlayer(b.world)
 	if err != nil {
 		return err
 	}
@@ -70,8 +87,8 @@ func (b *BattleScene) Init() error {
 }
 
 func (b *BattleScene) Clear() error {
-	b.gameOver = false
-	b.paused = false
+	b.battleState.GameOver = false
+	b.battleState.Paused = false
 	b.creepTimer = maxCreepTimer - startCreepTimer
 	b.tickCounter = 0
 
@@ -80,6 +97,7 @@ func (b *BattleScene) Clear() error {
 		filter.Contains(comp.Player),
 		filter.Contains(comp.Tower),
 		filter.Contains(comp.Creep),
+		filter.Contains(BattleState),
 	))
 	query.Each(b.world, func(e *donburi.Entry) {
 		e.Remove()
@@ -95,7 +113,7 @@ func (b *BattleScene) Update() error {
 		b.endGameCallback(player.GetScore())
 	}
 
-	if b.gameOver {
+	if b.battleState.GameOver {
 		return nil
 	}
 
@@ -113,10 +131,10 @@ func (b *BattleScene) Update() error {
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyP) || inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		b.paused = !b.paused
+		b.battleState.Paused = !b.battleState.Paused
 	}
 
-	if b.paused {
+	if b.battleState.Paused {
 		return nil
 	}
 
@@ -255,7 +273,7 @@ func (b *BattleScene) SpawnCreeps(creepLevel int) error {
 
 func (b *BattleScene) End() {
 	assets.PlaySound("killed")
-	b.gameOver = true
+	b.battleState.GameOver = true
 }
 
 func (b *BattleScene) Draw(screen *ebiten.Image) {
@@ -274,7 +292,16 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 	op.GeoM.Translate(float64(board.Width)-x-comp.TextBorder, comp.TextBorder)
 	text.Draw(screen, str, assets.ScoreFace, op)
 
-	if b.gameOver {
+	b.battleState.Draw(screen, halfWidth, halfHeight)
+
+	if b.config.IsDebug() {
+		str := fmt.Sprintf("Speed %v\nTPS %2.1f", b.speed, ebiten.ActualTPS())
+		ebitenutil.DebugPrintAt(screen, str, 5, 50)
+	}
+}
+
+func (bss *BattleSceneState) Draw(screen *ebiten.Image, halfWidth, halfHeight float64) {
+	if bss.GameOver {
 		// draw game over
 		str := "GAME OVER"
 		op := &text.DrawOptions{}
@@ -286,18 +313,12 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 		x, _ = text.Measure(str, assets.InfoFace, op.LineSpacing)
 		op.GeoM.Translate(halfWidth-x/2, halfHeight+y/2)
 		text.Draw(screen, str, assets.InfoFace, op)
-
-	} else if b.paused {
+	} else if bss.Paused {
 		// draw paused
 		str := "PAUSED"
 		op := &text.DrawOptions{}
 		x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
 		op.GeoM.Translate(halfWidth-x/2, halfHeight-y/2)
 		text.Draw(screen, str, assets.ScoreFace, op)
-	}
-
-	if b.config.IsDebug() {
-		str := fmt.Sprintf("Speed %v\nTPS %2.1f", b.speed, ebiten.ActualTPS())
-		ebitenutil.DebugPrintAt(screen, str, 5, 50)
 	}
 }

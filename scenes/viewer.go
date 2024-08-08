@@ -67,4 +67,10 @@ func (v *ViewerScene) DrawText(image *ebiten.Image) {
 	x, _ := text.Measure(str, assets.ScoreFace, op.LineSpacing)
 	op.GeoM.Translate(float64(v.width)-x-comp.TextBorder, comp.TextBorder)
 	text.Draw(image, str, assets.InfoFace, op)
+
+	bssEntry, ok := BattleState.First(v.world)
+	if ok {
+		bss := BattleState.Get(bssEntry)
+		bss.Draw(image, float64(v.width)/2, float64(v.height)/2)
+	}
 }
