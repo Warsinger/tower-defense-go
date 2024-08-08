@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"math"
 
 	"tower-defense/assets"
 
@@ -17,9 +18,10 @@ import (
 )
 
 type PlayerData struct {
-	Money int
-	Score int
-	Dead  bool
+	Money       int
+	Score       int
+	Dead        bool
+	TowerLevels int
 }
 type PlayerRenderData struct {
 }
@@ -111,6 +113,7 @@ func (p *PlayerData) UserSpeedUpdate(entry *donburi.Entry) error {
 				tower := Tower.Get(towerEntry)
 				if tower.Upgrade(towerEntry) {
 					p.Money -= cost
+					p.TowerLevels++
 				}
 			} else {
 				fmt.Printf("Not enough money to upgrade tower cost %v, remaining %v\n", cost, p.Money)
@@ -171,16 +174,20 @@ func (p *PlayerData) Kill() {
 	p.Dead = true
 }
 
-func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
-	p := Player.Get(entry)
-	if p.Dead {
+func (player *PlayerData) GetCreepLevel() int {
+	return int(math.Trunc(float64(player.TowerLevels)/7)) + 1
+}
+
+func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry, debug bool) {
+	player := Player.Get(entry)
+	if player.Dead {
 		rect := GetRect(entry)
 		vector.StrokeLine(screen, float32(rect.Min.X), float32(rect.Min.Y), float32(rect.Max.X), float32(rect.Max.Y), 3, color.RGBA{255, 0, 0, 255}, true)
 		vector.StrokeLine(screen, float32(rect.Max.X), float32(rect.Min.Y), float32(rect.Min.X), float32(rect.Max.Y), 3, color.RGBA{255, 0, 0, 255}, true)
 	}
 
 	// draw player money
-	str := fmt.Sprintf("$ %d", p.GetMoney())
+	str := fmt.Sprintf("$ %d", player.GetMoney())
 	op := &text.DrawOptions{}
 	op.GeoM.Translate(TextBorder, TextBorder)
 	text.Draw(screen, str, assets.ScoreFace, op)
@@ -189,10 +196,19 @@ func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	be := Board.MustFirst(entry.World)
 	board := Board.Get(be)
 	halfWidth, _ := float64(board.Width/2), float64(board.Height/2)
-	str = fmt.Sprintf("SCORE %05d", p.Score)
+	str = fmt.Sprintf("SCORE %05d", player.Score)
 	op = &text.DrawOptions{}
 	x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
 	op.GeoM.Translate(halfWidth-x/2, TextBorder+y)
+	text.Draw(screen, str, assets.ScoreFace, op)
+
+	str = fmt.Sprintf("Creep Level %d", player.GetCreepLevel())
+	if debug {
+		str = fmt.Sprintf("%s (%d)", str, player.TowerLevels)
+	}
+	op = &text.DrawOptions{}
+	x, _ = text.Measure(str, assets.ScoreFace, op.LineSpacing)
+	op.GeoM.Translate(halfWidth-x/2, TextBorder)
 	text.Draw(screen, str, assets.ScoreFace, op)
 }
 

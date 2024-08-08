@@ -108,7 +108,7 @@ func DrawEntry(screen *ebiten.Image, entry *donburi.Entry, debug bool) {
 	}
 	if entry.HasComponent(PlayerRender) {
 		playerRender := PlayerRender.Get(entry)
-		playerRender.Draw(screen, entry)
+		playerRender.Draw(screen, entry, debug)
 	}
 	if entry.HasComponent(BulletRender) {
 		bulletRender := BulletRender.Get(entry)

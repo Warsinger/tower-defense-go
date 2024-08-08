@@ -196,14 +196,14 @@ func (b *BattleScene) UpdateEntities() error {
 
 	b.creepTimer++
 	if b.creepTimer >= maxCreepTimer {
-		b.SpawnCreeps()
+		b.SpawnCreeps(player.GetCreepLevel())
 		b.creepTimer = 0
 	}
 
 	return err
 }
 
-func (b *BattleScene) SpawnCreeps() error {
+func (b *BattleScene) SpawnCreeps(creepLevel int) error {
 	const spawn2Chance = 0.7
 	const spawn3Chance = 0.25
 	const spawn4Chance = 0.1
@@ -247,7 +247,7 @@ func (b *BattleScene) SpawnCreeps() error {
 		} else if x > board.Width-comp.SpawnBorder {
 			x = board.Width - comp.SpawnBorder
 		}
-		_, err := comp.NewCreep(b.world, x, y)
+		_, err := comp.NewCreep(b.world, x, y, creepLevel)
 		if err != nil {
 			return err
 		}
