@@ -17,11 +17,8 @@ type VelocityData struct {
 	blocked bool
 }
 
-type Name string
-
 var Position = donburi.NewComponentType[PositionData]()
 var Velocity = donburi.NewComponentType[VelocityData]()
-var NameComponent = donburi.NewComponentType[Name]()
 
 func DetectCollisionsEntry(entry *donburi.Entry, rect image.Rectangle, excludeFilter filter.LayoutFilter) *donburi.Entry {
 	var collision *donburi.Entry = nil

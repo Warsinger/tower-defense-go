@@ -17,30 +17,29 @@ var Tower = donburi.NewComponentType[TowerData]()
 type CostList map[string]int
 
 type TowerManagerData struct {
+	costList CostList
 }
 
-var costList = CostList{"Melee": 50, "Ranged": 50}
+var towerManager = &TowerManagerData{costList: CostList{"Melee": 50, "Ranged": 50}}
 
 func (tm *TowerManagerData) GetCostList() CostList {
-	return costList
+	return tm.costList
 }
 
 func (tm *TowerManagerData) GetCost(name string) int {
-	return costList[name]
+	return tm.costList[name]
 }
 func (tm *TowerManagerData) GetHealCost(name string) int {
-	return costList[name] / 2
+	return tm.costList[name] / 2
 }
 
 func (tm *TowerManagerData) GetUpgradeCost(name string) int {
-	return costList[name]
+	return tm.costList[name]
 }
 
-var towerManager = &TowerManagerData{}
-
 func NewTower(world donburi.World, x, y int) error {
-	towerEntity := world.Create(Tower, Position, Health, Attack, Level, SpriteRender, RangeRender, InfoRender, NameComponent)
-	err := srvsync.NetworkSync(world, &towerEntity, Tower, Position, Health, Attack, Level, SpriteRender, RangeRender, InfoRender, NameComponent)
+	towerEntity := world.Create(Tower, Position, Health, Attack, Level, SpriteRender, RangeRender, InfoRender)
+	err := srvsync.NetworkSync(world, &towerEntity, Tower, Position, Health, Attack, Level, SpriteRender, RangeRender, InfoRender)
 	if err != nil {
 		return err
 	}
@@ -50,9 +49,7 @@ func NewTower(world donburi.World, x, y int) error {
 	Health.Set(tower, NewHealthData(20))
 	Attack.Set(tower, &AttackData{Power: 1, AttackType: RangedSingle, Range: 50, Cooldown: 30})
 	Level.Set(tower, &LevelData{Level: 1})
-	name := Name("tower")
-	NameComponent.Set(tower, &name)
-	SpriteRender.Set(tower, &SpriteRenderData{})
+	SpriteRender.Set(tower, &SpriteRenderData{Name: "tower"})
 	RangeRender.Set(tower, &RangeRenderData{})
 	InfoRender.Set(tower, &InfoRenderData{})
 	return nil

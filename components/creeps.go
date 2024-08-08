@@ -18,8 +18,8 @@ type CreepData struct {
 var Creep = donburi.NewComponentType[CreepData]()
 
 func NewCreep(world donburi.World, x, y, creepLevel int) (*donburi.Entry, error) {
-	entity := world.Create(Creep, Position, Velocity, Health, Attack, SpriteRender, RangeRender, InfoRender, NameComponent)
-	err := srvsync.NetworkSync(world, &entity, Creep, Position, Health, Attack, SpriteRender, RangeRender, InfoRender, NameComponent)
+	entity := world.Create(Creep, Position, Velocity, Health, Attack, SpriteRender, RangeRender, InfoRender)
+	err := srvsync.NetworkSync(world, &entity, Creep, Position, Health, Attack, SpriteRender, RangeRender, InfoRender)
 	if err != nil {
 		return nil, err
 	}
@@ -36,12 +36,11 @@ func NewCreep(world donburi.World, x, y, creepLevel int) (*donburi.Entry, error)
 		choose += rand.IntN(3)
 	}
 	Velocity.Set(creep, &VelocityData{X: 0, Y: 5 - augment + creepLevel/2})
-	name := Name(fmt.Sprintf("creep%v", choose))
-	NameComponent.Set(creep, &name)
+	name := fmt.Sprintf("creep%v", choose)
 	Creep.Set(creep, &CreepData{scoreValue: 10 * augment})
 	Health.Set(creep, NewHealthData(1+2*augment+creepLevel/4))
 	Attack.Set(creep, &AttackData{Power: 2 + 2*augment, AttackType: RangedSingle, Range: 10 + 10*augment, Cooldown: 5 + 5*augment})
-	SpriteRender.Set(creep, &SpriteRenderData{})
+	SpriteRender.Set(creep, &SpriteRenderData{Name: name})
 	RangeRender.Set(creep, &RangeRenderData{})
 	InfoRender.Set(creep, &InfoRenderData{})
 	return creep, nil

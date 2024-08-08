@@ -20,5 +20,5 @@ func RegisterComponenets() {
 	_ = esync.RegisterComponent(20, comp.RangeRenderData{}, comp.RangeRender)
 	_ = esync.RegisterComponent(21, comp.InfoRenderData{}, comp.InfoRender)
 	_ = esync.RegisterComponent(22, comp.BulletRenderData{}, comp.BulletRender)
-	_ = esync.RegisterComponent(23, comp.Name(""), comp.NameComponent)
+	_ = esync.RegisterComponent(23, comp.LevelData{}, comp.Level)
 }

@@ -20,7 +20,6 @@ var SpriteRender = donburi.NewComponentType[SpriteRenderData]()
 
 func (s *SpriteRenderData) GetImage(entry *donburi.Entry) *ebiten.Image {
 	if s.image == nil {
-		s.Name = string(NameComponent.GetValue(entry))
 		s.image = assets.GetImage(s.Name)
 	}
 	return s.image
