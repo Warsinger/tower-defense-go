@@ -224,29 +224,12 @@ func (b *BattleScene) SpawnCreeps(creepLevel int) error {
 	} else if val < spawn2Chance {
 		count = 2
 	}
-
-	// xs := make([]int, count-1)
 	for i := 0; i < count; i++ {
 		be := comp.Board.MustFirst(b.world)
 		board := comp.Board.Get(be)
 
 		x := rand.IntN(board.Width/count) + board.Width/count*(i)
-		// if count > 1 {
-		// 	fmt.Printf()
-		// }
 		y := comp.SpawnBorder
-		// TODO prevent from spawning from close to segment borders when another spawns there
-		// const creepSpread = 60
-		// for j:=0; j< len(xs); j++ {
-		// 	spread:=x - xs[j];
-		// 	if (util.Abs(spread) < creepSpread) {
-		// 		if (spread < 0 ) {
-		// 			x -= creepSpread
-		// 		} else {
-		// 			x += creepSpread
-		// 		}
-		// 	}
-		// }
 		if x < comp.SpawnBorder {
 			x = comp.SpawnBorder
 		} else if x > board.Width-comp.SpawnBorder {
@@ -259,17 +242,6 @@ func (b *BattleScene) SpawnCreeps(creepLevel int) error {
 	}
 	return nil
 }
-
-// func adjustPosition(entry *donburi.Entry, board *comp.BoardInfo) {
-// 	collision:= comp.DetectCollisions(entry.World, comp.GetRect(entry), filter.Contains(comp.Bullet))
-
-// 		pos:= comp.Position.Get(entry)
-// 		posCollision := comp.Position.Get(collision)
-// 		if (pos.x < pos.collision) {
-// 			pos.x -= comp.Render.Get(entry)
-// 		}
-// 	}
-// }
 
 func (b *BattleScene) End() {
 	assets.PlaySound("killed")
