@@ -208,22 +208,32 @@ func (b *BattleScene) UpdateEntities() error {
 	return err
 }
 
+type creeepSpawnChance struct {
+	count  int
+	chance float32
+}
+
 func (b *BattleScene) SpawnCreeps(creepLevel int) error {
-	const spawn2Chance = 0.7
-	const spawn3Chance = 0.25
-	const spawn4Chance = 0.1
-	const spawn5Chance = 0.05
+	levelBump := float32(creepLevel) / 20
+
+	spawnChance := []creeepSpawnChance{
+		{8, -0.4},
+		{7, -0.25},
+		{6, -0.1},
+		{5, 0.1},
+		{4, .25},
+		{3, 0.5},
+		{2, 0.7}}
+
+	val := rand.Float32() - levelBump
 	var count = 1
-	val := rand.Float32()
-	if val < spawn5Chance {
-		count = 5
-	} else if val < spawn4Chance {
-		count = 4
-	} else if val < spawn3Chance {
-		count = 3
-	} else if val < spawn2Chance {
-		count = 2
+	for _, spawnChance := range spawnChance {
+		if val < spawnChance.chance {
+			count = spawnChance.count
+			break
+		}
 	}
+
 	for i := 0; i < count; i++ {
 		be := comp.Board.MustFirst(b.world)
 		board := comp.Board.Get(be)
