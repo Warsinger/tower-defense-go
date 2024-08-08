@@ -85,6 +85,8 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * Blocking only
   * Bigger vs smaller
   * Upgradeable
+  * Bullets slow creeps
+  * Refresh tower health for % of initial cost
 * Levels
   * More powerful creeps
   * Money generates over time

@@ -64,7 +64,7 @@ func (p *PlayerData) UserSpeedUpdate(entry *donburi.Entry) error {
 	if p.Dead {
 		return nil
 	}
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButton0) {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		cost := towerManager.GetCost("Ranged")
 		if p.Money >= cost {
 			x, y := ebiten.CursorPosition()
@@ -85,10 +85,43 @@ func (p *PlayerData) UserSpeedUpdate(entry *donburi.Entry) error {
 			fmt.Printf("Not enough money for tower cost %v, remaining %v\n", cost, p.Money)
 			assets.PlaySound("invalid2")
 		}
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyH) {
+		// find tower below the click and heal it if we have enough money
+		x, y := ebiten.CursorPosition()
+		towerEntry := findTower(entry.World, x, y)
+		if towerEntry != nil {
+			cost := towerManager.GetHealCost("Ranged")
+			if p.Money >= cost {
+				tower := Tower.Get(towerEntry)
+				if tower.Heal(towerEntry) {
+					p.Money -= cost
+				}
+			} else {
+				fmt.Printf("Not enough money to upgrade tower cost %v, remaining %v\n", cost, p.Money)
+				assets.PlaySound("invalid2")
+			}
+		}
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyU) {
+		// find tower below the click and upgrade it if we have enough money
+		x, y := ebiten.CursorPosition()
+		towerEntry := findTower(entry.World, x, y)
+		if towerEntry != nil {
+			cost := towerManager.GetUpgradeCost("Ranged")
+			if p.Money >= cost {
+				tower := Tower.Get(towerEntry)
+				if tower.Upgrade(towerEntry) {
+					p.Money -= cost
+				}
+			} else {
+				fmt.Printf("Not enough money to upgrade tower cost %v, remaining %v\n", cost, p.Money)
+				assets.PlaySound("invalid2")
+			}
+		}
 	}
 
 	return nil
 }
+
 func (p *PlayerData) GameSpeedUpdate(entry *donburi.Entry) error {
 	a := Attack.Get(entry)
 	a.AttackEnemyRange(entry, nil, Creep)

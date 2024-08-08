@@ -37,8 +37,16 @@ func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 		percentHealth := float32(health.Health) / float32(health.MaxHealth)
 		// draw a green filled rect with health below entity the height of the text
 		const barHeight = 4
-		vector.StrokeRect(screen, float32(rect.Min.X), float32(rect.Max.Y), float32(rect.Dx()), barHeight, 1, color.RGBA{0, 255, 0, 255}, true)
-		vector.DrawFilledRect(screen, float32(rect.Min.X), float32(rect.Max.Y), float32(rect.Dx())*percentHealth, barHeight, color.RGBA{0, 255, 0, 255}, true)
+		var clr color.Color
+		if percentHealth >= 0.5 {
+			clr = color.RGBA{0, 255, 0, 255}
+		} else if percentHealth >= 0.25 {
+			clr = color.RGBA{255, 255, 0, 255}
+		} else {
+			clr = color.RGBA{255, 0, 0, 255}
+		}
+		vector.StrokeRect(screen, float32(rect.Min.X), float32(rect.Max.Y), float32(rect.Dx()), barHeight, 1, clr, true)
+		vector.DrawFilledRect(screen, float32(rect.Min.X), float32(rect.Max.Y), float32(rect.Dx())*percentHealth, barHeight, clr, true)
 
 		op.GeoM.Translate(float64(rect.Min.X)+(float64(rect.Dx())-textWidth)/2, float64(rect.Max.Y+barHeight))
 		text.Draw(screen, str, assets.InfoFace, op)
@@ -47,13 +55,13 @@ func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	config := config.GetConfig(entry.World)
 	if config.IsDebug() {
 		if entry.HasComponent(Attack) {
-			// draw cooldown info centered below the health
+			// draw power & cooldown info centered below the health
 			attack := Attack.Get(entry)
 			var cd int = 0
 			if attack.inCooldown {
 				cd = attack.Cooldown - attack.GetTicker()
 			}
-			str := fmt.Sprintf("CD %d", cd)
+			str := fmt.Sprintf("%d/CD %d", attack.Power, cd)
 			op := &text.DrawOptions{}
 			textWidth, _ = text.Measure(str, assets.InfoFace, op.LineSpacing)
 			op.GeoM.Translate(float64(rect.Min.X)+(float64(rect.Dx())-textWidth)/2, float64(rect.Max.Y)+textHeight)
