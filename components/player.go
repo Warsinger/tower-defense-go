@@ -175,7 +175,7 @@ func (p *PlayerData) Kill() {
 }
 
 func (player *PlayerData) GetCreepLevel() int {
-	return int(math.Trunc(float64(player.TowerLevels)/7)) + 1
+	return int(math.Trunc(float64(player.TowerLevels)/5)) + 1
 }
 
 func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry, debug bool) {
