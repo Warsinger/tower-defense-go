@@ -79,8 +79,8 @@ const maxLevel = 5
 
 func (t *TowerData) Upgrade(entry *donburi.Entry) bool {
 	level := Level.Get(entry)
-	if level.Level+1 >= maxLevel {
-		fmt.Printf("Tower is max level %v\n", maxLevel)
+	if level.Level >= maxLevel {
+		fmt.Printf("Tower is max level %v\n", level.Level)
 		return false
 	}
 	level.Level++
