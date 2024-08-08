@@ -50,18 +50,25 @@ func NewCreep(world donburi.World, x, y, creepLevel int) (*donburi.Entry, error)
 func (c *CreepData) Update(entry *donburi.Entry) error {
 	pos := Position.Get(entry)
 	v := Velocity.Get(entry)
-	// check whether there are any collisions in the new spot
 
+	// check whether there are any collisions in the new spot
 	newPt := image.Pt(v.X, v.Y)
 	rect := GetRect(entry)
 	rect = rect.Add(newPt)
 
-	// HACK: Creep must be in the exclusion filter, this allows creeps to overlap other creeps
-	// but if we don't filter here we deadlock when we get to the entity itself since we're already inside a query for creeps
 	collision := DetectCollisionsEntry(entry, rect, util.CreateOrFilter(Bullet))
 	if collision == nil {
 		pos.X += newPt.X
 		pos.Y += newPt.Y
+	} else if collision.HasComponent(Creep) {
+		// creep collides with another creep, so let it move a little to the side
+		collRect := GetRect(collision)
+
+		if rect.Min.X <= collRect.Min.X {
+			pos.X = collRect.Min.X - rect.Dx()
+		} else if rect.Max.X > collRect.Max.X {
+			pos.X = collRect.Max.X + 1
+		}
 	}
 	// TODO allow creeps to move sideways around the tower? (if so don't allow for player)
 	v.blocked = collision != nil
