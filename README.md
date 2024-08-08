@@ -72,9 +72,9 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 * Creep bugs
   * ~~Fix positioning of creeps when they run into something to make sure they're right up against it~~
   * ~~Fix creeps on edge of base not attacking~~
-  * Don't let creeps overlap each other, stack on top
+  * ~~Don't let creeps overlap each other, stack on top~~
 * Game screen options
-  * Press some key to start
+  * ~~Press some key to start~~
   * Choose options for game difficulty
     * Implement game difficulty
   * Set other options
