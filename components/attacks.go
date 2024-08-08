@@ -36,11 +36,16 @@ type AttackData struct {
 	noLead     bool
 }
 
+type LevelData struct {
+	Level int
+}
+
 type RangeRenderData struct {
 }
 
 var Attack = donburi.NewComponentType[AttackData]()
 var Health = donburi.NewComponentType[HealthData]()
+var Level = donburi.NewComponentType[LevelData]()
 var RangeRender = donburi.NewComponentType[RangeRenderData]()
 
 func NewHealthData(health int) *HealthData {

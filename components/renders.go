@@ -52,6 +52,15 @@ func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 		text.Draw(screen, str, assets.InfoFace, op)
 	}
 
+	if entry.HasComponent(Level) {
+		// draw blue dots along the side of the entity for each level
+		level := Level.Get(entry)
+		const size = 3
+		for i := 1; i <= level.Level; i++ {
+			vector.DrawFilledCircle(screen, float32(rect.Min.X)+1, float32(rect.Min.Y)+float32(i)*(size*2), size, color.RGBA{0, 0, 255, 255}, true)
+		}
+	}
+
 	config := config.GetConfig(entry.World)
 	if config.IsDebug() {
 		if entry.HasComponent(Attack) {

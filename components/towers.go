@@ -10,7 +10,6 @@ import (
 )
 
 type TowerData struct {
-	Level int
 }
 
 var Tower = donburi.NewComponentType[TowerData]()
@@ -40,8 +39,8 @@ func (tm *TowerManagerData) GetUpgradeCost(name string) int {
 var towerManager = &TowerManagerData{}
 
 func NewTower(world donburi.World, x, y int) error {
-	towerEntity := world.Create(Tower, Position, Health, Attack, SpriteRender, RangeRender, InfoRender, NameComponent)
-	err := srvsync.NetworkSync(world, &towerEntity, Tower, Position, Health, Attack, SpriteRender, RangeRender, InfoRender, NameComponent)
+	towerEntity := world.Create(Tower, Position, Health, Attack, Level, SpriteRender, RangeRender, InfoRender, NameComponent)
+	err := srvsync.NetworkSync(world, &towerEntity, Tower, Position, Health, Attack, Level, SpriteRender, RangeRender, InfoRender, NameComponent)
 	if err != nil {
 		return err
 	}
@@ -50,7 +49,7 @@ func NewTower(world donburi.World, x, y int) error {
 	Position.Set(tower, &PositionData{x, y})
 	Health.Set(tower, NewHealthData(20))
 	Attack.Set(tower, &AttackData{Power: 1, AttackType: RangedSingle, Range: 50, Cooldown: 30})
-	Tower.Set(tower, &TowerData{Level: 1})
+	Level.Set(tower, &LevelData{Level: 1})
 	name := Name("tower")
 	NameComponent.Set(tower, &name)
 	SpriteRender.Set(tower, &SpriteRenderData{})
@@ -79,10 +78,12 @@ func (t *TowerData) Heal(entry *donburi.Entry) bool {
 const maxLevel = 5
 
 func (t *TowerData) Upgrade(entry *donburi.Entry) bool {
-	if t.Level+1 >= maxLevel {
+	level := Level.Get(entry)
+	if level.Level+1 >= maxLevel {
+		fmt.Printf("Tower is max level %v\n", maxLevel)
 		return false
 	}
-	t.Level++
+	level.Level++
 	health := Health.Get(entry)
 	health.MaxHealth += 10
 	health.Health = health.MaxHealth
