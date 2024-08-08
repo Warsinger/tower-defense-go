@@ -64,9 +64,9 @@ func (c *CreepData) Update(entry *donburi.Entry) error {
 		collRect := GetRect(collision)
 
 		if rect.Min.X <= collRect.Min.X {
-			pos.X = collRect.Min.X - rect.Dx()
+			pos.X = min(collRect.Min.X-rect.Dx(), pos.X-3)
 		} else if rect.Max.X > collRect.Max.X {
-			pos.X = collRect.Max.X + 1
+			pos.X = max(collRect.Max.X+1, pos.X+3)
 		}
 	}
 	// TODO allow creeps to move sideways around the tower? (if so don't allow for player)
