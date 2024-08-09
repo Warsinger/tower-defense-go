@@ -63,10 +63,11 @@ func (v *ViewerScene) Draw(screen *ebiten.Image) {
 
 func (v *ViewerScene) DrawText(image *ebiten.Image) {
 	str := "Viewer Mode"
-	op := &text.DrawOptions{}
-	x, _ := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(float64(v.width)-x-comp.TextBorder, comp.TextBorder)
-	text.Draw(image, str, assets.InfoFace, op)
+	comp.DrawTextLines(image, assets.InfoFace, str, float64(v.width), comp.TextBorder, text.AlignEnd, text.AlignStart)
+	// op := &text.DrawOptions{}
+	// x, _ := text.Measure(str, assets.InfoFace, op.LineSpacing)
+	// op.GeoM.Translate(float64(v.width)-x-comp.TextBorder, comp.TextBorder)
+	// text.Draw(image, str, assets.InfoFace, op)
 
 	bssEntry, ok := BattleState.First(v.world)
 	if ok {

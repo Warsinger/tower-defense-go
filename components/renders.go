@@ -187,7 +187,6 @@ func DrawTextLines(screen *ebiten.Image, face text.Face, str string, width, yPos
 			xPos = TextBorder
 		case text.AlignCenter:
 			xPos = width/2 - textWidth/2
-
 		case text.AlignEnd:
 			xPos = width - TextBorder - textWidth
 		}
