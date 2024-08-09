@@ -168,19 +168,32 @@ func DebugPrint(image *ebiten.Image, world donburi.World, config *config.ConfigD
 	ebitenutil.DebugPrint(image, msg)
 }
 
-func DrawTextLinesCentered(screen *ebiten.Image, face text.Face, str string, width, yPos float64, centerY bool) float64 {
+func DrawTextLines(screen *ebiten.Image, face text.Face, str string, width, yPos float64, hAlign text.Align, vAlign text.Align) float64 {
 	lines := strings.Split(str, "\n")
-	var nextY = yPos
 	for _, line := range lines {
 		op := &text.DrawOptions{}
-		x, y := text.Measure(line, face, op.LineSpacing)
-		if centerY {
-			nextY -= y / 2
-		}
-		op.GeoM.Translate(width/2-x/2, nextY)
-		text.Draw(screen, line, face, op)
-		nextY += y
 
+		textWidth, textHeight := text.Measure(line, face, op.LineSpacing)
+		switch vAlign {
+		case text.AlignStart:
+		case text.AlignCenter:
+			yPos -= textHeight / 2
+		case text.AlignEnd:
+			yPos += textHeight
+		}
+		var xPos float64
+		switch hAlign {
+		case text.AlignStart:
+			xPos = TextBorder
+		case text.AlignCenter:
+			xPos = width/2 - textWidth/2
+
+		case text.AlignEnd:
+			xPos = width - TextBorder - textWidth
+		}
+		op.GeoM.Translate(xPos, yPos)
+		text.Draw(screen, line, face, op)
+		yPos += textHeight
 	}
-	return nextY
+	return yPos
 }

@@ -48,13 +48,13 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 	text.Draw(screen, str, assets.ScoreFace, op)
 
 	str = "TOWER DEFENSE"
-	_ = comp.DrawTextLinesCentered(screen, assets.ScoreFace, str, width, 100, false)
+	_ = comp.DrawTextLines(screen, assets.ScoreFace, str, width, 100, text.AlignCenter, text.AlignStart)
 
 	str = "Click to place towers Cost: $50"
-	nextY := comp.DrawTextLinesCentered(screen, assets.ScoreFace, str, width, 250, false)
+	nextY := comp.DrawTextLines(screen, assets.ScoreFace, str, width, 250, text.AlignCenter, text.AlignStart)
 
 	str = "Mouse over a tower\nPress H to heal to full Cost: $25\nPress U to upgrade and heal to full Cost: $50\nMax upgrade level is 5"
-	nextY = comp.DrawTextLinesCentered(screen, assets.InfoFace, str, width, nextY, false)
+	nextY = comp.DrawTextLines(screen, assets.InfoFace, str, width, nextY, text.AlignCenter, text.AlignStart)
 
 	towerImage := assets.GetImage("tower")
 	opts = &ebiten.DrawImageOptions{}
@@ -63,7 +63,7 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 	nextY += float64(towerImage.Bounds().Dy()) + 10
 
 	str = "Protect your base from aliens and earn $$"
-	nextY = comp.DrawTextLinesCentered(screen, assets.ScoreFace, str, width, nextY, false)
+	nextY = comp.DrawTextLines(screen, assets.ScoreFace, str, width, nextY, text.AlignCenter, text.AlignStart)
 
 	const creepCount = 4
 	const creepSize = 48
@@ -78,8 +78,8 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 
 	nextY = 600
 	str = "Click or press space to start"
-	nextY = comp.DrawTextLinesCentered(screen, assets.ScoreFace, str, width, nextY, false)
+	nextY = comp.DrawTextLines(screen, assets.ScoreFace, str, width, nextY, text.AlignCenter, text.AlignStart)
 
 	str = fmt.Sprintf("Viewer mode %v (Press V to toggle)", t.viewer)
-	_ = comp.DrawTextLinesCentered(screen, assets.InfoFace, str, width, nextY, false)
+	_ = comp.DrawTextLines(screen, assets.InfoFace, str, width, nextY, text.AlignCenter, text.AlignStart)
 }
