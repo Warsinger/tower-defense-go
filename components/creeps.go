@@ -46,38 +46,59 @@ func NewCreep(world donburi.World, x, y, creepLevel int) (*donburi.Entry, error)
 	return creep, nil
 }
 
+const maxTryMove = 10
+
 func (c *CreepData) Update(entry *donburi.Entry) error {
 	pos := Position.Get(entry)
 	v := Velocity.Get(entry)
-
-	// check whether there are any collisions in the new spot
-	newPt := image.Pt(v.X, v.Y)
-	rect := GetRect(entry)
-	rect = rect.Add(newPt)
-
-	collision := DetectCollisionsEntry(entry, rect, util.CreateOrFilter(Bullet))
-	if collision == nil {
-		pos.X += newPt.X
-		pos.Y += newPt.Y
-	} else if collision.HasComponent(Creep) {
-		// creep collides with another creep, so let it move a little to the side
-		collRect := GetRect(collision)
-
-		if rect.Min.X <= collRect.Min.X {
-			pos.X = min(collRect.Min.X-rect.Dx(), pos.X-3)
-		} else if rect.Max.X > collRect.Max.X {
-			pos.X = max(collRect.Max.X+1, pos.X+3)
-		}
+	newPt := image.Pt(pos.X+v.X, pos.Y+v.Y)
+	if c.TryMoveTo(entry, pos, newPt, maxTryMove) {
+		v.blocked = false
+	} else {
+		v.blocked = true
 	}
-	// TODO allow creeps to move sideways around the tower? (if so don't allow for player)
-	v.blocked = collision != nil
-
 	a := Attack.Get(entry)
 	a.AttackEnemyRange(entry, nil, Tower, Player)
 
 	return nil
 }
 
-func (a *CreepData) GetScoreValue() int {
-	return a.scoreValue
+// try to move to the new point, returning true if successful, keep trying new points up to a maximum
+func (c *CreepData) TryMoveTo(entry *donburi.Entry, curPos *PositionData, newPt image.Point, maxTry int) bool {
+	if maxTry <= 0 {
+		return false
+	}
+	be := Board.MustFirst(entry.World)
+	board := Board.Get(be)
+
+	// check whether there are any collisions in the new spot
+	rect := GetRect(entry)
+	newRect := image.Rect(newPt.X, newPt.Y, newPt.X+rect.Dx(), newPt.Y+rect.Dy())
+
+	collision := DetectCollisionsEntry(entry.World, entry.Entity(), newRect, util.CreateOrFilter(Bullet))
+	if collision == nil {
+		curPos.X = newPt.X
+		curPos.Y = newPt.Y
+		return true
+	} else if collision.HasComponent(Creep) {
+		// creep collides with another creep so let it move a little to the side
+		collRect := GetRect(collision)
+
+		var newX int
+		if rect.Min.X <= collRect.Min.X {
+			newX = max(min(collRect.Min.X-rect.Dx(), curPos.X-3), 0)
+		} else if rect.Max.X > collRect.Max.X {
+			newX = min(max(collRect.Max.X+1, curPos.X+3), board.Width-rect.Dx())
+		}
+
+		return c.TryMoveTo(entry, curPos, image.Pt(newX, newPt.Y), maxTry-1)
+	}
+
+	// TODO allow creeps to move sideways around the tower? (if so don't allow for player)
+
+	return false
+}
+
+func (c *CreepData) GetScoreValue() int {
+	return c.scoreValue
 }

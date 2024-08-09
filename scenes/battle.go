@@ -183,6 +183,9 @@ func (b *BattleScene) UpdateEntities() error {
 	})
 
 	for _, entry := range entries {
+		if !entry.Valid() {
+			continue
+		}
 		if entry.HasComponent(comp.Creep) {
 			creep := comp.Creep.Get(entry)
 			err = creep.Update(entry)

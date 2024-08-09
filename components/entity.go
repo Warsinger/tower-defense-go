@@ -20,7 +20,7 @@ type VelocityData struct {
 var Position = donburi.NewComponentType[PositionData]()
 var Velocity = donburi.NewComponentType[VelocityData]()
 
-func DetectCollisionsEntry(entry *donburi.Entry, rect image.Rectangle, excludeFilter filter.LayoutFilter) *donburi.Entry {
+func DetectCollisionsEntry(world donburi.World, self donburi.Entity, rect image.Rectangle, excludeFilter filter.LayoutFilter) *donburi.Entry {
 	var collision *donburi.Entry = nil
 	query := donburi.NewQuery(
 		filter.And(
@@ -29,8 +29,8 @@ func DetectCollisionsEntry(entry *donburi.Entry, rect image.Rectangle, excludeFi
 		),
 	)
 
-	query.Each(entry.World, func(testEntry *donburi.Entry) {
-		if collision == nil && testEntry.Entity().Id() != entry.Entity().Id() {
+	query.Each(world, func(testEntry *donburi.Entry) {
+		if collision == nil && testEntry.Entity() != self {
 			testRect := GetRect(testEntry)
 			if rect.Overlaps(testRect) {
 				collision = testEntry
