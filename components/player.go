@@ -183,31 +183,20 @@ func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry, deb
 		vector.StrokeLine(screen, float32(rect.Min.X), float32(rect.Min.Y), float32(rect.Max.X), float32(rect.Max.Y), 3, color.RGBA{255, 0, 0, 255}, true)
 		vector.StrokeLine(screen, float32(rect.Max.X), float32(rect.Min.Y), float32(rect.Min.X), float32(rect.Max.Y), 3, color.RGBA{255, 0, 0, 255}, true)
 	}
-
-	// draw player money
-	str := fmt.Sprintf("$ %d", player.GetMoney())
-	op := &text.DrawOptions{}
-	op.GeoM.Translate(TextBorder, TextBorder)
-	text.Draw(screen, str, assets.ScoreFace, op)
-
-	// draw score
 	be := Board.MustFirst(entry.World)
 	board := Board.Get(be)
-	halfWidth, _ := float64(board.Width/2), float64(board.Height/2)
+
+	str := fmt.Sprintf("$ %d", player.GetMoney())
+	nextY := DrawTextLines(screen, assets.ScoreFace, str, float64(board.Width), TextBorder, text.AlignStart, text.AlignStart)
+
 	str = fmt.Sprintf("SCORE %05d", player.Score)
-	op = &text.DrawOptions{}
-	x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(halfWidth-x/2, TextBorder+y)
-	text.Draw(screen, str, assets.ScoreFace, op)
+	_ = DrawTextLines(screen, assets.ScoreFace, str, float64(board.Width), nextY, text.AlignCenter, text.AlignStart)
 
 	str = fmt.Sprintf("Creep Level %d", player.GetCreepLevel())
 	if debug {
 		str = fmt.Sprintf("%s (%d)", str, player.TowerLevels)
 	}
-	op = &text.DrawOptions{}
-	x, _ = text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(halfWidth-x/2, TextBorder)
-	text.Draw(screen, str, assets.ScoreFace, op)
+	_ = DrawTextLines(screen, assets.ScoreFace, str, float64(board.Width), TextBorder, text.AlignCenter, text.AlignStart)
 }
 
 func (p *PlayerData) GetScore() int {

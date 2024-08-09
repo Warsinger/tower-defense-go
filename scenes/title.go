@@ -42,10 +42,7 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 	halfWidth := width / 2
 
 	str := fmt.Sprintf("HIGH %05d", t.highScore)
-	op := &text.DrawOptions{}
-	x, _ := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(width-x-comp.TextBorder, comp.TextBorder)
-	text.Draw(screen, str, assets.ScoreFace, op)
+	_ = comp.DrawTextLines(screen, assets.ScoreFace, str, width, comp.TextBorder, text.AlignEnd, text.AlignStart)
 
 	str = "TOWER DEFENSE"
 	_ = comp.DrawTextLines(screen, assets.ScoreFace, str, width, 100, text.AlignCenter, text.AlignStart)
@@ -67,7 +64,7 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 
 	const creepCount = 4
 	const creepSize = 48
-	x = halfWidth - creepSize*creepCount/2
+	x := halfWidth - creepSize*creepCount/2
 	for i := 1; i <= creepCount; i++ {
 		creepImage := assets.GetImage(fmt.Sprintf("creep%v", i))
 		opts = &ebiten.DrawImageOptions{}

@@ -287,10 +287,7 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 
 	// draw high score
 	str := fmt.Sprintf("HIGH %05d", b.highScore)
-	op := &text.DrawOptions{}
-	x, _ := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(width-x-comp.TextBorder, comp.TextBorder)
-	text.Draw(screen, str, assets.ScoreFace, op)
+	_ = comp.DrawTextLines(screen, assets.ScoreFace, str, float64(board.Width), comp.TextBorder, text.AlignEnd, text.AlignStart)
 
 	b.battleState.Draw(screen, width, height)
 
@@ -302,26 +299,13 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 
 func (bss *BattleSceneState) Draw(screen *ebiten.Image, width, height float64) {
 	if bss.GameOver {
-		// draw game over
 		str := "GAME OVER"
 		nextY := comp.DrawTextLines(screen, assets.ScoreFace, str, width, height/2, text.AlignCenter, text.AlignCenter)
-		// op := &text.DrawOptions{}
-		// x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-		// op.GeoM.Translate(halfWidth-x/2, halfHeight-y/2)
-		// text.Draw(screen, str, assets.ScoreFace, op)
+
 		str = "Press R to reset game"
 		_ = comp.DrawTextLines(screen, assets.InfoFace, str, width, nextY, text.AlignCenter, text.AlignStart)
-		// op = &text.DrawOptions{}
-		// x, _ = text.Measure(str, assets.InfoFace, op.LineSpacing)
-		// op.GeoM.Translate(halfWidth-x/2, halfHeight+y/2)
-		// text.Draw(screen, str, assets.InfoFace, op)
 	} else if bss.Paused {
-		// draw paused
 		str := "PAUSED"
 		_ = comp.DrawTextLines(screen, assets.ScoreFace, str, width, height/2, text.AlignCenter, text.AlignCenter)
-		// op := &text.DrawOptions{}
-		// x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-		// op.GeoM.Translate(halfWidth-x/2, halfHeight-y/2)
-		// text.Draw(screen, str, assets.ScoreFace, op)
 	}
 }
