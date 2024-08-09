@@ -38,37 +38,32 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 	backgroundImage := assets.GetImage("backgroundV")
 	opts := &ebiten.DrawImageOptions{}
 	screen.DrawImage(backgroundImage, opts)
+	width := float64(t.width)
+	halfWidth := width / 2
 
-	// draw high score
 	str := fmt.Sprintf("HIGH %05d", t.highScore)
 	op := &text.DrawOptions{}
 	x, _ := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(float64(t.width)-x-comp.TextBorder, comp.TextBorder)
+	op.GeoM.Translate(width-x-comp.TextBorder, comp.TextBorder)
 	text.Draw(screen, str, assets.ScoreFace, op)
 
-	halfWidth := float64(t.width / 2)
 	str = "TOWER DEFENSE"
-	op = &text.DrawOptions{}
-	x, _ = text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(halfWidth-x/2, 100)
-	text.Draw(screen, str, assets.ScoreFace, op)
+	_ = comp.DrawTextLinesCentered(screen, assets.ScoreFace, str, width, 100, false)
 
-	str = "Click to place towers"
-	op = &text.DrawOptions{}
-	x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(halfWidth-x/2, 300)
-	text.Draw(screen, str, assets.ScoreFace, op)
+	str = "Click to place towers Cost: $50"
+	nextY := comp.DrawTextLinesCentered(screen, assets.ScoreFace, str, width, 250, false)
+
+	str = "Mouse over a tower\nPress H to heal to full Cost: $25\nPress U to upgrade and heal to full Cost: $50\nMax upgrade level is 5"
+	nextY = comp.DrawTextLinesCentered(screen, assets.InfoFace, str, width, nextY, false)
 
 	towerImage := assets.GetImage("tower")
 	opts = &ebiten.DrawImageOptions{}
-	opts.GeoM.Translate(halfWidth-float64(towerImage.Bounds().Dx()/2), 300+y)
+	opts.GeoM.Translate(halfWidth-float64(towerImage.Bounds().Dx()/2), nextY)
 	screen.DrawImage(towerImage, opts)
+	nextY += float64(towerImage.Bounds().Dy()) + 10
 
-	str = "Protect your base from aliens"
-	op = &text.DrawOptions{}
-	x, y = text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(halfWidth-x/2, 400)
-	text.Draw(screen, str, assets.ScoreFace, op)
+	str = "Protect your base from aliens and earn $$"
+	nextY = comp.DrawTextLinesCentered(screen, assets.ScoreFace, str, width, nextY, false)
 
 	const creepCount = 4
 	const creepSize = 48
@@ -76,20 +71,15 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 	for i := 1; i <= creepCount; i++ {
 		creepImage := assets.GetImage(fmt.Sprintf("creep%v", i))
 		opts = &ebiten.DrawImageOptions{}
-		opts.GeoM.Translate(x, 400+y)
+		opts.GeoM.Translate(x, nextY)
 		screen.DrawImage(creepImage, opts)
 		x += float64(creepImage.Bounds().Dx())
 	}
 
+	nextY = 600
 	str = "Click or press space to start"
-	op = &text.DrawOptions{}
-	x, y = text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(halfWidth-x/2, 600)
-	text.Draw(screen, str, assets.ScoreFace, op)
+	nextY = comp.DrawTextLinesCentered(screen, assets.ScoreFace, str, width, nextY, false)
 
 	str = fmt.Sprintf("Viewer mode %v (Press V to toggle)", t.viewer)
-	op = &text.DrawOptions{}
-	x, _ = text.Measure(str, assets.InfoFace, op.LineSpacing)
-	op.GeoM.Translate(halfWidth-x/2, 600+y)
-	text.Draw(screen, str, assets.InfoFace, op)
+	_ = comp.DrawTextLinesCentered(screen, assets.InfoFace, str, width, nextY, false)
 }

@@ -283,16 +283,16 @@ func (b *BattleScene) Draw(screen *ebiten.Image) {
 func (b *BattleScene) DrawText(screen *ebiten.Image) {
 	be := comp.Board.MustFirst(b.world)
 	board := comp.Board.Get(be)
-	halfWidth, halfHeight := float64(board.Width/2), float64(board.Height/2)
+	width, height := float64(board.Width), float64(board.Height)
 
 	// draw high score
 	str := fmt.Sprintf("HIGH %05d", b.highScore)
 	op := &text.DrawOptions{}
 	x, _ := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-	op.GeoM.Translate(float64(board.Width)-x-comp.TextBorder, comp.TextBorder)
+	op.GeoM.Translate(width-x-comp.TextBorder, comp.TextBorder)
 	text.Draw(screen, str, assets.ScoreFace, op)
 
-	b.battleState.Draw(screen, halfWidth, halfHeight)
+	b.battleState.Draw(screen, width, height)
 
 	if b.config.IsDebug() {
 		str := fmt.Sprintf("Speed %v\nTPS %2.1f", b.speed, ebiten.ActualTPS())
@@ -300,25 +300,28 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 	}
 }
 
-func (bss *BattleSceneState) Draw(screen *ebiten.Image, halfWidth, halfHeight float64) {
+func (bss *BattleSceneState) Draw(screen *ebiten.Image, width, height float64) {
 	if bss.GameOver {
 		// draw game over
 		str := "GAME OVER"
-		op := &text.DrawOptions{}
-		x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-		op.GeoM.Translate(halfWidth-x/2, halfHeight-y/2)
-		text.Draw(screen, str, assets.ScoreFace, op)
+		nextY := comp.DrawTextLinesCentered(screen, assets.ScoreFace, str, width, height/2, true)
+		// op := &text.DrawOptions{}
+		// x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
+		// op.GeoM.Translate(halfWidth-x/2, halfHeight-y/2)
+		// text.Draw(screen, str, assets.ScoreFace, op)
 		str = "Press R to reset game"
-		op = &text.DrawOptions{}
-		x, _ = text.Measure(str, assets.InfoFace, op.LineSpacing)
-		op.GeoM.Translate(halfWidth-x/2, halfHeight+y/2)
-		text.Draw(screen, str, assets.InfoFace, op)
+		_ = comp.DrawTextLinesCentered(screen, assets.InfoFace, str, width, nextY, false)
+		// op = &text.DrawOptions{}
+		// x, _ = text.Measure(str, assets.InfoFace, op.LineSpacing)
+		// op.GeoM.Translate(halfWidth-x/2, halfHeight+y/2)
+		// text.Draw(screen, str, assets.InfoFace, op)
 	} else if bss.Paused {
 		// draw paused
 		str := "PAUSED"
-		op := &text.DrawOptions{}
-		x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
-		op.GeoM.Translate(halfWidth-x/2, halfHeight-y/2)
-		text.Draw(screen, str, assets.ScoreFace, op)
+		_ = comp.DrawTextLinesCentered(screen, assets.ScoreFace, str, width, height/2, true)
+		// op := &text.DrawOptions{}
+		// x, y := text.Measure(str, assets.ScoreFace, op.LineSpacing)
+		// op.GeoM.Translate(halfWidth-x/2, halfHeight-y/2)
+		// text.Draw(screen, str, assets.ScoreFace, op)
 	}
 }

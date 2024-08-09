@@ -71,6 +71,6 @@ func (v *ViewerScene) DrawText(image *ebiten.Image) {
 	bssEntry, ok := BattleState.First(v.world)
 	if ok {
 		bss := BattleState.Get(bssEntry)
-		bss.Draw(image, float64(v.width)/2, float64(v.height)/2)
+		bss.Draw(image, float64(v.width), float64(v.height))
 	}
 }

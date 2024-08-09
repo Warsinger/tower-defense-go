@@ -42,6 +42,8 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * P or Spacebar to pause
   * R to reset game
   * Mouse left click to place a tower
+  * H to heal a tower under the cursor
+  * U to upgrade a tower under the cursor, max 4 upgrades
   * '+' or '-' to adjust game speed
   * Q to quit
 * Title screen

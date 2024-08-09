@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"strings"
 	"tower-defense/assets"
 	"tower-defense/config"
 
@@ -165,4 +166,21 @@ func DebugPrint(image *ebiten.Image, world donburi.World, config *config.ConfigD
 	msg := fmt.Sprint(out.String())
 
 	ebitenutil.DebugPrint(image, msg)
+}
+
+func DrawTextLinesCentered(screen *ebiten.Image, face text.Face, str string, width, yPos float64, centerY bool) float64 {
+	lines := strings.Split(str, "\n")
+	var nextY = yPos
+	for _, line := range lines {
+		op := &text.DrawOptions{}
+		x, y := text.Measure(line, face, op.LineSpacing)
+		if centerY {
+			nextY -= y / 2
+		}
+		op.GeoM.Translate(width/2-x/2, nextY)
+		text.Draw(screen, line, face, op)
+		nextY += y
+
+	}
+	return nextY
 }
