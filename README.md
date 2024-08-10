@@ -87,12 +87,12 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * Multi-shot
   * Blocking only
   * Bigger vs smaller
-  * Upgradeable
+  * ~~Upgradeable~~
   * Bullets slow creeps
-  * Refresh tower health for % of initial cost
+  * ~~Refresh tower health for % of initial cost~~
 * Levels
   * ~~More powerful creeps~~
-  * Money generates over time
+  * ~~Money generates over time~~
   * ~~Power up towers~~
 * ~~Base can shoot back~~
 * Tower art

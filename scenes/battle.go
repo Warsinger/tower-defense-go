@@ -230,10 +230,19 @@ func (b *BattleScene) UpdateEntities() error {
 	}
 
 	const maxCreepTick = 4
+	const maxCreepCount = 20
 	b.creepTimer += max((player.GetCreepLevel()/10)+1, maxCreepTick)
 	if b.creepTimer >= maxCreepTimer {
-		b.SpawnCreeps(player.GetCreepLevel())
-		b.creepTimer = 0
+		query := donburi.NewQuery(filter.Contains(comp.Creep))
+		count := query.Count(b.world)
+		if count <= maxCreepCount {
+			count, err := b.SpawnCreeps(player.GetCreepLevel())
+			if err != nil {
+				return err
+			}
+			player.AddMoney(5 * count)
+			b.creepTimer = 0
+		}
 	}
 
 	return err
@@ -244,7 +253,7 @@ type creeepSpawnChance struct {
 	chance float32
 }
 
-func (b *BattleScene) SpawnCreeps(creepLevel int) error {
+func (b *BattleScene) SpawnCreeps(creepLevel int) (int, error) {
 	levelBump := float32(creepLevel) / 20
 
 	spawnChance := []creeepSpawnChance{
@@ -278,10 +287,10 @@ func (b *BattleScene) SpawnCreeps(creepLevel int) error {
 		}
 		_, err := comp.NewCreep(b.world, x, y, creepLevel)
 		if err != nil {
-			return err
+			return i, err
 		}
 	}
-	return nil
+	return count, nil
 }
 
 func (b *BattleScene) End() {
