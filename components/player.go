@@ -189,14 +189,17 @@ func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry, deb
 	str := fmt.Sprintf("$ %d", player.GetMoney())
 	nextY := DrawTextLines(screen, assets.ScoreFace, str, float64(board.Width), TextBorder, text.AlignStart, text.AlignStart)
 
+	str = fmt.Sprintf("Max Tower Level %d", GetMaxTowerLevel(entry.World))
+	_ = DrawTextLines(screen, assets.InfoFace, str, float64(board.Width), nextY, text.AlignStart, text.AlignStart)
+
 	str = fmt.Sprintf("SCORE %05d", player.Score)
-	_ = DrawTextLines(screen, assets.ScoreFace, str, float64(board.Width), nextY, text.AlignCenter, text.AlignStart)
+	_ = DrawTextLines(screen, assets.ScoreFace, str, float64(board.Width), TextBorder, text.AlignCenter, text.AlignStart)
 
 	str = fmt.Sprintf("Creep Level %d", player.GetCreepLevel())
 	if debug {
 		str = fmt.Sprintf("%s (%d)", str, player.TowerLevels)
 	}
-	_ = DrawTextLines(screen, assets.ScoreFace, str, float64(board.Width), TextBorder, text.AlignCenter, text.AlignStart)
+	_ = DrawTextLines(screen, assets.InfoFace, str, float64(board.Width), nextY, text.AlignCenter, text.AlignStart)
 }
 
 func (p *PlayerData) GetScore() int {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"math"
 	"strings"
 	"tower-defense/assets"
 	"tower-defense/config"
@@ -57,8 +58,23 @@ func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 		// draw blue dots along the side of the entity for each level
 		level := Level.Get(entry)
 		const size = 3
-		for i := 1; i <= level.Level; i++ {
-			vector.DrawFilledCircle(screen, float32(rect.Min.X)+1, float32(rect.Min.Y)+float32(i)*(size*2), size, color.RGBA{0, 0, 255, 255}, true)
+		const perColumn = 8
+		const maxColumns = 4
+		for i := 0; i < GetMaxTowerLevel(entry.World); i++ {
+			column := float32(math.Trunc(float64(i) / perColumn))
+			row := float32(i % perColumn)
+			var x float32
+			if column < maxColumns/2 {
+				x = float32(rect.Min.X) + column*size*2
+			} else {
+				x = float32(rect.Max.X) - (maxColumns-column-1)*size*2
+			}
+			y := float32(rect.Min.Y) + row*size*2
+			if i < level.Level {
+				vector.DrawFilledCircle(screen, x, y, size, color.RGBA{0, 0, 255, 255}, true)
+			} else {
+				vector.StrokeCircle(screen, x, y, size, 1, color.RGBA{0, 255, 0, 255}, true)
+			}
 		}
 	}
 

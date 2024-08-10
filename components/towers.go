@@ -3,6 +3,7 @@ package components
 import (
 	"fmt"
 	"image"
+	"math"
 
 	"github.com/leap-fish/necs/esync/srvsync"
 	"github.com/yohamta/donburi"
@@ -72,11 +73,17 @@ func (t *TowerData) Heal(entry *donburi.Entry) bool {
 	return false
 }
 
-const maxLevel = 5
+const initMaxTowerLevel = 5
+
+func GetMaxTowerLevel(world donburi.World) int {
+	pe := Player.MustFirst(world)
+	player := Player.Get(pe)
+	return initMaxTowerLevel + int(math.Trunc(float64(player.TowerLevels)/20))
+}
 
 func (t *TowerData) Upgrade(entry *donburi.Entry) bool {
 	level := Level.Get(entry)
-	if level.Level >= maxLevel {
+	if level.Level >= GetMaxTowerLevel(entry.World) {
 		fmt.Printf("Tower is max level %v\n", level.Level)
 		return false
 	}
