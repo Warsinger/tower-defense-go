@@ -39,8 +39,8 @@ var BattleState = donburi.NewComponentType[BattleSceneState]()
 
 const minSpeed = 0
 const maxSpeed = 60
-const maxCreepTimer = 90
-const startCreepTimer = 30
+const maxCreepTimer = 180
+const startCreepTimer = 120
 
 func NewBattleScene(world donburi.World, width, height, speed, highScore int, debug bool, endGameCallback func(int) error) (*BattleScene, error) {
 	_, err := comp.NewBoard(world, width, height)
@@ -220,7 +220,8 @@ func (b *BattleScene) UpdateEntities() error {
 		b.End()
 	}
 
-	b.creepTimer++
+	const maxCreepTick = 3
+	b.creepTimer += max((player.GetCreepLevel()/10)+1, maxCreepTick)
 	if b.creepTimer >= maxCreepTimer {
 		b.SpawnCreeps(player.GetCreepLevel())
 		b.creepTimer = 0
@@ -281,6 +282,7 @@ func (b *BattleScene) End() {
 
 func (b *BattleScene) Draw(screen *ebiten.Image) {
 	comp.DrawBoard(screen, b.world, b.config, b.DrawText)
+	comp.DrawTextLines(screen, assets.InfoFace, fmt.Sprintf("Timer %d", b.creepTimer), comp.TextBorder, 100, text.AlignStart, text.AlignStart)
 }
 
 func (b *BattleScene) DrawText(screen *ebiten.Image) {
