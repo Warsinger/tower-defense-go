@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"tower-defense/assets"
 	"tower-defense/network"
 	"tower-defense/scenes"
@@ -23,7 +24,7 @@ type GameData struct {
 	world                donburi.World
 	scenes               []Scene
 	width, height, speed int
-	highScore            int
+	gameStats            *scenes.GameStats
 	debug                bool
 	server               *network.Server
 	client               *network.Client
@@ -37,9 +38,9 @@ func NewGame(width, height, speed int, debug bool, server, client string) (*Game
 
 	ebiten.SetWindowTitle("Tower Defense")
 
-	highScore := LoadScores()
+	gameStats := LoadScores()
 
-	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, highScore: highScore, debug: debug}
+	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, gameStats: gameStats, debug: debug}
 
 	if server != "" {
 		fmt.Printf("listening on port %v\n", server)
@@ -62,7 +63,7 @@ func NewGame(width, height, speed int, debug bool, server, client string) (*Game
 	if game.client != nil {
 		err = game.switchToViewer()
 	} else {
-		err = game.switchToTitle(highScore)
+		err = game.switchToTitle(gameStats)
 	}
 	if err != nil {
 		return nil, err
@@ -81,7 +82,7 @@ func (g *GameData) switchToViewer() error {
 }
 
 func (g *GameData) switchToBattle(viewerMode bool) error {
-	battle, err := scenes.NewBattleScene(g.world, g.width, g.height, g.speed, g.highScore, g.debug, g.switchToTitle)
+	battle, err := scenes.NewBattleScene(g.world, g.width, g.height, g.speed, g.gameStats, g.debug, g.switchToTitle)
 	if err != nil {
 		return err
 	}
@@ -118,12 +119,27 @@ func (g *GameData) adjustWindowPosition() {
 	ebiten.SetWindowPosition(winX, winY)
 }
 
-func (g *GameData) switchToTitle(score int) error {
-	if score > g.highScore {
-		g.highScore = score
-		g.SaveScores()
+func (g *GameData) switchToTitle(gameStats *scenes.GameStats) error {
+	if gameStats != g.gameStats {
+		save := false
+		if gameStats.HighScore > g.gameStats.HighScore {
+			g.gameStats.HighScore = gameStats.HighScore
+			save = true
+		}
+		if gameStats.HighCreepLevel > g.gameStats.HighCreepLevel {
+			g.gameStats.HighCreepLevel = gameStats.HighCreepLevel
+			save = true
+		}
+		if gameStats.HighTowerLevel > g.gameStats.HighTowerLevel {
+			g.gameStats.HighTowerLevel = gameStats.HighTowerLevel
+			save = true
+		}
+		if save {
+			g.SaveScores()
+		}
 	}
-	title, err := scenes.NewTitleScene(g.width, g.height, g.highScore, g.switchToBattle)
+
+	title, err := scenes.NewTitleScene(g.width, g.height, g.gameStats, g.switchToBattle)
 	if err != nil {
 		return err
 	}
@@ -133,29 +149,49 @@ func (g *GameData) switchToTitle(score int) error {
 	return nil
 }
 
-const highScoreFile = "score/highscore.txt"
+const statsFile = "score/stats.txt"
 
-func LoadScores() int {
-	var highScore int = 0
-	bytes, err := os.ReadFile(highScoreFile)
+func LoadScores() *scenes.GameStats {
+	var highScore, highCreepLevel, highTowerLevel int
+	bytes, err := os.ReadFile(statsFile)
 	if err == nil {
-		highScore, err = strconv.Atoi(string(bytes))
-		if err != nil {
-			fmt.Printf("WARN high score formatting err %v\n", err)
+		strings.Split(string(bytes), "\n")
+		for _, line := range strings.Split(string(bytes), "\n") {
+			values := strings.Split(line, "=")
+			if len(values) != 2 {
+				continue
+			}
+			switch values[0] {
+			case "score":
+				highScore, err = strconv.Atoi(values[1])
+				if err != nil {
+					fmt.Printf("WARN high score formatting err %v\n", err)
+				}
+			case "creepLevel":
+				highCreepLevel, err = strconv.Atoi(values[1])
+				if err != nil {
+					fmt.Printf("WARN high creep level formatting err %v\n", err)
+				}
+			case "towerLevel":
+				highTowerLevel, err = strconv.Atoi(values[1])
+				if err != nil {
+					fmt.Printf("WARN high tower level formatting err %v\n", err)
+				}
+			}
 		}
 	}
 
-	return highScore
+	return &scenes.GameStats{HighScore: highScore, HighCreepLevel: highCreepLevel, HighTowerLevel: highTowerLevel}
 }
 func (g *GameData) SaveScores() error {
-	str := strconv.Itoa(g.highScore)
-
-	dir, _ := filepath.Split(highScoreFile)
+	dir, _ := filepath.Split(statsFile)
 
 	if err := ensureDir(dir); err != nil {
 		return err
 	}
-	return os.WriteFile(highScoreFile, []byte(str), 0644)
+
+	str := fmt.Sprintf("score=%d\ncreepLevel=%d\ntowerLevel=%d\n", g.gameStats.HighScore, g.gameStats.HighCreepLevel, g.gameStats.HighTowerLevel)
+	return os.WriteFile(statsFile, []byte(str), 0644)
 }
 
 func ensureDir(dirName string) error {

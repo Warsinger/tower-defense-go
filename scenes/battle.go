@@ -17,9 +17,9 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
+type EndGameCallBack func(*GameStats) error
 type BattleScene struct {
 	world           donburi.World
-	highScore       int
 	width           int
 	height          int
 	speed           int
@@ -27,7 +27,14 @@ type BattleScene struct {
 	tickCounter     int
 	config          *config.ConfigData
 	battleState     *BattleSceneState
-	endGameCallback func(int) error
+	gameStats       *GameStats
+	endGameCallback EndGameCallBack
+}
+
+type GameStats struct {
+	HighScore      int
+	HighCreepLevel int
+	HighTowerLevel int
 }
 
 type BattleSceneState struct {
@@ -42,7 +49,7 @@ const maxSpeed = 60
 const maxCreepTimer = 180
 const startCreepTimer = 120
 
-func NewBattleScene(world donburi.World, width, height, speed, highScore int, debug bool, endGameCallback func(int) error) (*BattleScene, error) {
+func NewBattleScene(world donburi.World, width, height, speed int, gameStats *GameStats, debug bool, endGameCallback EndGameCallBack) (*BattleScene, error) {
 	_, err := comp.NewBoard(world, width, height)
 	if err != nil {
 		return nil, err
@@ -57,13 +64,13 @@ func NewBattleScene(world donburi.World, width, height, speed, highScore int, de
 
 	return &BattleScene{
 		world:           world,
-		highScore:       highScore,
 		width:           width,
 		height:          height,
 		speed:           speed,
 		creepTimer:      maxCreepTimer - startCreepTimer,
 		config:          config.NewConfig(world, debug),
 		battleState:     bss,
+		gameStats:       gameStats,
 		endGameCallback: endGameCallback,
 	}, nil
 }
@@ -110,7 +117,7 @@ func (b *BattleScene) Update() error {
 	player := comp.Player.Get(pe)
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
-		b.endGameCallback(player.GetScore())
+		b.endGameCallback(&GameStats{player.GetScore(), player.GetCreepLevel(), comp.GetMaxTowerLevel(b.world)})
 	}
 
 	if b.battleState.GameOver {
@@ -160,7 +167,9 @@ func (b *BattleScene) Update() error {
 		b.tickCounter++
 	}
 
-	b.highScore = max(player.GetScore(), b.highScore)
+	b.gameStats.HighScore = max(player.GetScore(), b.gameStats.HighScore)
+	b.gameStats.HighCreepLevel = max(player.GetCreepLevel(), b.gameStats.HighCreepLevel)
+	b.gameStats.HighTowerLevel = max(comp.GetMaxTowerLevel(b.world), b.gameStats.HighTowerLevel)
 
 	return nil
 }
@@ -291,14 +300,16 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 	width, height := float64(board.Width), float64(board.Height)
 
 	// draw high score
-	str := fmt.Sprintf("HIGH %05d", b.highScore)
-	_ = comp.DrawTextLines(screen, assets.ScoreFace, str, float64(board.Width), comp.TextBorder, text.AlignEnd, text.AlignStart)
+	str := fmt.Sprintf("HIGH %05d", b.gameStats.HighScore)
+	nextY := comp.DrawTextLines(screen, assets.ScoreFace, str, width, comp.TextBorder, text.AlignEnd, text.AlignStart)
+	str = fmt.Sprintf("High Creep Level %d\nHigh Tower Level %d\n", b.gameStats.HighCreepLevel, b.gameStats.HighTowerLevel)
+	_ = comp.DrawTextLines(screen, assets.InfoFace, str, width, nextY, text.AlignEnd, text.AlignStart)
 
 	b.battleState.Draw(screen, width, height)
 
 	if b.config.IsDebug() {
 		str := fmt.Sprintf("Speed %v\nTPS %2.1f", b.speed, ebiten.ActualTPS())
-		ebitenutil.DebugPrintAt(screen, str, 5, 50)
+		ebitenutil.DebugPrintAt(screen, str, 5, 400)
 	}
 }
 

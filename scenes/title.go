@@ -13,13 +13,13 @@ import (
 type TitleScene struct {
 	width           int
 	height          int
-	highScore       int
+	gameStats       *GameStats
 	newGameCallback func(bool) error
 	viewer          bool
 }
 
-func NewTitleScene(width, height, highScore int, newGameCallback func(bool) error) (*TitleScene, error) {
-	return &TitleScene{width: width, height: height, highScore: highScore, newGameCallback: newGameCallback}, nil
+func NewTitleScene(width, height int, gameStats *GameStats, newGameCallback func(bool) error) (*TitleScene, error) {
+	return &TitleScene{width: width, height: height, gameStats: gameStats, newGameCallback: newGameCallback}, nil
 }
 
 func (t *TitleScene) Update() error {
@@ -41,14 +41,16 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 	width := float64(t.width)
 	halfWidth := width / 2
 
-	str := fmt.Sprintf("HIGH %05d", t.highScore)
-	_ = comp.DrawTextLines(screen, assets.ScoreFace, str, width, comp.TextBorder, text.AlignEnd, text.AlignStart)
+	str := fmt.Sprintf("HIGH %05d", t.gameStats.HighScore)
+	nextY := comp.DrawTextLines(screen, assets.ScoreFace, str, width, comp.TextBorder, text.AlignEnd, text.AlignStart)
+	str = fmt.Sprintf("High Creep Level %d\nHigh Tower Level %d\n", t.gameStats.HighCreepLevel, t.gameStats.HighTowerLevel)
+	_ = comp.DrawTextLines(screen, assets.InfoFace, str, width, nextY, text.AlignEnd, text.AlignStart)
 
 	str = "TOWER DEFENSE"
 	_ = comp.DrawTextLines(screen, assets.ScoreFace, str, width, 100, text.AlignCenter, text.AlignStart)
 
 	str = "Click to place towers Cost: $50"
-	nextY := comp.DrawTextLines(screen, assets.ScoreFace, str, width, 250, text.AlignCenter, text.AlignStart)
+	nextY = comp.DrawTextLines(screen, assets.ScoreFace, str, width, 250, text.AlignCenter, text.AlignStart)
 
 	str = "Mouse over a tower\nPress H to heal to full Cost: $25\nPress U to upgrade and heal to full Cost: $50\nMax upgrade level is 5 (+1 for every 20 upgrades)"
 	nextY = comp.DrawTextLines(screen, assets.InfoFace, str, width, nextY, text.AlignCenter, text.AlignStart)
