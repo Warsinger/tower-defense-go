@@ -220,7 +220,7 @@ func (b *BattleScene) UpdateEntities() error {
 		b.End()
 	}
 
-	const maxCreepTick = 3
+	const maxCreepTick = 4
 	b.creepTimer += max((player.GetCreepLevel()/10)+1, maxCreepTick)
 	if b.creepTimer >= maxCreepTimer {
 		b.SpawnCreeps(player.GetCreepLevel())
