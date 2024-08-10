@@ -97,6 +97,7 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 * ~~Base can shoot back~~
 * Tower art
 * Creep art
+* ~~Highlight tower under mouse cursor~~
 * ~~Multiple creep types~~
 * ~~Click to place towers~~
 * ~~Spawn creeps and move towards base~~

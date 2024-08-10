@@ -25,17 +25,19 @@ func (s *SpriteRenderData) GetImage(entry *donburi.Entry) *ebiten.Image {
 	return s.image
 }
 func (s *SpriteRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
-	image := s.GetImage(entry)
+	img := s.GetImage(entry)
 	pos := Position.Get(entry)
 	opts := &ebiten.DrawImageOptions{}
 	opts.GeoM.Translate(float64(pos.X), float64(pos.Y))
-	screen.DrawImage(image, opts)
+	screen.DrawImage(img, opts)
 
 	config := config.GetConfig(entry.World)
-	if config.IsDebug() {
-		// draw bounding rect used for collision detection
-		rect := s.GetRect(entry)
-		vector.StrokeRect(screen, float32(rect.Min.X), float32(rect.Min.Y), float32(rect.Dx()), float32(rect.Dy()), 1, color.White, true)
+
+	rect := s.GetRect(entry)
+	var clr color.Color = nil
+	if (entry.HasComponent(Tower) && image.Pt(ebiten.CursorPosition()).In(rect)) || config.IsDebug() {
+		clr = color.White
+		vector.StrokeRect(screen, float32(rect.Min.X), float32(rect.Min.Y), float32(rect.Dx()), float32(rect.Dy()), 1, clr, true)
 	}
 }
 
