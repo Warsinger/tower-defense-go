@@ -6,7 +6,7 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.7.8
 	github.com/leap-fish/necs v0.0.4
 	github.com/yohamta/donburi v1.4.4
-	nhooyr.io/websocket v1.8.11
+	nhooyr.io/websocket v1.8.17
 )
 
 require github.com/hashicorp/go-msgpack v0.5.5 // indirect
