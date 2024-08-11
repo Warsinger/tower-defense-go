@@ -110,10 +110,17 @@ func (c *CreepData) TryMoveTo(entry *donburi.Entry, curPos *PositionData, newPt 
 		}
 
 		return c.TryMoveTo(entry, curPos, image.Pt(newX, newPt.Y), maxTry-1)
+	} else {
+		// if it can go a little way then let it move as far as possible
+		collRect := GetRect(collision)
+
+		if rect.Max.Y >= collRect.Min.Y {
+			newY := collRect.Min.Y - 1
+			return c.TryMoveTo(entry, curPos, image.Pt(newPt.X, newY), maxTry-1)
+		}
 	}
 
 	// TODO allow creeps to move sideways around the tower? (if so don't allow for player)
-
 	return false
 }
 

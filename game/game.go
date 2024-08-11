@@ -28,9 +28,10 @@ type GameData struct {
 	width, height, speed int
 	gameStats            *scenes.GameStats
 	debug                bool
+	startingTowerLevel   int
 }
 
-func NewGame(width, height, speed int, debug bool, server, client string) (*GameData, error) {
+func NewGame(width, height, speed int, debug bool, server, client string, startingTowerLevel int) (*GameData, error) {
 	err := assets.LoadAssets()
 	if err != nil {
 		return nil, err
@@ -40,7 +41,7 @@ func NewGame(width, height, speed int, debug bool, server, client string) (*Game
 
 	gameStats := LoadScores()
 
-	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, gameStats: gameStats, debug: debug}
+	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, gameStats: gameStats, debug: debug, startingTowerLevel: startingTowerLevel}
 
 	if server != "" {
 		ebiten.SetWindowTitle("Tower Defense (server)")
@@ -98,7 +99,7 @@ func (g *GameData) switchToBattle(broadcast bool) error {
 		router.Broadcast(network.StartGameMessage{})
 	}
 	multiplayer := g.clientWorld != nil
-	battle, err := scenes.NewBattleScene(g.world, g.width, g.height, g.speed, g.gameStats, multiplayer, g.debug, g.switchToTitle)
+	battle, err := scenes.NewBattleScene(g.world, g.width, g.height, g.speed, g.gameStats, multiplayer, g.debug, g.startingTowerLevel, g.switchToTitle)
 	if err != nil {
 		return err
 	}

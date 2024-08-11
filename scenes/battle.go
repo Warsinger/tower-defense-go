@@ -33,6 +33,7 @@ type BattleScene struct {
 	gameStats          *GameStats
 	endGameCallback    EndGameCallBack
 	superCreepCooldown *util.CooldownTimer
+	startingTowerLevel int
 }
 
 type GameStats struct {
@@ -51,7 +52,7 @@ const maxSpeed = 60
 const maxCreepTimer = 180
 const startCreepTimer = 120
 
-func NewBattleScene(world donburi.World, width, height, speed int, gameStats *GameStats, multiplayer, debug bool, endGameCallback EndGameCallBack) (*BattleScene, error) {
+func NewBattleScene(world donburi.World, width, height, speed int, gameStats *GameStats, multiplayer, debug bool, startingTowerLevel int, endGameCallback EndGameCallBack) (*BattleScene, error) {
 	_, err := comp.NewBoard(world, width, height)
 	if err != nil {
 		return nil, err
@@ -76,6 +77,7 @@ func NewBattleScene(world donburi.World, width, height, speed int, gameStats *Ga
 		gameStats:          gameStats,
 		endGameCallback:    endGameCallback,
 		superCreepCooldown: util.NewCooldownTimer(maxCreepTimer),
+		startingTowerLevel: startingTowerLevel,
 	}, nil
 }
 
@@ -89,7 +91,7 @@ func (b *BattleScene) Init() error {
 	}
 	comp.BattleState.Set(b.world.Entry(entity), b.battleState)
 
-	err = comp.NewPlayer(b.world)
+	err = comp.NewPlayer(b.world, b.startingTowerLevel)
 	if err != nil {
 		return err
 	}

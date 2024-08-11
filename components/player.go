@@ -30,7 +30,7 @@ type PlayerRenderData struct {
 var Player = donburi.NewComponentType[PlayerData]()
 var PlayerRender = donburi.NewComponentType[PlayerRenderData]()
 
-func NewPlayer(world donburi.World) error {
+func NewPlayer(world donburi.World, startingTowerLevel int) error {
 	entity := world.Create(Player, Position, Health, Attack, SpriteRender, PlayerRender, InfoRender)
 	err := srvsync.NetworkSync(world, &entity, Player, Position, Health, Attack, SpriteRender, PlayerRender, InfoRender)
 	if err != nil {
@@ -42,7 +42,7 @@ func NewPlayer(world donburi.World) error {
 	board := Board.Get(be)
 
 	Position.Set(entry, &PositionData{X: 0, Y: board.Height - yBorderBottom})
-	Player.Set(entry, &PlayerData{Money: 500})
+	Player.Set(entry, &PlayerData{Money: 500, TowerLevels: startingTowerLevel})
 	Health.Set(entry, NewHealthData(100))
 	Attack.Set(entry, &AttackData{Power: 1, AttackType: RangedSingle, Range: 15, cooldown: util.NewCooldownTimer(10), noLead: true})
 	SpriteRender.Set(entry, &SpriteRenderData{Name: "base"})

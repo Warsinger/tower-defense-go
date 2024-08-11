@@ -15,10 +15,11 @@ func main() {
 	debug := flag.Bool("debug", false, "Show debug info, D to toggle in game")
 	server := flag.String("server", "", "Startup multiplayer server on port")
 	client := flag.String("client", "", "For multiplayer client connect to server:port")
+	towerLevel := flag.Int("level", 0, "Starting tower level to increase difficulty, 0 for default")
 
 	flag.Parse()
 
-	g, err := game.NewGame(*width, *height, *speed, *debug, *server, *client)
+	g, err := game.NewGame(*width, *height, *speed, *debug, *server, *client, *towerLevel)
 	if err != nil {
 		log.Fatal(err)
 	}
