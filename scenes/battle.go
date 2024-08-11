@@ -285,7 +285,6 @@ func (b *BattleScene) SpawnCreeps(creepLevel int) (int, error) {
 			break
 		}
 	}
-	fmt.Printf("Spawning %d creeps\n", count)
 
 	for i := 0; i < count; i++ {
 		be := comp.Board.MustFirst(b.world)

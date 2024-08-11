@@ -54,7 +54,7 @@ func NewSuperCreep(world donburi.World, x, y int) (*donburi.Entry, error) {
 	creep := world.Entry(entity)
 	Position.Set(creep, &PositionData{X: x, Y: y})
 	Velocity.Set(creep, &VelocityData{X: 5, Y: 5})
-	name := "tower"
+	name := "supercreep"
 	Creep.Set(creep, &CreepData{scoreValue: 50})
 	Health.Set(creep, NewHealthData(20))
 	Attack.Set(creep, &AttackData{Power: 8, AttackType: RangedSingle, Range: 20, Cooldown: 10})
