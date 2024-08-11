@@ -154,21 +154,24 @@ func (b *BattleScene) Update() error {
 	if err != nil {
 		return err
 	}
-	if b.multiplayer && inpututil.IsKeyJustPressed(ebiten.KeyC) {
-		peers := router.Peers()
-		b.superCreepCooldown.CheckCooldown()
-		defer b.superCreepCooldown.IncrementTicker()
-		if len(peers) > 0 && !b.superCreepCooldown.InCooldown {
-			// send a super creep to the other player
-			const cost = 50
-			if player.Money >= cost {
-				peers[0].SendMessage(network.CreepMessage{Count: 1})
-				b.superCreepCooldown.StartCooldown()
-			} else {
-				fmt.Printf("Not enough money to send a creep %v, remaining %v\n", cost, player.Money)
-				assets.PlaySound("invalid2")
+	if b.multiplayer {
+		if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+			peers := router.Peers()
+			b.superCreepCooldown.CheckCooldown()
+
+			if len(peers) > 0 && !b.superCreepCooldown.InCooldown {
+				// send a super creep to the other player
+				const cost = 50
+				if player.Money >= cost {
+					peers[0].SendMessage(network.CreepMessage{Count: 1})
+					b.superCreepCooldown.StartCooldown()
+				} else {
+					fmt.Printf("Not enough money to send a creep %v, remaining %v\n", cost, player.Money)
+					assets.PlaySound("invalid2")
+				}
 			}
 		}
+		b.superCreepCooldown.IncrementTicker()
 	}
 
 	if b.speed != 0 && float32(b.tickCounter) > float32(ebiten.TPS())/float32(b.speed) {
@@ -335,9 +338,9 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 
 	b.battleState.Draw(screen, width, height)
 
-	if b.multiplayer {
+	if b.multiplayer && b.superCreepCooldown.InCooldown {
 		str := fmt.Sprintf("Super Creep CD %d", b.superCreepCooldown.GetDisplay())
-		comp.DrawTextLines(screen, assets.InfoFace, str, width, 500, text.AlignStart, text.AlignStart)
+		comp.DrawTextLines(screen, assets.InfoFace, str, width, 700, text.AlignStart, text.AlignStart)
 	}
 
 	if b.config.IsDebug() {

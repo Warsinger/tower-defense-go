@@ -30,7 +30,7 @@ func (c *CooldownTimer) StartCooldown() {
 func (c *CooldownTimer) GetDisplay() int {
 	var cd int = 0
 	if c.InCooldown {
-		cd = c.Cooldown - c.ticker
+		cd = max(c.Cooldown-c.ticker, 0)
 	}
 	return cd
 }
