@@ -97,14 +97,15 @@ func (g *GameData) switchToBattle(broadcast bool) error {
 	if broadcast {
 		router.Broadcast(network.StartGameMessage{})
 	}
-	battle, err := scenes.NewBattleScene(g.world, g.width, g.height, g.speed, g.gameStats, g.debug, g.switchToTitle)
+	multiplayer := g.clientWorld != nil
+	battle, err := scenes.NewBattleScene(g.world, g.width, g.height, g.speed, g.gameStats, multiplayer, g.debug, g.switchToTitle)
 	if err != nil {
 		return err
 	}
 	battle.Init()
 
 	g.scenes = []Scene{battle}
-	if g.clientWorld != nil {
+	if multiplayer {
 		scene, err := scenes.NewViewerScene(g.clientWorld, g.width, g.height, g.debug, true)
 		if err != nil {
 			return err

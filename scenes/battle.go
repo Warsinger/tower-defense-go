@@ -27,6 +27,7 @@ type BattleScene struct {
 	speed              int
 	creepTimer         int
 	tickCounter        int
+	multiplayer        bool
 	config             *config.ConfigData
 	battleState        *comp.BattleSceneState
 	gameStats          *GameStats
@@ -45,7 +46,7 @@ const maxSpeed = 60
 const maxCreepTimer = 180
 const startCreepTimer = 120
 
-func NewBattleScene(world donburi.World, width, height, speed int, gameStats *GameStats, debug bool, endGameCallback EndGameCallBack) (*BattleScene, error) {
+func NewBattleScene(world donburi.World, width, height, speed int, gameStats *GameStats, multiplayer, debug bool, endGameCallback EndGameCallBack) (*BattleScene, error) {
 	_, err := comp.NewBoard(world, width, height)
 	if err != nil {
 		return nil, err
@@ -64,6 +65,7 @@ func NewBattleScene(world donburi.World, width, height, speed int, gameStats *Ga
 		height:             height,
 		speed:              speed,
 		creepTimer:         maxCreepTimer - startCreepTimer,
+		multiplayer:        multiplayer,
 		config:             config.NewConfig(world, debug),
 		battleState:        bss,
 		gameStats:          gameStats,
@@ -87,7 +89,7 @@ func (b *BattleScene) Init() error {
 		return err
 	}
 
-	if len(router.Peers()) > 0 {
+	if b.multiplayer && len(router.Peers()) > 0 {
 		router.On(func(sender *router.NetworkClient, message network.CreepMessage) {
 			comp.NewSuperCreep(b.world, 0, 0)
 		})
@@ -152,7 +154,7 @@ func (b *BattleScene) Update() error {
 	if err != nil {
 		return err
 	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+	if b.multiplayer && inpututil.IsKeyJustPressed(ebiten.KeyC) {
 		peers := router.Peers()
 		b.superCreepCooldown.CheckCooldown()
 		defer b.superCreepCooldown.IncrementTicker()
@@ -332,6 +334,11 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 	_ = comp.DrawTextLines(screen, assets.InfoFace, str, width, nextY, text.AlignEnd, text.AlignStart)
 
 	b.battleState.Draw(screen, width, height)
+
+	if b.multiplayer {
+		str := fmt.Sprintf("Super Creep CD %d", b.superCreepCooldown.GetDisplay())
+		comp.DrawTextLines(screen, assets.InfoFace, str, width, 500, text.AlignStart, text.AlignStart)
+	}
 
 	if b.config.IsDebug() {
 		comp.DrawTextLines(screen, assets.InfoFace, fmt.Sprintf("Speed %v\nTPS %2.1f\nCreep Timer %d", b.speed, ebiten.ActualTPS(), b.creepTimer), comp.TextBorder, 400, text.AlignStart, text.AlignStart)

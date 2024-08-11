@@ -83,8 +83,13 @@ func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 		if entry.HasComponent(Attack) {
 			// draw power & cooldown info centered below the health
 			attack := Attack.Get(entry)
-			var cd int = attack.cooldown.GetDisplay()
-			str := fmt.Sprintf("%d/CD %d", attack.Power, cd)
+			var str string
+			if attack.cooldown != nil {
+				var cd int = attack.cooldown.GetDisplay()
+				str = fmt.Sprintf("%d/CD %d", attack.Power, cd)
+			} else {
+				str = fmt.Sprintf("%d", attack.Power)
+			}
 			op := &text.DrawOptions{}
 			textWidth, _ = text.Measure(str, assets.InfoFace, op.LineSpacing)
 			op.GeoM.Translate(float64(rect.Min.X)+(float64(rect.Dx())-textWidth)/2, float64(rect.Max.Y)+textHeight)
