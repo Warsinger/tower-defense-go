@@ -24,3 +24,9 @@ func RegisterComponenets() {
 	_ = esync.RegisterComponent(23, comp.LevelData{}, comp.Level)
 	_ = esync.RegisterComponent(24, scenes.BattleSceneState{}, scenes.BattleState)
 }
+
+type ClientConnectMessage struct {
+	Address string
+}
+
+type StartGameMessage struct{}

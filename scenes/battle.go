@@ -9,7 +9,6 @@ import (
 	"tower-defense/config"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/leap-fish/necs/esync/srvsync"
@@ -300,7 +299,6 @@ func (b *BattleScene) End() {
 
 func (b *BattleScene) Draw(screen *ebiten.Image) {
 	comp.DrawBoard(screen, b.world, b.config, b.DrawText)
-	comp.DrawTextLines(screen, assets.InfoFace, fmt.Sprintf("Timer %d", b.creepTimer), comp.TextBorder, 100, text.AlignStart, text.AlignStart)
 }
 
 func (b *BattleScene) DrawText(screen *ebiten.Image) {
@@ -317,8 +315,7 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 	b.battleState.Draw(screen, width, height)
 
 	if b.config.IsDebug() {
-		str := fmt.Sprintf("Speed %v\nTPS %2.1f", b.speed, ebiten.ActualTPS())
-		ebitenutil.DebugPrintAt(screen, str, 5, 400)
+		comp.DrawTextLines(screen, assets.InfoFace, fmt.Sprintf("Speed %v\nTPS %2.1f\nCreep Timer %d", b.speed, ebiten.ActualTPS(), b.creepTimer), comp.TextBorder, 400, text.AlignStart, text.AlignStart)
 	}
 }
 

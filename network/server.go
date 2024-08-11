@@ -46,11 +46,12 @@ func (s *Server) Start() error {
 	router.OnDisconnect(func(sender *router.NetworkClient, err error) {
 		fmt.Printf("Client %s disconnected from the server! / Reason [%s]\n", sender.Id(), err)
 	})
+
 	RegisterComponenets()
 	srvsync.UseEsync(s.world)
 
-	go s.startTicking()
 	go s.StartHost()
+	go s.startTicking()
 
 	return nil
 }

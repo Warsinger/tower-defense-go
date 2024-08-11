@@ -14,21 +14,19 @@ type TitleScene struct {
 	width           int
 	height          int
 	gameStats       *GameStats
-	newGameCallback func(bool) error
-	viewer          bool
+	newGameCallback NewGameCallback
 }
+type NewGameCallback func(broadcast bool) error
 
-func NewTitleScene(width, height int, gameStats *GameStats, newGameCallback func(bool) error) (*TitleScene, error) {
+func NewTitleScene(width, height int, gameStats *GameStats, newGameCallback NewGameCallback) (*TitleScene, error) {
 	return &TitleScene{width: width, height: height, gameStats: gameStats, newGameCallback: newGameCallback}, nil
 }
 
 func (t *TitleScene) Update() error {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || ebiten.IsKeyPressed(ebiten.KeySpace) {
-		return t.newGameCallback(t.viewer)
+		return t.newGameCallback(true)
 	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyV) {
-		t.viewer = !t.viewer
-	}
+
 	return nil
 }
 
@@ -77,8 +75,5 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 
 	nextY = 600
 	str = "Click or press space to start"
-	nextY = comp.DrawTextLines(screen, assets.ScoreFace, str, width, nextY, text.AlignCenter, text.AlignStart)
-
-	str = fmt.Sprintf("Viewer mode %v (Press V to toggle)", t.viewer)
-	_ = comp.DrawTextLines(screen, assets.InfoFace, str, width, nextY, text.AlignCenter, text.AlignStart)
+	_ = comp.DrawTextLines(screen, assets.ScoreFace, str, width, nextY, text.AlignCenter, text.AlignStart)
 }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/leap-fish/necs/router"
 	"github.com/yohamta/donburi"
 )
 
@@ -22,12 +23,11 @@ type Scene interface {
 }
 type GameData struct {
 	world                donburi.World
+	clientWorld          donburi.World
 	scenes               []Scene
 	width, height, speed int
 	gameStats            *scenes.GameStats
 	debug                bool
-	server               *network.Server
-	client               *network.Client
 }
 
 func NewGame(width, height, speed int, debug bool, server, client string) (*GameData, error) {
@@ -43,60 +43,69 @@ func NewGame(width, height, speed int, debug bool, server, client string) (*Game
 	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, gameStats: gameStats, debug: debug}
 
 	if server != "" {
+		ebiten.SetWindowTitle("Tower Defense (server)")
 		fmt.Printf("listening on port %v\n", server)
-		game.server = network.NewServer(game.world, "", server)
-		err = game.server.Start()
+		gameserver := network.NewServer(game.world, "", server)
+		err = gameserver.Start()
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if client != "" {
-		fmt.Printf("connect to %v\n", client)
-		game.client = network.NewClientNewWorld(client)
-		err = game.client.Start()
+		router.On(func(sender *router.NetworkClient, message network.ClientConnectMessage) {
+			fmt.Println("recv client connect message")
+			game.startClient(message.Address)
+		})
+		game.registerStartGame()
+	} else if client != "" {
+		ebiten.SetWindowTitle("Tower Defense (client)")
+		err := game.startClient(client)
 		if err != nil {
 			return nil, err
 		}
+		game.registerStartGame()
 	}
 
-	if game.client != nil {
-		err = game.switchToViewer()
-	} else {
-		err = game.switchToTitle(gameStats)
-	}
+	err = game.switchToTitle(gameStats)
 	if err != nil {
 		return nil, err
 	}
 	return game, nil
 }
 
-func (g *GameData) switchToViewer() error {
-	scene, err := scenes.NewViewerScene(g.client.World, g.width, g.height, g.debug, g.client == nil)
+func (g *GameData) registerStartGame() {
+	router.On(func(sender *router.NetworkClient, message network.StartGameMessage) {
+		fmt.Println("recv start game message")
+		g.switchToBattle(false)
+	})
+
+}
+
+func (g *GameData) startClient(address string) error {
+	fmt.Printf("connect to %v\n", address)
+	gameclient, err := network.NewClientNewWorld(address)
 	if err != nil {
 		return err
 	}
-	ebiten.SetWindowSize(g.width, g.height)
-	g.scenes = []Scene{scene}
+	g.clientWorld = gameclient.World
+	err = gameclient.Start(g.world)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (g *GameData) switchToBattle(viewerMode bool) error {
+func (g *GameData) switchToBattle(broadcast bool) error {
+	if broadcast {
+		router.Broadcast(network.StartGameMessage{})
+	}
 	battle, err := scenes.NewBattleScene(g.world, g.width, g.height, g.speed, g.gameStats, g.debug, g.switchToTitle)
 	if err != nil {
 		return err
 	}
 	battle.Init()
-	g.scenes = []Scene{battle}
 
-	if viewerMode || g.client != nil {
-		var world donburi.World
-		if g.client != nil {
-			world = g.client.World
-		} else {
-			world = g.world
-		}
-		scene, err := scenes.NewViewerScene(world, g.width, g.height, g.debug, g.client == nil)
+	g.scenes = []Scene{battle}
+	if g.clientWorld != nil {
+		scene, err := scenes.NewViewerScene(g.clientWorld, g.width, g.height, g.debug, true)
 		if err != nil {
 			return err
 		}
