@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"tower-defense/util"
 
 	"github.com/leap-fish/necs/esync/srvsync"
 	"github.com/yohamta/donburi"
@@ -48,7 +49,7 @@ func NewTower(world donburi.World, x, y int) error {
 
 	Position.Set(tower, &PositionData{x, y})
 	Health.Set(tower, NewHealthData(20))
-	Attack.Set(tower, &AttackData{Power: 1, AttackType: RangedSingle, Range: 50, Cooldown: 30})
+	Attack.Set(tower, &AttackData{Power: 1, AttackType: RangedSingle, Range: 50, cooldown: util.NewCooldownTimer(30)})
 	Level.Set(tower, &LevelData{Level: 1})
 	SpriteRender.Set(tower, &SpriteRenderData{Name: "tower"})
 	RangeRender.Set(tower, &RangeRenderData{})
@@ -94,7 +95,7 @@ func (t *TowerData) Upgrade(entry *donburi.Entry) bool {
 	attack := Attack.Get(entry)
 	attack.Power++
 	attack.Range += 3
-	attack.Cooldown = max(3, attack.Cooldown-3)
+	attack.cooldown.Cooldown = max(3, attack.cooldown.Cooldown-3)
 
 	return true
 }

@@ -7,6 +7,7 @@ import (
 	"math"
 
 	"tower-defense/assets"
+	"tower-defense/util"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -43,7 +44,7 @@ func NewPlayer(world donburi.World) error {
 	Position.Set(entry, &PositionData{X: 0, Y: board.Height - yBorderBottom})
 	Player.Set(entry, &PlayerData{Money: 500})
 	Health.Set(entry, NewHealthData(100))
-	Attack.Set(entry, &AttackData{Power: 1, AttackType: RangedSingle, Range: 15, Cooldown: 10, noLead: true})
+	Attack.Set(entry, &AttackData{Power: 1, AttackType: RangedSingle, Range: 15, cooldown: util.NewCooldownTimer(10), noLead: true})
 	SpriteRender.Set(entry, &SpriteRenderData{Name: "base"})
 	PlayerRender.Set(entry, &PlayerRenderData{})
 	InfoRender.Set(entry, &InfoRenderData{})

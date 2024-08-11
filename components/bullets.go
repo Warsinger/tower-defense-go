@@ -50,7 +50,7 @@ func NewBullet(world donburi.World, start, end image.Point, speed int, creep boo
 		size = 4
 	}
 	BulletRender.Set(bullet, NewBulletRender(size, color))
-	Attack.Set(bullet, &AttackData{Power: 1, AttackType: RangedSingle, Range: 1, Cooldown: 30})
+	Attack.Set(bullet, &AttackData{Power: 1, AttackType: RangedSingle, Range: 1, cooldown: util.NewCooldownTimer(30)})
 	Bullet.Set(bullet, &BulletData{start: start, end: end, speed: speed, creep: creep})
 	return bullet, nil
 }

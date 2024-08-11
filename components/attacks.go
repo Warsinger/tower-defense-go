@@ -29,9 +29,7 @@ const (
 type AttackData struct {
 	Power      int
 	Range      int
-	Cooldown   int
-	ticker     int
-	inCooldown bool
+	cooldown   *util.CooldownTimer
 	AttackType AttackType
 	noLead     bool
 }
@@ -58,26 +56,6 @@ func (a *AttackData) GetExpandedRect(e *donburi.Entry) image.Rectangle {
 	rect.Min = rect.Min.Sub(ptRange)
 	rect.Max = rect.Max.Add(ptRange)
 	return rect
-}
-
-func (a *AttackData) GetTicker() int {
-	return a.ticker
-}
-func (a *AttackData) IncrementTicker() {
-	if a.inCooldown {
-		a.ticker++
-	}
-}
-
-func (a *AttackData) CheckCooldown() {
-	if a.ticker >= a.Cooldown {
-		a.ticker = 0
-		a.inCooldown = false
-	}
-}
-
-func (a *AttackData) StartCooldown() {
-	a.inCooldown = true
 }
 
 func (rr *RangeRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
@@ -140,20 +118,21 @@ func (a *AttackData) FindEnemyIntersect(entry *donburi.Entry, enemyType ...compo
 }
 
 func (a *AttackData) AttackEnemyRange(entry *donburi.Entry, afterAttack func(*donburi.Entry), enemyType ...component.IComponentType) {
-	a.CheckCooldown()
-	if a.GetTicker() == 0 {
+	a.cooldown.CheckCooldown()
+	defer a.cooldown.IncrementTicker()
+	if !a.cooldown.InCooldown {
 		// fmt.Printf("finding enemies in range of %v\n", entry)
 		// look for a enemy in range to shoot at
 		enemy := a.FindEnemyRange(entry, enemyType...)
 		if enemy != nil {
 			a.LaunchBullet(entry, enemy)
-			a.StartCooldown()
+			a.cooldown.StartCooldown()
 			if afterAttack != nil {
 				afterAttack(entry)
 			}
 		}
 	}
-	a.IncrementTicker()
+
 }
 
 func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
@@ -187,8 +166,9 @@ func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 }
 
 func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, afterKill func(*donburi.Entry, *donburi.Entry), afterAttack func(*donburi.Entry), enemyType ...component.IComponentType) {
-	a.CheckCooldown()
-	if a.GetTicker() == 0 {
+	a.cooldown.CheckCooldown()
+	defer a.cooldown.IncrementTicker()
+	if !a.cooldown.InCooldown {
 		// fmt.Printf("finding enemies in range of %v\n", entry)
 		// look for a enemy we interect
 		enemy := a.FindEnemyIntersect(entry, enemyType...)
@@ -209,11 +189,10 @@ func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, afterKill func(*
 					enemy.Remove()
 				}
 			}
-			a.StartCooldown()
+			a.cooldown.StartCooldown()
 			if afterAttack != nil {
 				afterAttack(entry)
 			}
 		}
 	}
-	a.IncrementTicker()
 }

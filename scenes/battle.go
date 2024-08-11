@@ -8,6 +8,7 @@ import (
 	comp "tower-defense/components"
 	"tower-defense/config"
 	"tower-defense/network"
+	"tower-defense/util"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -20,16 +21,17 @@ import (
 
 type EndGameCallBack func(*GameStats) error
 type BattleScene struct {
-	world           donburi.World
-	width           int
-	height          int
-	speed           int
-	creepTimer      int
-	tickCounter     int
-	config          *config.ConfigData
-	battleState     *comp.BattleSceneState
-	gameStats       *GameStats
-	endGameCallback EndGameCallBack
+	world              donburi.World
+	width              int
+	height             int
+	speed              int
+	creepTimer         int
+	tickCounter        int
+	config             *config.ConfigData
+	battleState        *comp.BattleSceneState
+	gameStats          *GameStats
+	endGameCallback    EndGameCallBack
+	superCreepCooldown *util.CooldownTimer
 }
 
 type GameStats struct {
@@ -57,15 +59,16 @@ func NewBattleScene(world donburi.World, width, height, speed int, gameStats *Ga
 	}
 
 	return &BattleScene{
-		world:           world,
-		width:           width,
-		height:          height,
-		speed:           speed,
-		creepTimer:      maxCreepTimer - startCreepTimer,
-		config:          config.NewConfig(world, debug),
-		battleState:     bss,
-		gameStats:       gameStats,
-		endGameCallback: endGameCallback,
+		world:              world,
+		width:              width,
+		height:             height,
+		speed:              speed,
+		creepTimer:         maxCreepTimer - startCreepTimer,
+		config:             config.NewConfig(world, debug),
+		battleState:        bss,
+		gameStats:          gameStats,
+		endGameCallback:    endGameCallback,
+		superCreepCooldown: util.NewCooldownTimer(maxCreepTimer),
 	}, nil
 }
 
@@ -151,11 +154,14 @@ func (b *BattleScene) Update() error {
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
 		peers := router.Peers()
-		if len(peers) > 0 {
+		b.superCreepCooldown.CheckCooldown()
+		defer b.superCreepCooldown.IncrementTicker()
+		if len(peers) > 0 && !b.superCreepCooldown.InCooldown {
 			// send a super creep to the other player
 			const cost = 50
 			if player.Money >= cost {
 				peers[0].SendMessage(network.CreepMessage{Count: 1})
+				b.superCreepCooldown.StartCooldown()
 			} else {
 				fmt.Printf("Not enough money to send a creep %v, remaining %v\n", cost, player.Money)
 				assets.PlaySound("invalid2")
