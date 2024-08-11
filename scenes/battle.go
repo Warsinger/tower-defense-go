@@ -41,6 +41,11 @@ type GameStats struct {
 	HighTowerLevel int
 }
 
+type creeepSpawnChance struct {
+	count  int
+	chance float32
+}
+
 const minSpeed = 0
 const maxSpeed = 60
 const maxCreepTimer = 180
@@ -269,11 +274,6 @@ func (b *BattleScene) UpdateEntities() error {
 	}
 
 	return err
-}
-
-type creeepSpawnChance struct {
-	count  int
-	chance float32
 }
 
 func (b *BattleScene) SpawnCreeps(creepLevel int) (int, error) {
