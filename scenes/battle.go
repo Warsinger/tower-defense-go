@@ -7,11 +7,13 @@ import (
 	"tower-defense/assets"
 	comp "tower-defense/components"
 	"tower-defense/config"
+	"tower-defense/network"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/leap-fish/necs/esync/srvsync"
+	"github.com/leap-fish/necs/router"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/filter"
 )
@@ -25,7 +27,7 @@ type BattleScene struct {
 	creepTimer      int
 	tickCounter     int
 	config          *config.ConfigData
-	battleState     *BattleSceneState
+	battleState     *comp.BattleSceneState
 	gameStats       *GameStats
 	endGameCallback EndGameCallBack
 }
@@ -35,13 +37,6 @@ type GameStats struct {
 	HighCreepLevel int
 	HighTowerLevel int
 }
-
-type BattleSceneState struct {
-	GameOver bool
-	Paused   bool
-}
-
-var BattleState = donburi.NewComponentType[BattleSceneState]()
 
 const minSpeed = 0
 const maxSpeed = 60
@@ -53,7 +48,7 @@ func NewBattleScene(world donburi.World, width, height, speed int, gameStats *Ga
 	if err != nil {
 		return nil, err
 	}
-	bss := &BattleSceneState{}
+	bss := &comp.BattleSceneState{}
 
 	if speed < minSpeed {
 		speed = max(1, minSpeed)
@@ -77,18 +72,23 @@ func NewBattleScene(world donburi.World, width, height, speed int, gameStats *Ga
 func (b *BattleScene) Init() error {
 	b.Clear()
 
-	entity := b.world.Create(BattleState)
-	err := srvsync.NetworkSync(b.world, &entity, BattleState)
+	entity := b.world.Create(comp.BattleState)
+	err := srvsync.NetworkSync(b.world, &entity, comp.BattleState)
 	if err != nil {
 		return err
 	}
-	BattleState.Set(b.world.Entry(entity), b.battleState)
+	comp.BattleState.Set(b.world.Entry(entity), b.battleState)
 
 	err = comp.NewPlayer(b.world)
 	if err != nil {
 		return err
 	}
 
+	if len(router.Peers()) > 0 {
+		router.On(func(sender *router.NetworkClient, message network.CreepMessage) {
+			comp.NewSuperCreep(b.world, 0, 0)
+		})
+	}
 	return nil
 }
 
@@ -103,7 +103,7 @@ func (b *BattleScene) Clear() error {
 		filter.Contains(comp.Player),
 		filter.Contains(comp.Tower),
 		filter.Contains(comp.Creep),
-		filter.Contains(BattleState),
+		filter.Contains(comp.BattleState),
 	))
 	query.Each(b.world, func(e *donburi.Entry) {
 		e.Remove()
@@ -148,6 +148,19 @@ func (b *BattleScene) Update() error {
 	err := player.UserSpeedUpdate(pe)
 	if err != nil {
 		return err
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+		peers := router.Peers()
+		if len(peers) > 0 {
+			// send a super creep to the other player
+			const cost = 50
+			if player.Money >= cost {
+				peers[0].SendMessage(network.CreepMessage{Count: 1})
+			} else {
+				fmt.Printf("Not enough money to send a creep %v, remaining %v\n", cost, player.Money)
+				assets.PlaySound("invalid2")
+			}
+		}
 	}
 
 	if b.speed != 0 && float32(b.tickCounter) > float32(ebiten.TPS())/float32(b.speed) {
@@ -260,8 +273,8 @@ func (b *BattleScene) SpawnCreeps(creepLevel int) (int, error) {
 		{7, -0.25},
 		{6, -0.1},
 		{5, 0.1},
-		{4, .25},
-		{3, 0.5},
+		{4, 0.2},
+		{3, 0.4},
 		{2, 0.7}}
 
 	val := rand.Float32() - levelBump
@@ -272,6 +285,7 @@ func (b *BattleScene) SpawnCreeps(creepLevel int) (int, error) {
 			break
 		}
 	}
+	fmt.Printf("Spawning %d creeps\n", count)
 
 	for i := 0; i < count; i++ {
 		be := comp.Board.MustFirst(b.world)
@@ -316,18 +330,5 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 
 	if b.config.IsDebug() {
 		comp.DrawTextLines(screen, assets.InfoFace, fmt.Sprintf("Speed %v\nTPS %2.1f\nCreep Timer %d", b.speed, ebiten.ActualTPS(), b.creepTimer), comp.TextBorder, 400, text.AlignStart, text.AlignStart)
-	}
-}
-
-func (bss *BattleSceneState) Draw(screen *ebiten.Image, width, height float64) {
-	if bss.GameOver {
-		str := "GAME OVER"
-		nextY := comp.DrawTextLines(screen, assets.ScoreFace, str, width, height/2, text.AlignCenter, text.AlignCenter)
-
-		str = "Press R to reset game"
-		_ = comp.DrawTextLines(screen, assets.InfoFace, str, width, nextY, text.AlignCenter, text.AlignStart)
-	} else if bss.Paused {
-		str := "PAUSED"
-		_ = comp.DrawTextLines(screen, assets.ScoreFace, str, width, height/2, text.AlignCenter, text.AlignCenter)
 	}
 }

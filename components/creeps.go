@@ -45,6 +45,24 @@ func NewCreep(world donburi.World, x, y, creepLevel int) (*donburi.Entry, error)
 	InfoRender.Set(creep, &InfoRenderData{})
 	return creep, nil
 }
+func NewSuperCreep(world donburi.World, x, y int) (*donburi.Entry, error) {
+	entity := world.Create(Creep, Position, Velocity, Health, Attack, SpriteRender, RangeRender, InfoRender)
+	err := srvsync.NetworkSync(world, &entity, Creep, Position, Health, Attack, SpriteRender, RangeRender, InfoRender)
+	if err != nil {
+		return nil, err
+	}
+	creep := world.Entry(entity)
+	Position.Set(creep, &PositionData{X: x, Y: y})
+	Velocity.Set(creep, &VelocityData{X: 5, Y: 5})
+	name := "tower"
+	Creep.Set(creep, &CreepData{scoreValue: 50})
+	Health.Set(creep, NewHealthData(20))
+	Attack.Set(creep, &AttackData{Power: 8, AttackType: RangedSingle, Range: 20, Cooldown: 10})
+	SpriteRender.Set(creep, &SpriteRenderData{Name: name})
+	RangeRender.Set(creep, &RangeRenderData{})
+	InfoRender.Set(creep, &InfoRenderData{})
+	return creep, nil
+}
 
 const maxTryMove = 10
 

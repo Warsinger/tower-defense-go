@@ -112,7 +112,9 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * ~~save high scores~~
 * Stretch
   * Computer players
-  * Networking players, possibly using [leap-fish/necs](https://github.com/leap-fish/necs)
+  * ~~Networking players, possibly using [leap-fish/necs](https://github.com/leap-fish/necs)~~
+    * ~~Send extra creeps to other player~~
+    * Pick different types of creep to send
   * Simulation for testing
   * Play simulated network opponent
   * Investigate donburi systems and events

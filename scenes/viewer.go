@@ -65,9 +65,9 @@ func (v *ViewerScene) DrawText(image *ebiten.Image) {
 	str := "Viewer Mode"
 	comp.DrawTextLines(image, assets.InfoFace, str, float64(v.width), comp.TextBorder, text.AlignEnd, text.AlignStart)
 
-	bssEntry, ok := BattleState.First(v.world)
+	bssEntry, ok := comp.BattleState.First(v.world)
 	if ok {
-		bss := BattleState.Get(bssEntry)
+		bss := comp.BattleState.Get(bssEntry)
 		bss.Draw(image, float64(v.width), float64(v.height))
 	}
 }
