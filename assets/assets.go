@@ -8,12 +8,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/wav"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"golang.org/x/image/font"
 )
 
 var images map[string]*ebiten.Image = make(map[string]*ebiten.Image)
@@ -24,6 +26,7 @@ var fs embed.FS
 
 var ScoreFace *text.GoTextFace
 var InfoFace *text.GoTextFace
+var GoFace font.Face
 var audioContext *audio.Context
 
 func LoadAssets() error {
@@ -58,6 +61,19 @@ func loadFonts() error {
 		Source: s,
 		Size:   12,
 	}
+
+	// font for the UI
+	ttfFont, err := truetype.Parse(fonts.MPlus1pRegular_ttf)
+	if err != nil {
+		return err
+	}
+
+	GoFace = truetype.NewFace(ttfFont, &truetype.Options{
+		Size:    24,
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
+
 	return nil
 }
 
