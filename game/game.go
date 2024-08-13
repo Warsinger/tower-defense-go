@@ -225,15 +225,13 @@ func ensureDir(dirName string) error {
 }
 
 func (g *GameData) Update() error {
+	// TODO move this into the title scene so we can determin if the config has focus
 	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
 		if err := g.SaveScores(); err != nil {
 			return err
 		}
 
 		return ebiten.Termination
-	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
-		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
 
 	for _, scene := range g.scenes {

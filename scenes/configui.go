@@ -14,6 +14,76 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
+func openWindow2(ui *ebitenui.UI) {
+	face := assets.GoFace
+	// Create the contents of the window
+	windowContainer := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255})),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	)
+	windowContainer.AddChild(widget.NewText(
+		widget.TextOpts.Text("Hello from window", face, color.NRGBA{254, 255, 255, 255}),
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+			HorizontalPosition: widget.AnchorLayoutPositionCenter,
+			VerticalPosition:   widget.AnchorLayoutPositionCenter,
+		})),
+	))
+
+	// Create the titlebar for the window
+	titleContainer := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{150, 150, 150, 255})),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	)
+	titleContainer.AddChild(widget.NewText(
+		widget.TextOpts.Text("Window Title", face, color.NRGBA{254, 255, 255, 255}),
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+			HorizontalPosition: widget.AnchorLayoutPositionCenter,
+			VerticalPosition:   widget.AnchorLayoutPositionCenter,
+		})),
+	))
+
+	// Create the new window object. The window object is not tied to a container. Its location and
+	// size are set manually using the SetLocation method on the window and added to the UI with ui.AddWindow()
+	// Set the Button callback below to see how the window is added to the UI.
+	window := widget.NewWindow(
+		//Set the main contents of the window
+		widget.WindowOpts.Contents(windowContainer),
+		//Set the titlebar for the window (Optional)
+		widget.WindowOpts.TitleBar(titleContainer, 25),
+		//Set the window above everything else and block input elsewhere
+		widget.WindowOpts.Modal(),
+		//Set how to close the window. CLICK_OUT will close the window when clicking anywhere
+		//that is not a part of the window object
+		widget.WindowOpts.CloseMode(widget.CLICK_OUT),
+		//Indicates that the window is draggable. It must have a TitleBar for this to work
+		widget.WindowOpts.Draggable(),
+		//Set the window resizeable
+		widget.WindowOpts.Resizeable(),
+		//Set the minimum size the window can be
+		widget.WindowOpts.MinSize(200, 100),
+		//Set the maximum size a window can be
+		widget.WindowOpts.MaxSize(300, 300),
+		//Set the callback that triggers when a move is complete
+		widget.WindowOpts.MoveHandler(func(args *widget.WindowChangedEventArgs) {
+			fmt.Println("Window Moved")
+		}),
+		//Set the callback that triggers when a resize is complete
+		widget.WindowOpts.ResizeHandler(func(args *widget.WindowChangedEventArgs) {
+			fmt.Println("Window Resized")
+		}),
+	)
+
+	x, y := window.Contents.PreferredSize()
+	//Create a rect with the preferred size of the content
+	r := img.Rect(0, 0, x, y)
+	//Use the Add method to move the window to the specified point
+	r = r.Add(img.Point{100, 50})
+	//Set the windows location to the rect.
+	window.SetLocation(r)
+	//Add the window to the UI.
+	//Note: If the window is already added, this will just move the window and not add a duplicate.
+	ui.AddWindow(window)
+}
 func openWindow(ui *ebitenui.UI) {
 	var rw widget.RemoveWindowFunc
 	var window *widget.Window
@@ -21,8 +91,8 @@ func openWindow(ui *ebitenui.UI) {
 	face := assets.GoFace
 	imageBtn, _ := loadButtonImage()
 	padding := widget.Insets{
-		Left:   30,
-		Right:  30,
+		Left:   10,
+		Right:  10,
 		Top:    5,
 		Bottom: 5,
 	}
@@ -71,6 +141,12 @@ func openWindow(ui *ebitenui.UI) {
 		widget.TextOpts.Text("Configure server", face, clr),
 	))
 
+	ticolor := &widget.TextInputColor{
+		Idle:          color.NRGBA{254, 255, 255, 255},
+		Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
+		Caret:         color.NRGBA{254, 255, 255, 255},
+		DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
+	}
 	tOpts := []widget.TextInputOpt{
 		widget.TextInputOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
@@ -79,10 +155,10 @@ func openWindow(ui *ebitenui.UI) {
 			Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 			Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 		}),
-		// widget.TextInputOpts.Color(res.textInput.color),
+		widget.TextInputOpts.Color(ticolor),
 		widget.TextInputOpts.Padding(widget.Insets{
-			Left:   13,
-			Right:  13,
+			Left:   7,
+			Right:  7,
 			Top:    7,
 			Bottom: 7,
 		}),
@@ -136,9 +212,9 @@ func openWindow(ui *ebitenui.UI) {
 		widget.WindowOpts.Contents(c),
 		widget.WindowOpts.TitleBar(titleBar, 30),
 		widget.WindowOpts.Draggable(),
-		widget.WindowOpts.Resizeable(),
-		widget.WindowOpts.MinSize(500, 200),
-		widget.WindowOpts.MaxSize(700, 400),
+		// widget.WindowOpts.Resizeable(),
+		widget.WindowOpts.MinSize(200, 100),
+		widget.WindowOpts.MaxSize(400, 300),
 		widget.WindowOpts.ResizeHandler(func(args *widget.WindowChangedEventArgs) {
 			fmt.Println("Resize: ", args.Rect)
 		}),
