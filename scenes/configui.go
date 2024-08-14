@@ -99,7 +99,7 @@ func openWindow(ui *ebitenui.UI) {
 	colorBtn := &widget.ButtonTextColor{
 		Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff}}
 
-	titleBar := widget.NewContainer(
+	titleContainer := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255})),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(3), widget.GridLayoutOpts.Stretch([]bool{true, false, false}, []bool{true}), widget.GridLayoutOpts.Padding(widget.Insets{
 			Left:   30,
@@ -108,12 +108,12 @@ func openWindow(ui *ebitenui.UI) {
 			Bottom: 5,
 		}))))
 
-	titleBar.AddChild(widget.NewText(
+	titleContainer.AddChild(widget.NewText(
 		widget.TextOpts.Text("Multiplayer Configuration", face, clr),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
-	titleBar.AddChild(widget.NewButton(
+	titleContainer.AddChild(widget.NewButton(
 		widget.ButtonOpts.Image(imageBtn),
 		widget.ButtonOpts.TextPadding(padding),
 		widget.ButtonOpts.Text("X", face, &widget.ButtonTextColor{
@@ -125,8 +125,8 @@ func openWindow(ui *ebitenui.UI) {
 		widget.ButtonOpts.TabOrder(99),
 	))
 
-	c := widget.NewContainer(
-		// widget.ContainerOpts.BackgroundImage(res.panel.image),
+	windowContainer := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 0, 0, 255})),
 		widget.ContainerOpts.Layout(
 			widget.NewGridLayout(
 				widget.GridLayoutOpts.Columns(1),
@@ -137,7 +137,7 @@ func openWindow(ui *ebitenui.UI) {
 		),
 	)
 
-	c.AddChild(widget.NewText(
+	windowContainer.AddChild(widget.NewText(
 		widget.TextOpts.Text("Configure server", face, clr),
 	))
 
@@ -177,14 +177,14 @@ func openWindow(ui *ebitenui.UI) {
 	)
 	textContainer := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout()))
 	textContainer.AddChild(serverText)
-	c.AddChild(textContainer)
+	windowContainer.AddChild(textContainer)
 
 	bc := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Spacing(15),
 		)),
 	)
-	c.AddChild(bc)
+	windowContainer.AddChild(bc)
 
 	saveButton := widget.NewButton(
 		widget.ButtonOpts.Image(imageBtn),
@@ -209,12 +209,12 @@ func openWindow(ui *ebitenui.UI) {
 
 	window = widget.NewWindow(
 		widget.WindowOpts.Modal(),
-		widget.WindowOpts.Contents(c),
-		widget.WindowOpts.TitleBar(titleBar, 30),
+		widget.WindowOpts.Contents(windowContainer),
+		widget.WindowOpts.TitleBar(titleContainer, 30),
 		widget.WindowOpts.Draggable(),
 		// widget.WindowOpts.Resizeable(),
 		widget.WindowOpts.MinSize(200, 100),
-		widget.WindowOpts.MaxSize(400, 300),
+		widget.WindowOpts.MaxSize(400, 200),
 		widget.WindowOpts.ResizeHandler(func(args *widget.WindowChangedEventArgs) {
 			fmt.Println("Resize: ", args.Rect)
 		}),
@@ -223,7 +223,9 @@ func openWindow(ui *ebitenui.UI) {
 		}),
 	)
 	windowSize := input.GetWindowSize()
-	r := img.Rect(0, 0, 550, 250)
+	x, y := window.Contents.PreferredSize()
+	//Create a rect with the preferred size of the content
+	r := img.Rect(0, 0, x, y)
 	r = r.Add(img.Point{windowSize.X / 4 / 2, windowSize.Y * 2 / 3 / 2})
 	window.SetLocation(r)
 

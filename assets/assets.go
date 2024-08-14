@@ -69,7 +69,7 @@ func loadFonts() error {
 	}
 
 	GoFace = truetype.NewFace(ttfFont, &truetype.Options{
-		Size:    24,
+		Size:    20,
 		DPI:     72,
 		Hinting: font.HintingFull,
 	})

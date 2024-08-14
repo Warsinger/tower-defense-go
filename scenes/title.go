@@ -75,7 +75,7 @@ func initUI() *ebitenui.UI {
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			// TODO start the client connection to the server
 			fmt.Printf("Loading Multiplayer options\n")
-			openWindow2(ui)
+			openWindow(ui)
 		}),
 	)
 
