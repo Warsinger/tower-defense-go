@@ -22,20 +22,20 @@ type TitleScene struct {
 	gameStats       *GameStats
 	newGameCallback NewGameCallback
 
-	// ui elements
-	ui *ebitenui.UI
+	ui          *ebitenui.UI
+	gameOptions GameOptions
 }
 type NewGameCallback func(broadcast bool) error
 
 func NewTitleScene(width, height int, gameStats *GameStats, newGameCallback NewGameCallback) (*TitleScene, error) {
 	title := &TitleScene{width: width, height: height, gameStats: gameStats, newGameCallback: newGameCallback}
-	title.ui = initUI()
+	title.ui = title.initUI()
 	return title, nil
 }
 
-func initUI() *ebitenui.UI {
+func (t *TitleScene) initUI() *ebitenui.UI {
 	ui := &ebitenui.UI{}
-	buttonImage, _ := loadButtonImage()
+	buttonImage := loadButtonImage()
 	face := assets.GoFace
 	rootContainer := widget.NewContainer(
 		// the container will use a plain color as its background
@@ -64,18 +64,12 @@ func initUI() *ebitenui.UI {
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
-			Left:   30,
-			Right:  30,
-			Top:    5,
-			Bottom: 50,
-		}),
+		widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			// TODO start the client connection to the server
 			fmt.Printf("Loading Multiplayer options\n")
-			openWindow(ui)
+			openWindow(ui, t.gameOptions, t.handleOptions)
 		}),
 	)
 
@@ -86,7 +80,13 @@ func initUI() *ebitenui.UI {
 
 	return ui
 }
-
+func (t *TitleScene) handleOptions(gameOptions GameOptions) {
+	// TODO start the client connection to the server
+	connStr := gameOptions.connectString
+	fmt.Printf("Connecting to %s\n", connStr)
+	t.gameOptions = gameOptions
+	// server := network.NewServer()
+}
 func (t *TitleScene) Update() error {
 	t.ui.Update()
 
