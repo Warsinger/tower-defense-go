@@ -82,8 +82,7 @@ func (t *TitleScene) initUI() *ebitenui.UI {
 }
 func (t *TitleScene) handleOptions(gameOptions GameOptions) {
 	// TODO start the client connection to the server
-	connStr := gameOptions.connectString
-	fmt.Printf("Connecting to %s\n", connStr)
+	fmt.Printf("Server: %s; Client: %s\n", gameOptions.serverPort, gameOptions.clientHostPort)
 	t.gameOptions = gameOptions
 	// server := network.NewServer()
 }
