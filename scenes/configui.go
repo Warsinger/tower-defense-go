@@ -1,6 +1,7 @@
 package scenes
 
 import (
+	"fmt"
 	img "image"
 	"image/color"
 	"net"
@@ -35,7 +36,7 @@ func NewGameOptions(debug bool) *GameOptions {
 
 type GameOptionsCallback func(options *GameOptions)
 
-func initUI(gameOptions *GameOptions, callback GameOptionsCallback) *ebitenui.UI {
+func initUI(gameOptions *GameOptions, newGameCallback NewGameCallback, gameOptionsCallback GameOptionsCallback) *ebitenui.UI {
 	ui := &ebitenui.UI{}
 	buttonImage := loadButtonImage()
 	face := assets.GoFace
@@ -44,24 +45,42 @@ func initUI(gameOptions *GameOptions, callback GameOptionsCallback) *ebitenui.UI
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout(
 			widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(20)))),
 	)
-	buttonMultiplayer := widget.NewButton(
-		widget.ButtonOpts.WidgetOpts(
+	buttonContainer := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 				HorizontalPosition: widget.AnchorLayoutPositionCenter,
 				VerticalPosition:   widget.AnchorLayoutPositionEnd,
 			}),
 		),
 
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(50),
+		)),
+	)
+	rootContainer.AddChild(buttonContainer)
+
+	buttonStart := widget.NewButton(
+		widget.ButtonOpts.Image(buttonImage),
+		widget.ButtonOpts.Text("Start Game", face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+		widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			newGameCallback(true, gameOptions)
+		}),
+	)
+	buttonContainer.AddChild(buttonStart)
+	buttonMultiplayer := widget.NewButton(
 		widget.ButtonOpts.Image(buttonImage),
 		widget.ButtonOpts.Text("Multiplayer Options", face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 		widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			openWindow(ui, gameOptions, callback)
+			openWindow(ui, gameOptions, gameOptionsCallback)
 		}),
 	)
-	rootContainer.AddChild(buttonMultiplayer)
+	buttonContainer.AddChild(buttonMultiplayer)
 
 	ui.Container = rootContainer
 
@@ -286,15 +305,18 @@ func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsC
 		widget.WindowOpts.TitleBar(titleContainer, 30),
 		widget.WindowOpts.MinSize(400, 220),
 		widget.WindowOpts.MaxSize(500, 400),
+		widget.WindowOpts.ClosedHandler(func(args *widget.WindowClosedEventArgs) {
+			fmt.Printf("Window closed\n")
+			isModalOpen = false
+		}),
 	)
 	windowSize := input.GetWindowSize()
 	x, y := window.Contents.PreferredSize()
 	r := img.Rect(0, 0, x, y)
 	r = r.Add(img.Point{windowSize.X/2 - x/2 + 25, windowSize.Y/2 - y/2 + 25})
 	window.SetLocation(r)
-
-	window.SetCloseFunction(func() { isModalOpen = false })
 	rw = ui.AddWindow(window)
+
 	isModalOpen = true
 }
 

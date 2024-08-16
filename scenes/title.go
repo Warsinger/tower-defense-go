@@ -29,7 +29,7 @@ type NewGameCallback func(broadcast bool, gameOptions *GameOptions) error
 
 func NewTitleScene(world donburi.World, width, height int, gameStats *GameStats, gameOptions *GameOptions, newGameCallback NewGameCallback) (*TitleScene, error) {
 	title := &TitleScene{world: world, width: width, height: height, gameStats: gameStats, gameOptions: gameOptions, newGameCallback: newGameCallback}
-	title.ui = initUI(title.gameOptions, title.handleOptions)
+	title.ui = initUI(title.gameOptions, newGameCallback, title.handleOptions)
 	return title, nil
 }
 
