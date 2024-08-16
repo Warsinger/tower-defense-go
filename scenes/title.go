@@ -68,7 +68,6 @@ func (t *TitleScene) initUI() *ebitenui.UI {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			fmt.Printf("Loading Multiplayer options\n")
 			openWindow(ui, t.gameOptions, t.handleOptions)
 		}),
 	)
@@ -82,7 +81,6 @@ func (t *TitleScene) initUI() *ebitenui.UI {
 }
 func (t *TitleScene) handleOptions(gameOptions GameOptions) {
 	// TODO start the client connection to the server
-	fmt.Printf("Server: %s; Client: %s\n", gameOptions.serverPort, gameOptions.clientHostPort)
 	t.gameOptions = gameOptions
 	// server := network.NewServer()
 }
