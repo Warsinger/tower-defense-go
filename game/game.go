@@ -23,8 +23,8 @@ type Scene interface {
 	Draw(screen *ebiten.Image)
 }
 type GameData struct {
-	world                donburi.World
-	clientWorld          donburi.World
+	world donburi.World
+	// clientWorld          donburi.World
 	scenes               []Scene
 	width, height, speed int
 	gameStats            *scenes.GameStats
@@ -51,11 +51,12 @@ func NewGame(width, height, speed int, debug bool, startingTowerLevel int) (*Gam
 	return game, nil
 }
 
-func (g *GameData) switchToBattle(broadcast bool, gameOptions *config.ConfigData) error {
+func (g *GameData) switchToBattle(broadcast bool, controller *scenes.Controller, gameOptions *config.ConfigData) error {
 	if broadcast {
 		router.Broadcast(network.StartGameMessage{})
 	}
-	multiplayer := g.clientWorld != nil
+	clientWorld := controller.GetClientWorld()
+	multiplayer := clientWorld != nil
 	battle, err := scenes.NewBattleScene(g.world, g.width, g.height, g.speed, g.gameStats, multiplayer, gameOptions, g.startingTowerLevel, g.switchToTitle)
 	if err != nil {
 		return err
@@ -64,7 +65,7 @@ func (g *GameData) switchToBattle(broadcast bool, gameOptions *config.ConfigData
 
 	g.scenes = []Scene{battle}
 	if multiplayer {
-		scene, err := scenes.NewViewerScene(g.clientWorld, g.width, g.height, gameOptions, true)
+		scene, err := scenes.NewViewerScene(clientWorld, g.width, g.height, gameOptions, true)
 		if err != nil {
 			return err
 		}

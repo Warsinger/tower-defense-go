@@ -28,6 +28,7 @@ func (c *Controller) StartServer(world donburi.World, gameOptions *config.Config
 	}
 	if c.client != nil {
 		// TODO stop client
+		c.client = nil
 	}
 	router.On(func(sender *router.NetworkClient, message network.ClientConnectMessage) {
 		fmt.Println("recv client connect message")
@@ -50,6 +51,7 @@ func (c *Controller) StartClient(world donburi.World, gameOptions *config.Config
 	}
 	if c.server != nil {
 		// TODO stop server
+		c.server = nil
 	}
 	registerStartGame(newGameCallback, gameOptions)
 	return nil
@@ -58,7 +60,7 @@ func (c *Controller) StartClient(world donburi.World, gameOptions *config.Config
 func registerStartGame(newGameCallback NewGameCallback, gameOptions *config.ConfigData) {
 	router.On(func(sender *router.NetworkClient, message network.StartGameMessage) {
 		fmt.Println("recv start game message")
-		newGameCallback(false, gameOptions)
+		newGameCallback(false, &controller, gameOptions)
 	})
 
 }
@@ -73,6 +75,13 @@ func (c *Controller) startClient(world donburi.World, address string) error {
 	err = c.client.Start(world)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (c *Controller) GetClientWorld() donburi.World {
+	if c.client != nil && c.client.World != nil {
+		return c.client.World
 	}
 	return nil
 }

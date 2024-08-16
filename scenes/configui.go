@@ -55,7 +55,7 @@ func initUI(gameOptions *config.ConfigData, newGameCallback NewGameCallback, gam
 		}),
 		widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			newGameCallback(true, gameOptions)
+			newGameCallback(true, &controller, gameOptions)
 		}),
 	)
 	buttonContainer.AddChild(buttonStart)

@@ -26,7 +26,7 @@ type TitleScene struct {
 
 var controller = Controller{}
 
-type NewGameCallback func(broadcast bool, gameOptions *config.ConfigData) error
+type NewGameCallback func(broadcast bool, controller *Controller, gameOptions *config.ConfigData) error
 
 func NewTitleScene(world donburi.World, width, height int, gameStats *GameStats, gameOptions *config.ConfigData, newGameCallback NewGameCallback) (*TitleScene, error) {
 	title := &TitleScene{world: world, width: width, height: height, gameStats: gameStats, gameOptions: gameOptions, newGameCallback: newGameCallback}
@@ -47,7 +47,7 @@ func (t *TitleScene) Update() error {
 	t.ui.Update()
 
 	if !IsModalOpen() && ebiten.IsKeyPressed(ebiten.KeySpace) {
-		return t.newGameCallback(true, t.gameOptions)
+		return t.newGameCallback(true, &controller, t.gameOptions)
 	}
 
 	return nil
