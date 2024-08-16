@@ -82,10 +82,12 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
     * ~~Creep bouncing when on top of 2 creeps~~
 * Game screen options
   * ~~Press some key to start~~
+  * ~~Add UI for configuring game options (server, client, debug, gridlines)~~
   * Choose options for game difficulty
-    * Implement game difficulty
-  * Set other options
-    * debug, range circles, etc
+    * Add input for tower level in game options
+    * ~~Implement game difficulty~~
+  * ~~Set other options~~
+    * ~~debug, range circles, etc~~
 * Multiple tower types
   * Player selects types
   * Multi-shot
