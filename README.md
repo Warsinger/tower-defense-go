@@ -48,7 +48,7 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * Q to quit
 * Title screen
   * Click Start Game or press Spacebar to start
-  * Click Game Options to configure:
+  * Click Game Options to configure
     * Server or client connections
     * Debug mode
     * Grid lines
@@ -96,6 +96,7 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * ~~Upgradeable~~
   * Bullets slow creeps
   * ~~Refresh tower health for % of initial cost~~
+* Let mouse clicks heal and upgrade towers, right click or double click
 * Levels
   * ~~More powerful creeps~~
   * ~~Money generates over time~~
