@@ -100,7 +100,7 @@ func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 
 func DrawGridLines(screen *ebiten.Image) {
 	size := screen.Bounds().Size()
-	cellSize := 10
+	cellSize := 24
 	for i := 0; i <= size.Y; i += cellSize {
 		vector.StrokeLine(screen, 0, float32(i), float32(size.X), float32(i), 1, color.White, true)
 	}
