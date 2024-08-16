@@ -9,6 +9,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/yohamta/donburi"
 
 	"github.com/ebitenui/ebitenui"
 
@@ -20,15 +21,18 @@ type TitleScene struct {
 	width           int
 	height          int
 	gameStats       *GameStats
+	gameOptions     *GameOptions
 	newGameCallback NewGameCallback
-
-	ui          *ebitenui.UI
-	gameOptions GameOptions
+	world           donburi.World
+	ui              *ebitenui.UI
 }
-type NewGameCallback func(broadcast bool) error
 
-func NewTitleScene(width, height int, gameStats *GameStats, newGameCallback NewGameCallback) (*TitleScene, error) {
-	title := &TitleScene{width: width, height: height, gameStats: gameStats, newGameCallback: newGameCallback}
+var controller = Controller{}
+
+type NewGameCallback func(broadcast bool, gameOptions *GameOptions) error
+
+func NewTitleScene(world donburi.World, width, height int, gameStats *GameStats, gameOptions *GameOptions, newGameCallback NewGameCallback) (*TitleScene, error) {
+	title := &TitleScene{world: world, width: width, height: height, gameStats: gameStats, gameOptions: gameOptions, newGameCallback: newGameCallback}
 	title.ui = title.initUI()
 	return title, nil
 }
@@ -79,10 +83,17 @@ func (t *TitleScene) initUI() *ebitenui.UI {
 
 	return ui
 }
-func (t *TitleScene) handleOptions(gameOptions GameOptions) {
-	// TODO start the client connection to the server
+
+const urlPrefix = "ws://"
+
+func (t *TitleScene) handleOptions(gameOptions *GameOptions) {
 	t.gameOptions = gameOptions
-	// server := network.NewServer()
+	if len(gameOptions.serverPort) != 0 {
+		controller.StartServer(t.world, gameOptions, t.newGameCallback)
+	} else if len(gameOptions.clientHostPort) != 0 {
+
+		controller.StartClient(t.world, gameOptions, t.newGameCallback)
+	}
 }
 func (t *TitleScene) Update() error {
 	t.ui.Update()

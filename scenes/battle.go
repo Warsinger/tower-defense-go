@@ -19,7 +19,7 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
-type EndGameCallBack func(*GameStats) error
+type EndGameCallBack func(*GameStats, *GameOptions) error
 type BattleScene struct {
 	world              donburi.World
 	width              int
@@ -31,6 +31,7 @@ type BattleScene struct {
 	config             *config.ConfigData
 	battleState        *comp.BattleSceneState
 	gameStats          *GameStats
+	gameOptions        *GameOptions
 	endGameCallback    EndGameCallBack
 	superCreepCooldown *util.CooldownTimer
 	startingTowerLevel int
@@ -52,7 +53,7 @@ const maxSpeed = 60
 const maxCreepTimer = 180
 const startCreepTimer = 120
 
-func NewBattleScene(world donburi.World, width, height, speed int, gameStats *GameStats, multiplayer, debug bool, startingTowerLevel int, endGameCallback EndGameCallBack) (*BattleScene, error) {
+func NewBattleScene(world donburi.World, width, height, speed int, gameStats *GameStats, multiplayer bool, gameOptions *GameOptions, startingTowerLevel int, endGameCallback EndGameCallBack) (*BattleScene, error) {
 	_, err := comp.NewBoard(world, width, height)
 	if err != nil {
 		return nil, err
@@ -72,9 +73,10 @@ func NewBattleScene(world donburi.World, width, height, speed int, gameStats *Ga
 		speed:              speed,
 		creepTimer:         maxCreepTimer - startCreepTimer,
 		multiplayer:        multiplayer,
-		config:             config.NewConfig(world, debug),
+		config:             config.NewConfig(world, gameOptions.debug, gameOptions.gridlines),
 		battleState:        bss,
 		gameStats:          gameStats,
+		gameOptions:        gameOptions,
 		endGameCallback:    endGameCallback,
 		superCreepCooldown: util.NewCooldownTimer(maxCreepTimer),
 		startingTowerLevel: startingTowerLevel,
@@ -128,7 +130,7 @@ func (b *BattleScene) Update() error {
 	player := comp.Player.Get(pe)
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
-		b.endGameCallback(&GameStats{player.GetScore(), player.GetCreepLevel(), comp.GetMaxTowerLevel(b.world)})
+		b.endGameCallback(&GameStats{player.GetScore(), player.GetCreepLevel(), comp.GetMaxTowerLevel(b.world)}, b.gameOptions)
 	}
 
 	if b.battleState.GameOver {

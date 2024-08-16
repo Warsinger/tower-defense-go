@@ -1,7 +1,6 @@
 package scenes
 
 import (
-	"fmt"
 	img "image"
 	"image/color"
 	"net"
@@ -24,12 +23,16 @@ type GameOptions struct {
 	gridlines      bool
 }
 
-type GameOptionsCallback func(options GameOptions)
+func NewGameOptions(debug bool) *GameOptions {
+	return &GameOptions{debug: debug}
+}
+
+type GameOptionsCallback func(options *GameOptions)
 
 // TODO  radio buttons to specify client or server
 // TODO other options including checkbox for debug mode and grid lines
 
-func openWindow(ui *ebitenui.UI, gameOptions GameOptions, callback GameOptionsCallback) {
+func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsCallback) {
 	var rw widget.RemoveWindowFunc
 	var window *widget.Window
 	var saveButton *widget.Button
@@ -206,15 +209,14 @@ func openWindow(ui *ebitenui.UI, gameOptions GameOptions, callback GameOptionsCa
 		widget.ButtonOpts.TextPadding(padding),
 		widget.ButtonOpts.Text("Save", face, colorBtnTxt),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			gameOpts := GameOptions{}
 			if radioServer.Checkbox().State() == widget.WidgetChecked {
-				gameOpts.serverPort = textServer.GetText()
+				gameOptions.serverPort = textServer.GetText()
 			} else {
-				gameOpts.clientHostPort = textClient.GetText()
+				gameOptions.clientHostPort = textClient.GetText()
 			}
-			gameOpts.debug = chkDebug.Checkbox().State() == widget.WidgetChecked
-			gameOpts.gridlines = chkGridLines.Checkbox().State() == widget.WidgetChecked
-			callback(gameOpts)
+			gameOptions.debug = chkDebug.Checkbox().State() == widget.WidgetChecked
+			gameOptions.gridlines = chkGridLines.Checkbox().State() == widget.WidgetChecked
+			callback(gameOptions)
 			rw()
 		}),
 	)

@@ -31,7 +31,7 @@ type GameData struct {
 	startingTowerLevel   int
 }
 
-func NewGame(width, height, speed int, debug bool, server, client string, startingTowerLevel int) (*GameData, error) {
+func NewGame(width, height, speed int, debug bool, startingTowerLevel int) (*GameData, error) {
 	err := assets.LoadAssets()
 	if err != nil {
 		return nil, err
@@ -43,63 +43,19 @@ func NewGame(width, height, speed int, debug bool, server, client string, starti
 
 	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, gameStats: gameStats, debug: debug, startingTowerLevel: startingTowerLevel}
 
-	if server != "" {
-		ebiten.SetWindowTitle("Tower Defense (server)")
-		fmt.Printf("listening on port %v\n", server)
-		gameserver := network.NewServer(game.world, "", server)
-		err = gameserver.Start()
-		if err != nil {
-			return nil, err
-		}
-		router.On(func(sender *router.NetworkClient, message network.ClientConnectMessage) {
-			fmt.Println("recv client connect message")
-			game.startClient(message.Address)
-		})
-		game.registerStartGame()
-	} else if client != "" {
-		ebiten.SetWindowTitle("Tower Defense (client)")
-		err := game.startClient(client)
-		if err != nil {
-			return nil, err
-		}
-		game.registerStartGame()
-	}
-
-	err = game.switchToTitle(gameStats)
+	err = game.switchToTitle(gameStats, scenes.NewGameOptions(debug))
 	if err != nil {
 		return nil, err
 	}
 	return game, nil
 }
 
-func (g *GameData) registerStartGame() {
-	router.On(func(sender *router.NetworkClient, message network.StartGameMessage) {
-		fmt.Println("recv start game message")
-		g.switchToBattle(false)
-	})
-
-}
-
-func (g *GameData) startClient(address string) error {
-	fmt.Printf("connect to %v\n", address)
-	gameclient, err := network.NewClientNewWorld(address)
-	if err != nil {
-		return err
-	}
-	g.clientWorld = gameclient.World
-	err = gameclient.Start(g.world)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (g *GameData) switchToBattle(broadcast bool) error {
+func (g *GameData) switchToBattle(broadcast bool, gameOptions *scenes.GameOptions) error {
 	if broadcast {
 		router.Broadcast(network.StartGameMessage{})
 	}
 	multiplayer := g.clientWorld != nil
-	battle, err := scenes.NewBattleScene(g.world, g.width, g.height, g.speed, g.gameStats, multiplayer, g.debug, g.startingTowerLevel, g.switchToTitle)
+	battle, err := scenes.NewBattleScene(g.world, g.width, g.height, g.speed, g.gameStats, multiplayer, gameOptions, g.startingTowerLevel, g.switchToTitle)
 	if err != nil {
 		return err
 	}
@@ -107,7 +63,7 @@ func (g *GameData) switchToBattle(broadcast bool) error {
 
 	g.scenes = []Scene{battle}
 	if multiplayer {
-		scene, err := scenes.NewViewerScene(g.clientWorld, g.width, g.height, g.debug, true)
+		scene, err := scenes.NewViewerScene(g.clientWorld, g.width, g.height, gameOptions, true)
 		if err != nil {
 			return err
 		}
@@ -130,7 +86,7 @@ func (g *GameData) adjustWindowPosition() {
 	ebiten.SetWindowPosition(winX, winY)
 }
 
-func (g *GameData) switchToTitle(gameStats *scenes.GameStats) error {
+func (g *GameData) switchToTitle(gameStats *scenes.GameStats, gameOptions *scenes.GameOptions) error {
 	if gameStats != g.gameStats {
 		save := false
 		if gameStats.HighScore > g.gameStats.HighScore {
@@ -150,7 +106,7 @@ func (g *GameData) switchToTitle(gameStats *scenes.GameStats) error {
 		}
 	}
 
-	title, err := scenes.NewTitleScene(g.width, g.height, g.gameStats, g.switchToBattle)
+	title, err := scenes.NewTitleScene(g.world, g.width, g.height, g.gameStats, gameOptions, g.switchToBattle)
 	if err != nil {
 		return err
 	}

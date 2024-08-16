@@ -38,26 +38,28 @@ func NewClientNewWorld(address string) (*Client, error) {
 }
 
 func (c *Client) Start(world donburi.World) error {
-	router.OnConnect(func(client *router.NetworkClient) {
-		fmt.Println("Client connected, starting server")
-		// start server on a port one higher than the port we connected on and send the address to the server so it can connect back to us
-		port, err := strconv.Atoi(c.port)
-		if err != nil {
-			log.Fatalf("Error getting port: %v", err)
-		}
-		port++
-		address, err := getIPAddress()
-		if err != nil {
-			log.Fatalf("Error getting address: %v", err)
-		}
-		server := NewServer(world, address, c.port)
-		err = server.Start()
-		if err != nil {
-			log.Fatalf("Error starting server: %v", err)
-		}
-		connStr := fmt.Sprintf("ws://%s:%d", address, port)
-		c.Network.SendMessage(ClientConnectMessage{connStr})
-	})
+	if world != nil {
+		router.OnConnect(func(client *router.NetworkClient) {
+			fmt.Println("Client connected, starting server")
+			// start server on a port one higher than the port we connected on and send the address to the server so it can connect back to us
+			port, err := strconv.Atoi(c.port)
+			if err != nil {
+				log.Fatalf("Error getting port: %v", err)
+			}
+			port++
+			address, err := getIPAddress()
+			if err != nil {
+				log.Fatalf("Error getting address: %v", err)
+			}
+			server := NewServer(world, address, c.port)
+			err = server.Start()
+			if err != nil {
+				log.Fatalf("Error starting server: %v", err)
+			}
+			connStr := fmt.Sprintf("ws://%s:%d", address, port)
+			c.Network.SendMessage(ClientConnectMessage{connStr})
+		})
+	}
 	RegisterComponenets()
 	clisync.RegisterClient(c.World)
 	fmt.Println("registered world")
