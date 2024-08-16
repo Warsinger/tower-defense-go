@@ -22,12 +22,12 @@ type ViewerScene struct {
 	translate bool
 }
 
-func NewViewerScene(world donburi.World, width, height int, debug, translate bool) (*ViewerScene, error) {
+func NewViewerScene(world donburi.World, width, height int, gameOptions *GameOptions, translate bool) (*ViewerScene, error) {
 	return &ViewerScene{
 		world:     world,
 		width:     width,
 		height:    height,
-		config:    config.NewConfig(world, debug),
+		config:    config.NewConfig(world, gameOptions.debug, gameOptions.gridlines),
 		translate: translate,
 	}, nil
 }
