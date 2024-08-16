@@ -1,7 +1,6 @@
 package scenes
 
 import (
-	"fmt"
 	img "image"
 	"image/color"
 	"net"
@@ -306,7 +305,6 @@ func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsC
 		widget.WindowOpts.MinSize(400, 220),
 		widget.WindowOpts.MaxSize(500, 400),
 		widget.WindowOpts.ClosedHandler(func(args *widget.WindowClosedEventArgs) {
-			fmt.Printf("Window closed\n")
 			isModalOpen = false
 		}),
 	)
@@ -321,9 +319,15 @@ func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsC
 }
 
 func validateServerText(port string) bool {
+	if len(port) == 0 {
+		return true
+	}
 	return isNumber(port)
 }
 func validateClientText(hostport string) bool {
+	if len(hostport) == 0 {
+		return true
+	}
 	host, port, err := net.SplitHostPort(hostport)
 	return err == nil && len(host) > 0 && len(port) > 0 && isNumber(port)
 }
