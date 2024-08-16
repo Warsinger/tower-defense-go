@@ -23,14 +23,50 @@ type GameOptions struct {
 	gridlines      bool
 }
 
+var isModalOpen = false
+
+func IsModalOpen() bool {
+	return isModalOpen
+}
+
 func NewGameOptions(debug bool) *GameOptions {
 	return &GameOptions{debug: debug}
 }
 
 type GameOptionsCallback func(options *GameOptions)
 
-// TODO  radio buttons to specify client or server
-// TODO other options including checkbox for debug mode and grid lines
+func initUI(gameOptions *GameOptions, callback GameOptionsCallback) *ebitenui.UI {
+	ui := &ebitenui.UI{}
+	buttonImage := loadButtonImage()
+	face := assets.GoFace
+	rootContainer := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0x00})),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout(
+			widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(20)))),
+	)
+	buttonMultiplayer := widget.NewButton(
+		widget.ButtonOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionEnd,
+			}),
+		),
+
+		widget.ButtonOpts.Image(buttonImage),
+		widget.ButtonOpts.Text("Multiplayer Options", face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+		widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			openWindow(ui, gameOptions, callback)
+		}),
+	)
+	rootContainer.AddChild(buttonMultiplayer)
+
+	ui.Container = rootContainer
+
+	return ui
+}
 
 func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsCallback) {
 	var rw widget.RemoveWindowFunc
@@ -257,7 +293,9 @@ func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsC
 	r = r.Add(img.Point{windowSize.X/2 - x/2 + 25, windowSize.Y/2 - y/2 + 25})
 	window.SetLocation(r)
 
+	window.SetCloseFunction(func() { isModalOpen = false })
 	rw = ui.AddWindow(window)
+	isModalOpen = true
 }
 
 func validateServerText(port string) bool {
