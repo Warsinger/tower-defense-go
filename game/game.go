@@ -182,7 +182,7 @@ func ensureDir(dirName string) error {
 
 func (g *GameData) Update() error {
 	// TODO move this into the title scene so we can determin if the config has focus
-	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
+	if !scenes.IsModalOpen() && inpututil.IsKeyJustPressed(ebiten.KeyQ) {
 		if err := g.SaveScores(); err != nil {
 			return err
 		}

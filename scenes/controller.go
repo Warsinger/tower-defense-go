@@ -15,6 +15,8 @@ type Controller struct {
 	client *network.Client
 }
 
+const urlPrefix = "ws://"
+
 func (c *Controller) StartServer(world donburi.World, gameOptions *GameOptions, newGameCallback NewGameCallback) error {
 	ebiten.SetWindowTitle("Tower Defense (server)")
 	fmt.Printf("listening on port %v\n", gameOptions.serverPort)

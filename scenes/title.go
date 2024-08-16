@@ -2,7 +2,6 @@ package scenes
 
 import (
 	"fmt"
-	"image/color"
 
 	"tower-defense/assets"
 	comp "tower-defense/components"
@@ -12,9 +11,6 @@ import (
 	"github.com/yohamta/donburi"
 
 	"github.com/ebitenui/ebitenui"
-
-	"github.com/ebitenui/ebitenui/image"
-	"github.com/ebitenui/ebitenui/widget"
 )
 
 type TitleScene struct {
@@ -33,58 +29,9 @@ type NewGameCallback func(broadcast bool, gameOptions *GameOptions) error
 
 func NewTitleScene(world donburi.World, width, height int, gameStats *GameStats, gameOptions *GameOptions, newGameCallback NewGameCallback) (*TitleScene, error) {
 	title := &TitleScene{world: world, width: width, height: height, gameStats: gameStats, gameOptions: gameOptions, newGameCallback: newGameCallback}
-	title.ui = title.initUI()
+	title.ui = initUI(title.gameOptions, title.handleOptions)
 	return title, nil
 }
-
-func (t *TitleScene) initUI() *ebitenui.UI {
-	ui := &ebitenui.UI{}
-	buttonImage := loadButtonImage()
-	face := assets.GoFace
-	rootContainer := widget.NewContainer(
-		// the container will use a plain color as its background
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0x00})),
-
-		// the container will use a row layout to layout the textinput widgets
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout(
-			widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(20)))),
-	)
-	buttonMultiplayer := widget.NewButton(
-		// set general widget options
-		widget.ButtonOpts.WidgetOpts(
-			// instruct the container's anchor layout to center the button both horizontally and vertically
-			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-				HorizontalPosition: widget.AnchorLayoutPositionCenter,
-				VerticalPosition:   widget.AnchorLayoutPositionEnd,
-			}),
-		),
-
-		// specify the images to use
-		widget.ButtonOpts.Image(buttonImage),
-
-		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Multiplayer Options", face, &widget.ButtonTextColor{
-			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
-		}),
-
-		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
-
-		// add a handler that reacts to clicking the button
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			openWindow(ui, t.gameOptions, t.handleOptions)
-		}),
-	)
-
-	// add the button as a child of the container
-	rootContainer.AddChild(buttonMultiplayer)
-
-	ui.Container = rootContainer
-
-	return ui
-}
-
-const urlPrefix = "ws://"
 
 func (t *TitleScene) handleOptions(gameOptions *GameOptions) {
 	t.gameOptions = gameOptions
@@ -98,9 +45,9 @@ func (t *TitleScene) handleOptions(gameOptions *GameOptions) {
 func (t *TitleScene) Update() error {
 	t.ui.Update()
 
-	// if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || ebiten.IsKeyPressed(ebiten.KeySpace) {
-	// 	return t.newGameCallback(true)
-	// }
+	if !IsModalOpen() && ebiten.IsKeyPressed(ebiten.KeySpace) {
+		return t.newGameCallback(true, t.gameOptions)
+	}
 
 	return nil
 }
