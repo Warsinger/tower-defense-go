@@ -5,6 +5,7 @@ import (
 
 	"tower-defense/assets"
 	comp "tower-defense/components"
+	"tower-defense/config"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -17,7 +18,7 @@ type TitleScene struct {
 	width           int
 	height          int
 	gameStats       *GameStats
-	gameOptions     *GameOptions
+	gameOptions     *config.ConfigData
 	newGameCallback NewGameCallback
 	world           donburi.World
 	ui              *ebitenui.UI
@@ -25,19 +26,19 @@ type TitleScene struct {
 
 var controller = Controller{}
 
-type NewGameCallback func(broadcast bool, gameOptions *GameOptions) error
+type NewGameCallback func(broadcast bool, gameOptions *config.ConfigData) error
 
-func NewTitleScene(world donburi.World, width, height int, gameStats *GameStats, gameOptions *GameOptions, newGameCallback NewGameCallback) (*TitleScene, error) {
+func NewTitleScene(world donburi.World, width, height int, gameStats *GameStats, gameOptions *config.ConfigData, newGameCallback NewGameCallback) (*TitleScene, error) {
 	title := &TitleScene{world: world, width: width, height: height, gameStats: gameStats, gameOptions: gameOptions, newGameCallback: newGameCallback}
 	title.ui = initUI(title.gameOptions, newGameCallback, title.handleOptions)
 	return title, nil
 }
 
-func (t *TitleScene) handleOptions(gameOptions *GameOptions) {
+func (t *TitleScene) handleOptions(gameOptions *config.ConfigData) {
 	t.gameOptions = gameOptions
-	if len(gameOptions.serverPort) != 0 {
+	if len(gameOptions.ServerPort) != 0 {
 		controller.StartServer(t.world, gameOptions, t.newGameCallback)
-	} else if len(gameOptions.clientHostPort) != 0 {
+	} else if len(gameOptions.ClientHostPort) != 0 {
 
 		controller.StartClient(t.world, gameOptions, t.newGameCallback)
 	}
@@ -96,7 +97,7 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 	}
 
 	nextY = 600
-	str = "Click or press space to start"
+	str = "Click 'Start Game' or press space to start"
 	_ = comp.DrawTextLines(screen, assets.ScoreFace, str, width, nextY, text.AlignCenter, text.AlignStart)
 
 	// draw UI elements

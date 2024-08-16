@@ -47,7 +47,11 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * '+' or '-' to adjust game speed
   * Q to quit
 * Title screen
-  * V to toggle viewer mode
+  * Click Start Game or press Spacebar to start
+  * Click Game Options to configure:
+    * Server or client connections
+    * Debug mode
+    * Grid lines
 * Display
   * F for full screen
   * L to display grid lines (10x10 cells)

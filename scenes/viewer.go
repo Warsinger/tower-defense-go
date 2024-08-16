@@ -22,22 +22,22 @@ type ViewerScene struct {
 	translate bool
 }
 
-func NewViewerScene(world donburi.World, width, height int, gameOptions *GameOptions, translate bool) (*ViewerScene, error) {
+func NewViewerScene(world donburi.World, width, height int, gameOptions *config.ConfigData, translate bool) (*ViewerScene, error) {
 	return &ViewerScene{
 		world:     world,
 		width:     width,
 		height:    height,
-		config:    config.NewConfig(world, gameOptions.debug, gameOptions.gridlines),
+		config:    config.NewConfig(world, gameOptions.Debug),
 		translate: translate,
 	}, nil
 }
 
 func (v *ViewerScene) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyL) {
-		v.config.SetGridLines(!v.config.IsGridLines())
+		v.config.GridLines = !v.config.GridLines
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyD) {
-		v.config.SetDebug(!v.config.IsDebug())
+		v.config.Debug = !v.config.Debug
 	}
 	return nil
 }

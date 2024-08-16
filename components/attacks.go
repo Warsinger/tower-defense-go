@@ -61,7 +61,7 @@ func (a *AttackData) GetExpandedRect(e *donburi.Entry) image.Rectangle {
 func (rr *RangeRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	config := config.GetConfig(entry.World)
 
-	if config.IsDebug() {
+	if config.Debug {
 		a := Attack.Get(entry)
 		aRect := a.GetExpandedRect(entry)
 		aPt := util.MidpointRect(aRect)

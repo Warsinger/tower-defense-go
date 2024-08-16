@@ -3,6 +3,7 @@ package scenes
 import (
 	"fmt"
 	"strings"
+	"tower-defense/config"
 	"tower-defense/network"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -17,10 +18,10 @@ type Controller struct {
 
 const urlPrefix = "ws://"
 
-func (c *Controller) StartServer(world donburi.World, gameOptions *GameOptions, newGameCallback NewGameCallback) error {
+func (c *Controller) StartServer(world donburi.World, gameOptions *config.ConfigData, newGameCallback NewGameCallback) error {
 	ebiten.SetWindowTitle("Tower Defense (server)")
-	fmt.Printf("listening on port %v\n", gameOptions.serverPort)
-	c.server = network.NewServer(world, "", gameOptions.serverPort)
+	fmt.Printf("listening on port %v\n", gameOptions.ServerPort)
+	c.server = network.NewServer(world, "", gameOptions.ServerPort)
 	err := c.server.Start()
 	if err != nil {
 		return err
@@ -37,9 +38,9 @@ func (c *Controller) StartServer(world donburi.World, gameOptions *GameOptions, 
 	return nil
 }
 
-func (c *Controller) StartClient(world donburi.World, gameOptions *GameOptions, newGameCallback NewGameCallback) error {
+func (c *Controller) StartClient(world donburi.World, gameOptions *config.ConfigData, newGameCallback NewGameCallback) error {
 	ebiten.SetWindowTitle("Tower Defense (client)")
-	clientHostPort := gameOptions.clientHostPort
+	clientHostPort := gameOptions.ClientHostPort
 	if !strings.HasPrefix(clientHostPort, urlPrefix) {
 		clientHostPort = urlPrefix + clientHostPort
 	}
@@ -54,7 +55,7 @@ func (c *Controller) StartClient(world donburi.World, gameOptions *GameOptions, 
 	return nil
 }
 
-func registerStartGame(newGameCallback NewGameCallback, gameOptions *GameOptions) {
+func registerStartGame(newGameCallback NewGameCallback, gameOptions *config.ConfigData) {
 	router.On(func(sender *router.NetworkClient, message network.StartGameMessage) {
 		fmt.Println("recv start game message")
 		newGameCallback(false, gameOptions)
