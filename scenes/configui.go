@@ -311,7 +311,7 @@ func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsC
 	windowSize := input.GetWindowSize()
 	x, y := window.Contents.PreferredSize()
 	r := img.Rect(0, 0, x, y)
-	r = r.Add(img.Point{windowSize.X/2 - x/2 + 25, windowSize.Y/2 - y/2 + 25})
+	r = r.Add(img.Point{windowSize.X/2 - x/2 - 50, windowSize.Y/2 - y/2 - 50})
 	window.SetLocation(r)
 	rw = ui.AddWindow(window)
 
