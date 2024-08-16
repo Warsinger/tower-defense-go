@@ -19,7 +19,7 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
-type EndGameCallBack func(*GameStats, *GameOptions) error
+type EndGameCallBack func(*GameStats, *config.ConfigData) error
 type BattleScene struct {
 	world              donburi.World
 	width              int
@@ -31,7 +31,7 @@ type BattleScene struct {
 	config             *config.ConfigData
 	battleState        *comp.BattleSceneState
 	gameStats          *GameStats
-	gameOptions        *GameOptions
+	gameOptions        *config.ConfigData
 	endGameCallback    EndGameCallBack
 	superCreepCooldown *util.CooldownTimer
 	startingTowerLevel int
@@ -53,7 +53,7 @@ const maxSpeed = 60
 const maxCreepTimer = 180
 const startCreepTimer = 120
 
-func NewBattleScene(world donburi.World, width, height, speed int, gameStats *GameStats, multiplayer bool, gameOptions *GameOptions, startingTowerLevel int, endGameCallback EndGameCallBack) (*BattleScene, error) {
+func NewBattleScene(world donburi.World, width, height, speed int, gameStats *GameStats, multiplayer bool, gameOptions *config.ConfigData, startingTowerLevel int, endGameCallback EndGameCallBack) (*BattleScene, error) {
 	_, err := comp.NewBoard(world, width, height)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func NewBattleScene(world donburi.World, width, height, speed int, gameStats *Ga
 		speed:              speed,
 		creepTimer:         maxCreepTimer - startCreepTimer,
 		multiplayer:        multiplayer,
-		config:             config.NewConfig(world, gameOptions.debug, gameOptions.gridlines),
+		config:             gameOptions,
 		battleState:        bss,
 		gameStats:          gameStats,
 		gameOptions:        gameOptions,
@@ -144,10 +144,10 @@ func (b *BattleScene) Update() error {
 		b.speed = (max(b.speed-5, minSpeed))
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyL) {
-		b.config.SetGridLines(!b.config.IsGridLines())
+		b.config.GridLines = !b.config.GridLines
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyD) {
-		b.config.SetDebug(!b.config.IsDebug())
+		b.config.Debug = !b.config.Debug
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyP) || inpututil.IsKeyJustPressed(ebiten.KeySpace) {
@@ -347,7 +347,7 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 		comp.DrawTextLines(screen, assets.InfoFace, str, width, 700, text.AlignStart, text.AlignStart)
 	}
 
-	if b.config.IsDebug() {
+	if b.config.Debug {
 		comp.DrawTextLines(screen, assets.InfoFace, fmt.Sprintf("Speed %v\nTPS %2.1f\nCreep Timer %d", b.speed, ebiten.ActualTPS(), b.creepTimer), comp.TextBorder, 400, text.AlignStart, text.AlignStart)
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"tower-defense/assets"
+	"tower-defense/config"
 	"tower-defense/network"
 	"tower-defense/scenes"
 
@@ -43,14 +44,14 @@ func NewGame(width, height, speed int, debug bool, startingTowerLevel int) (*Gam
 
 	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, gameStats: gameStats, debug: debug, startingTowerLevel: startingTowerLevel}
 
-	err = game.switchToTitle(gameStats, scenes.NewGameOptions(debug))
+	err = game.switchToTitle(gameStats, config.NewConfig(game.world, debug))
 	if err != nil {
 		return nil, err
 	}
 	return game, nil
 }
 
-func (g *GameData) switchToBattle(broadcast bool, gameOptions *scenes.GameOptions) error {
+func (g *GameData) switchToBattle(broadcast bool, gameOptions *config.ConfigData) error {
 	if broadcast {
 		router.Broadcast(network.StartGameMessage{})
 	}
@@ -86,7 +87,7 @@ func (g *GameData) adjustWindowPosition() {
 	ebiten.SetWindowPosition(winX, winY)
 }
 
-func (g *GameData) switchToTitle(gameStats *scenes.GameStats, gameOptions *scenes.GameOptions) error {
+func (g *GameData) switchToTitle(gameStats *scenes.GameStats, gameOptions *config.ConfigData) error {
 	if gameStats != g.gameStats {
 		save := false
 		if gameStats.HighScore > g.gameStats.HighScore {

@@ -79,7 +79,7 @@ func (t *InfoRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry) {
 	}
 
 	config := config.GetConfig(entry.World)
-	if config.IsDebug() {
+	if config.Debug {
 		if entry.HasComponent(Attack) {
 			// draw power & cooldown info centered below the health
 			attack := Attack.Get(entry)
@@ -155,14 +155,14 @@ func DrawBoard(image *ebiten.Image, world donburi.World, config *config.ConfigDa
 
 	DebugPrint(image, world, config)
 
-	if config.IsGridLines() {
+	if config.GridLines {
 		DrawGridLines(image)
 	}
 
 	query := donburi.NewQuery(filter.Contains(Position))
 
 	query.Each(world, func(entry *donburi.Entry) {
-		DrawEntry(image, entry, config.IsDebug())
+		DrawEntry(image, entry, config.Debug)
 	})
 
 	if drawText != nil {
@@ -171,7 +171,7 @@ func DrawBoard(image *ebiten.Image, world donburi.World, config *config.ConfigDa
 }
 
 func DebugPrint(image *ebiten.Image, world donburi.World, config *config.ConfigData) {
-	if !config.IsDebug() {
+	if !config.Debug {
 		return
 	}
 	var out bytes.Buffer

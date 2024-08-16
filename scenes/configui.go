@@ -6,6 +6,7 @@ import (
 	"net"
 	"strconv"
 	"tower-defense/assets"
+	"tower-defense/config"
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -16,26 +17,15 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
-type GameOptions struct {
-	serverPort     string
-	clientHostPort string
-	debug          bool
-	gridlines      bool
-}
-
 var isModalOpen = false
 
 func IsModalOpen() bool {
 	return isModalOpen
 }
 
-func NewGameOptions(debug bool) *GameOptions {
-	return &GameOptions{debug: debug}
-}
+type GameOptionsCallback func(gameOptions *config.ConfigData)
 
-type GameOptionsCallback func(options *GameOptions)
-
-func initUI(gameOptions *GameOptions, newGameCallback NewGameCallback, gameOptionsCallback GameOptionsCallback) *ebitenui.UI {
+func initUI(gameOptions *config.ConfigData, newGameCallback NewGameCallback, gameOptionsCallback GameOptionsCallback) *ebitenui.UI {
 	ui := &ebitenui.UI{}
 	buttonImage := loadButtonImage()
 	face := assets.GoFace
@@ -71,7 +61,7 @@ func initUI(gameOptions *GameOptions, newGameCallback NewGameCallback, gameOptio
 	buttonContainer.AddChild(buttonStart)
 	buttonMultiplayer := widget.NewButton(
 		widget.ButtonOpts.Image(buttonImage),
-		widget.ButtonOpts.Text("Multiplayer Options", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Game Options", face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 		widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
@@ -86,7 +76,7 @@ func initUI(gameOptions *GameOptions, newGameCallback NewGameCallback, gameOptio
 	return ui
 }
 
-func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsCallback) {
+func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOptionsCallback) {
 	var rw widget.RemoveWindowFunc
 	var window *widget.Window
 	var saveButton *widget.Button
@@ -96,7 +86,7 @@ func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsC
 	imageBtn := loadButtonImage()
 	padding := widget.NewInsetsSimple(5)
 	colorBtnTxt := &widget.ButtonTextColor{Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff}}
-	serverSelect := len(gameOptions.serverPort) > 0 || len(gameOptions.clientHostPort) == 0
+	serverSelect := len(gameOptions.ServerPort) > 0 || len(gameOptions.ClientHostPort) == 0
 
 	titleContainer := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{5, 50, 255, 255})),
@@ -182,7 +172,7 @@ func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsC
 		})),
 		widget.TextInputOpts.Placeholder("port"))...,
 	)
-	textServer.SetText(gameOptions.serverPort)
+	textServer.SetText(gameOptions.ServerPort)
 
 	textClient := widget.NewTextInput(append(
 		tiOpts,
@@ -191,7 +181,7 @@ func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsC
 		})),
 		widget.TextInputOpts.Placeholder("Server:port"))...,
 	)
-	textClient.SetText(gameOptions.clientHostPort)
+	textClient.SetText(gameOptions.ClientHostPort)
 
 	windowContainer.AddChild(radioServer)
 	windowContainer.AddChild(textServer)
@@ -220,7 +210,7 @@ func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsC
 	)
 
 	var initialState widget.WidgetState
-	if gameOptions.debug {
+	if gameOptions.Debug {
 		initialState = widget.WidgetChecked
 	} else {
 		initialState = widget.WidgetUnchecked
@@ -234,7 +224,7 @@ func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsC
 		),
 		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Debug Info", face, &widget.LabelColor{Idle: color.NRGBA{254, 255, 255, 255}})),
 	)
-	if gameOptions.gridlines {
+	if gameOptions.GridLines {
 		initialState = widget.WidgetChecked
 	} else {
 		initialState = widget.WidgetUnchecked
@@ -264,12 +254,12 @@ func openWindow(ui *ebitenui.UI, gameOptions *GameOptions, callback GameOptionsC
 		widget.ButtonOpts.Text("Save", face, colorBtnTxt),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			if radioServer.Checkbox().State() == widget.WidgetChecked {
-				gameOptions.serverPort = textServer.GetText()
+				gameOptions.ServerPort = textServer.GetText()
 			} else {
-				gameOptions.clientHostPort = textClient.GetText()
+				gameOptions.ClientHostPort = textClient.GetText()
 			}
-			gameOptions.debug = chkDebug.Checkbox().State() == widget.WidgetChecked
-			gameOptions.gridlines = chkGridLines.Checkbox().State() == widget.WidgetChecked
+			gameOptions.Debug = chkDebug.Checkbox().State() == widget.WidgetChecked
+			gameOptions.GridLines = chkGridLines.Checkbox().State() == widget.WidgetChecked
 			callback(gameOptions)
 			rw()
 		}),
