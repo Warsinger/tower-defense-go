@@ -24,9 +24,6 @@ type Server struct {
 
 func NewServer(world donburi.World, address, port string) *Server {
 	portNum, _ := strconv.Atoi(port)
-	if address == "" {
-		address = "localhost"
-	}
 	return &Server{
 		world: world,
 		host: transports.NewWsServerTransport(

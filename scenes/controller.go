@@ -68,6 +68,7 @@ func registerStartGame(newGameCallback NewGameCallback, gameOptions *config.Conf
 func (c *Controller) startClient(world donburi.World, address string) error {
 	fmt.Printf("connect to %v\n", address)
 	var err error
+	// TODO stop existing client
 	c.client, err = network.NewClientNewWorld(address)
 	if err != nil {
 		return err
