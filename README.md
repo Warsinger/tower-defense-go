@@ -80,7 +80,8 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * ~~Fix creeps on edge of base not attacking~~
   * ~~Don't let creeps overlap each other, stack on top~~
     * ~~Creep bouncing when on top of 2 creeps~~
-  * Towers shoot down when trying to lead a creep that will block on them
+  * ~~Towers shoot down when trying to lead a creep that will block on them~~
+* Create a no place zone up top for towers
 * Game screen options
   * ~~Press some key to start~~
   * ~~Add UI for configuring game options (server, client, debug, gridlines)~~

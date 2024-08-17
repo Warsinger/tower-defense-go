@@ -138,19 +138,23 @@ func (a *AttackData) AttackEnemyRange(entry *donburi.Entry, afterAttack func(*do
 func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 	// create a bullet path from the midpoint of the launcher to the midpoint of the enemy
 
-	r1 := GetRect(entry)
-	r2 := GetRect(enemy)
+	ownRect := GetRect(entry)
+	enemyRect := GetRect(enemy)
 
-	start := util.MidpointRect(r1)
-	end := util.MidpointRect(r2)
+	start := util.MidpointRect(ownRect)
+	end := util.MidpointRect(enemyRect)
 	const bulletSpeed = 8
 	if !a.noLead && enemy.HasComponent(Velocity) {
 		v := Velocity.Get(enemy)
 		if !v.blocked {
 			// how far ahead to lead, distance to target divided by speed
 			lead := util.Abs(util.DistancePoints(start, end))/bulletSpeed - 0.5
-			velocity := Velocity.Get(enemy)
-			end.Y += int(float64(velocity.Y) * lead)
+			end.Y += int(float64(v.Y) * lead)
+
+			// if the enemy is currently above then don't lead below our position
+			if enemyRect.Max.Y < ownRect.Min.Y {
+				end.Y = ownRect.Min.Y
+			}
 		}
 	}
 
