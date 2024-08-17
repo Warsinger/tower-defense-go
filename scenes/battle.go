@@ -2,6 +2,7 @@ package scenes
 
 import (
 	"fmt"
+	"math"
 	"math/rand/v2"
 
 	"tower-defense/assets"
@@ -35,6 +36,7 @@ type BattleScene struct {
 	endGameCallback    EndGameCallBack
 	superCreepCooldown *util.CooldownTimer
 	startingTowerLevel int
+	creepWave          int
 }
 
 type GameStats struct {
@@ -111,6 +113,7 @@ func (b *BattleScene) Clear() error {
 	b.battleState.Paused = false
 	b.creepTimer = maxCreepTimer - startCreepTimer
 	b.tickCounter = 0
+	b.creepWave = 0
 
 	query := donburi.NewQuery(filter.Or(
 		filter.Contains(comp.Bullet),
@@ -263,12 +266,13 @@ func (b *BattleScene) UpdateEntities() error {
 
 	const maxCreepTick = 4
 	const maxCreepCount = 20
-	b.creepTimer += max((player.GetCreepLevel()/10)+1, maxCreepTick)
-	if b.creepTimer >= maxCreepTimer {
+	creepLevel := player.GetCreepLevel()
+	b.creepTimer += max((creepLevel/10)+1, maxCreepTick)
+	if b.creepTimer >= maxCreepTimer-creepLevel {
 		query := donburi.NewQuery(filter.Contains(comp.Creep))
 		count := query.Count(b.world)
 		if count <= maxCreepCount {
-			count, err := b.SpawnCreeps(player.GetCreepLevel())
+			count, err := b.SpawnCreeps(creepLevel)
 			if err != nil {
 				return err
 			}
@@ -281,16 +285,20 @@ func (b *BattleScene) UpdateEntities() error {
 }
 
 func (b *BattleScene) SpawnCreeps(creepLevel int) (int, error) {
-	levelBump := float32(creepLevel) / 20
+	b.creepWave++
+	// every 10 waves, creep level increases by 1 without giving extra tower levels to the player
+	extraCreepLevel := int(math.Floor(float64(creepLevel) / 10))
+
+	levelBump := float32(creepLevel+extraCreepLevel) / 20
 
 	spawnChance := []creeepSpawnChance{
-		{8, -0.4},
-		{7, -0.25},
-		{6, -0.1},
-		{5, 0.1},
-		{4, 0.2},
-		{3, 0.4},
-		{2, 0.7}}
+		{8, -0.7},
+		{7, -0.5},
+		{6, -0.3},
+		{5, -0.1},
+		{4, 0.1},
+		{3, 0.3},
+		{2, 0.5}}
 
 	val := rand.Float32() - levelBump
 	var count = 1

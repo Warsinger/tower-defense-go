@@ -90,7 +90,7 @@ func (t *TowerData) Upgrade(entry *donburi.Entry) bool {
 	}
 	level.Level++
 	health := Health.Get(entry)
-	health.MaxHealth += 10
+	health.MaxHealth += 8
 	health.Health = health.MaxHealth
 	attack := Attack.Get(entry)
 	attack.Power++

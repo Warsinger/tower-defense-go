@@ -75,11 +75,12 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 * ~~Collision detection for creep movement, creeps stop when running into a tower~~
   * ~~Restrict creep and tower spawn on existing objects or partially off the board~~
 * ~~Make player base more resilient~~
-* Creep bugs
+* Bugs
   * ~~Fix positioning of creeps when they run into something to make sure they're right up against it~~
   * ~~Fix creeps on edge of base not attacking~~
   * ~~Don't let creeps overlap each other, stack on top~~
     * ~~Creep bouncing when on top of 2 creeps~~
+  * Towers shoot down when trying to lead a creep that will block on them
 * Game screen options
   * ~~Press some key to start~~
   * ~~Add UI for configuring game options (server, client, debug, gridlines)~~
