@@ -155,6 +155,9 @@ func (b *BattleScene) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyD) {
 		b.config.Debug = !b.config.Debug
 	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+		b.config.Sound = !b.config.Sound
+	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyP) || inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		b.battleState.Paused = !b.battleState.Paused
@@ -183,8 +186,12 @@ func (b *BattleScene) Update() error {
 					peers[0].SendMessage(network.CreepMessage{Count: 1})
 					b.superCreepCooldown.StartCooldown()
 				} else {
-					fmt.Printf("Not enough money to send a creep %v, remaining %v\n", cost, player.Money)
-					assets.PlaySound("invalid2")
+					if b.config.Debug {
+						fmt.Printf("Not enough money to send a creep %v, remaining %v\n", cost, player.Money)
+					}
+					if b.config.Sound {
+						assets.PlaySound("invalid2")
+					}
 				}
 			}
 		}
@@ -192,7 +199,7 @@ func (b *BattleScene) Update() error {
 	}
 	if b.config.Computer {
 		// TODO scale with game speed? or a difficulty setting
-		if b.computerTicker%30 == 0 {
+		if b.computerTicker%strategy.TimeScaler == 0 {
 			if err := strategy.Update(b.world); err != nil {
 				return err
 			}
@@ -345,7 +352,9 @@ func (b *BattleScene) SpawnCreeps(creepLevel int) (int, error) {
 }
 
 func (b *BattleScene) End() {
-	assets.PlaySound("killed")
+	if b.config.Sound {
+		assets.PlaySound("killed")
+	}
 	b.battleState.GameOver = true
 }
 

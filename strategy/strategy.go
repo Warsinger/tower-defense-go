@@ -12,13 +12,16 @@ import (
 )
 
 const (
+	TimeScaler     = 30
 	towersPerRow   = 7
 	towerWidth     = 48
 	halfTowerWidth = towerWidth / 2
 	laneSpacing    = 44
 	printTries     = false
+	playSound      = false
 )
 
+// 44 pixels between towers, 7 towers across starting
 var lanes = makeLanes()
 
 func Update(world donburi.World) error {
@@ -49,15 +52,13 @@ func Update(world donburi.World) error {
 
 	})
 
-	// 44 pixels between towers, 7 towers across starting
-
 	// if we have < the number of towers per row then check for a creep coming down and put a tower below it
 	if len(towers) < towersPerRow {
 		for _, creepEntry := range creeps {
 			pt := util.MidpointRect(comp.GetRect(creepEntry))
 			lane := findLane(lanes, pt.X)
 			if lane != -1 {
-				placed, err := player.TryPlaceTower(world, lane, board.Height/2, printTries)
+				placed, err := player.TryPlaceTower(world, lane, board.Height/2, playSound, printTries)
 				if err != nil {
 					return err
 				}
@@ -72,40 +73,24 @@ func Update(world donburi.World) error {
 	}
 
 	// while we have fewer than N towers, don't you dare upgrade
-	allowUpgrades := len(towers) >= towersPerRow
+	allowUpgrades := len(towers) >= towersPerRow && player.Money >= 75
 
 	// TODO fix upgrading too fast too early
 
-	var lowestHealthTower *donburi.Entry
-	var lowestHealth int = math.MaxInt
-	var lowestLevelTower *donburi.Entry
-	var lowestLevel int = math.MaxInt
 	// if we have towers, if any need healing badly then heal them if < N or upgrade if >=N (and we have enough money)
-	for _, towerEntry := range towers {
-		health := comp.Health.Get(towerEntry)
-		level := comp.Level.Get(towerEntry)
-		percentHealth := float32(health.Health) / float32(health.MaxHealth)
-		if percentHealth < 0.25 && health.Health <= lowestHealth {
-			// find the tower with the lowest health below 25%
-			lowestHealthTower = towerEntry
-			lowestHealth = health.Health
-		}
-		if level.Level < lowestLevel {
-			lowestLevelTower = towerEntry
-			lowestLevel = level.Level
-		}
-	}
+	lowestHealthTower := findLowestHealthTower(towers)
+	lowestLevelTower := findLowestLevelTower(towers)
 
 	if lowestHealthTower != nil {
 		// having found the lowest health and lowest level tower, they are the same the just upgrade, unless we don't have enough money
 		if lowestHealthTower.Entity() == lowestLevelTower.Entity() {
-			if allowUpgrades && player.TryUpgradeTower(lowestHealthTower, printTries) {
+			if allowUpgrades && player.TryUpgradeTower(lowestHealthTower, playSound, printTries) {
 				if debug {
 					fmt.Printf("Upgraded lowest health/level tower\n")
 				}
 				return nil
 			}
-			if player.TryHealTower(lowestHealthTower, printTries) {
+			if player.TryHealTower(lowestHealthTower, playSound, printTries) {
 				if debug {
 					fmt.Printf("Healed lowest health tower\n")
 				}
@@ -117,14 +102,14 @@ func Update(world donburi.World) error {
 		levelLevel := comp.Level.Get(lowestLevelTower)
 		levelHealth := comp.Level.Get(lowestHealthTower)
 		if levelLevel.Level >= levelHealth.Level+2 || levelHealth.Level == comp.GetMaxTowerLevel(world) {
-			if player.TryHealTower(lowestHealthTower, printTries) {
+			if player.TryHealTower(lowestHealthTower, playSound, printTries) {
 				if debug {
 					fmt.Printf("Healed lowest level tower\n")
 				}
 				return nil
 			}
 		} else {
-			if allowUpgrades && player.TryUpgradeTower(lowestHealthTower, printTries) {
+			if allowUpgrades && player.TryUpgradeTower(lowestHealthTower, playSound, printTries) {
 				if debug {
 					fmt.Printf("Upgraded lowest health tower\n")
 				}
@@ -135,18 +120,18 @@ func Update(world donburi.World) error {
 
 	// if we have enough towers, upgrade the lowest tower (if we have enough money)
 	if allowUpgrades {
-		var lowestLevelTower *donburi.Entry
-		var lowestLevel int = math.MaxInt
-		for _, towerEntry := range towers {
-			level := comp.Level.Get(towerEntry)
-			if level.Level < lowestLevel {
-				lowestLevelTower = towerEntry
-				lowestLevel = level.Level
-			}
-		}
-		if player.TryUpgradeTower(lowestLevelTower, printTries) {
+		lowestLevelTower := findLowestLevelTower(towers)
+
+		if player.TryUpgradeTower(lowestLevelTower, playSound, printTries) {
 			if debug {
 				fmt.Printf("Upgraded lowest health tower\n")
+			}
+			return nil
+		}
+	} else if lowestHealthTower != nil {
+		if player.TryHealTower(lowestHealthTower, playSound, printTries) {
+			if debug {
+				fmt.Printf("Healed lowest health tower 2\n")
 			}
 			return nil
 		}
@@ -155,9 +140,40 @@ func Update(world donburi.World) error {
 	// TOOD later game if we are full on towers and full on levels then start another row of towers to upgrade
 	// fill in the gaps in the lanes
 
-	// TODO if multiplayer consier sending a creep over
+	// TODO if multiplayer consider sending a creep over
 
+	if debug {
+		fmt.Printf("Nothing on this tick\n")
+	}
 	return nil
+}
+
+func findLowestHealthTower(towers []*donburi.Entry) *donburi.Entry {
+	var lowestHealthTower *donburi.Entry
+	var lowestHealth int = math.MaxInt
+	for _, towerEntry := range towers {
+		health := comp.Health.Get(towerEntry)
+		percentHealth := float32(health.Health) / float32(health.MaxHealth)
+		if percentHealth < 0.25 && health.Health <= lowestHealth {
+			// find the tower with the lowest health below 25%
+			lowestHealthTower = towerEntry
+			lowestHealth = health.Health
+		}
+	}
+	return lowestHealthTower
+}
+
+func findLowestLevelTower(towers []*donburi.Entry) *donburi.Entry {
+	var lowestLevelTower *donburi.Entry
+	var lowestLevel int = math.MaxInt
+	for _, towerEntry := range towers {
+		level := comp.Level.Get(towerEntry)
+		if level.Level < lowestLevel {
+			lowestLevelTower = towerEntry
+			lowestLevel = level.Level
+		}
+	}
+	return lowestLevelTower
 }
 
 func makeLanes() []int {

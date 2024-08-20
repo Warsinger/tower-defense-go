@@ -66,11 +66,12 @@ func (p *PlayerData) UserSpeedUpdate(entry *donburi.Entry) error {
 	if p.Dead {
 		return nil
 	}
-	debug := config.GetConfig(entry.World).Debug
+	config := config.GetConfig(entry.World)
+
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 
 		x, y := ebiten.CursorPosition()
-		_, err := p.TryPlaceTower(entry.World, x, y, debug)
+		_, err := p.TryPlaceTower(entry.World, x, y, config.Sound, config.Debug)
 		if err != nil {
 			return err
 		}
@@ -79,7 +80,7 @@ func (p *PlayerData) UserSpeedUpdate(entry *donburi.Entry) error {
 		x, y := ebiten.CursorPosition()
 		towerEntry := findTower(entry.World, x, y)
 		if towerEntry != nil {
-			_ = p.TryHealTower(towerEntry, debug)
+			_ = p.TryHealTower(towerEntry, config.Sound, config.Debug)
 
 		}
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyU) {
@@ -87,14 +88,14 @@ func (p *PlayerData) UserSpeedUpdate(entry *donburi.Entry) error {
 		x, y := ebiten.CursorPosition()
 		towerEntry := findTower(entry.World, x, y)
 		if towerEntry != nil {
-			_ = p.TryUpgradeTower(towerEntry, debug)
+			_ = p.TryUpgradeTower(towerEntry, config.Sound, config.Debug)
 		}
 	}
 
 	return nil
 }
 
-func (p *PlayerData) TryHealTower(entry *donburi.Entry, debug bool) bool {
+func (p *PlayerData) TryHealTower(entry *donburi.Entry, sound, debug bool) bool {
 	healed := false
 	cost := towerManager.GetHealCost("Ranged")
 	if p.Money >= cost {
@@ -107,12 +108,14 @@ func (p *PlayerData) TryHealTower(entry *donburi.Entry, debug bool) bool {
 		if debug {
 			fmt.Printf("Not enough money to upgrade tower cost %v, remaining %v\n", cost, p.Money)
 		}
-		assets.PlaySound("invalid2")
+		if sound {
+			assets.PlaySound("invalid2")
+		}
 	}
 	return healed
 }
 
-func (p *PlayerData) TryUpgradeTower(entry *donburi.Entry, debug bool) bool {
+func (p *PlayerData) TryUpgradeTower(entry *donburi.Entry, sound, debug bool) bool {
 	upgraded := false
 	cost := towerManager.GetUpgradeCost("Ranged")
 	if p.Money >= cost {
@@ -126,17 +129,18 @@ func (p *PlayerData) TryUpgradeTower(entry *donburi.Entry, debug bool) bool {
 		if debug {
 			fmt.Printf("Not enough money to upgrade tower cost %v, remaining %v\n", cost, p.Money)
 		}
-		// TODO turn off playing sound
-		assets.PlaySound("invalid2")
+		if sound {
+			assets.PlaySound("invalid2")
+		}
 	}
 	return upgraded
 }
 
-func (p *PlayerData) TryPlaceTower(world donburi.World, x, y int, debug bool) (bool, error) {
+func (p *PlayerData) TryPlaceTower(world donburi.World, x, y int, sound, debug bool) (bool, error) {
 	placed := false
 	cost := towerManager.GetCost("Ranged")
 	if p.Money >= cost {
-		err := p.PlaceTower(world, x, y)
+		err := p.PlaceTower(world, x, y, sound)
 
 		if err != nil {
 			switch err.(type) {
@@ -155,8 +159,9 @@ func (p *PlayerData) TryPlaceTower(world donburi.World, x, y int, debug bool) (b
 		if debug {
 			fmt.Printf("Not enough money for tower cost %v, remaining %v\n", cost, p.Money)
 		}
-		// TODO turn off playing sound
-		assets.PlaySound("invalid2")
+		if sound {
+			assets.PlaySound("invalid2")
+		}
 	}
 	return placed, nil
 }
@@ -175,22 +180,24 @@ func (e *PlacementError) Error() string {
 	return e.message
 }
 
-func (p *PlayerData) PlaceTower(world donburi.World, x, y int) error {
+func (p *PlayerData) PlaceTower(world donburi.World, x, y int, sound bool) error {
 	img := assets.GetImage("tower")
 	bounds := img.Bounds()
 	rect := bounds.Add(image.Pt(x-bounds.Dx()/2, y-bounds.Dy()/2))
 	boardEntry := Board.MustFirst(world)
 	board := Board.Get(boardEntry)
 	if !rect.In(board.Bounds()) {
-		// TODO turn off playing sound
-		assets.PlaySound("invalid1")
+		if sound {
+			assets.PlaySound("invalid1")
+		}
 		message := fmt.Sprintf("Invalid tower location %v, %v, image out of bounds", x, y)
 		return &PlacementError{message}
 	} else {
 		collision := DetectCollisionsWorld(world, rect, filter.Contains(Player))
 		if collision != nil {
-			// TODO turn off playing sound
-			assets.PlaySound("invalid2")
+			if sound {
+				assets.PlaySound("invalid2")
+			}
 			message := fmt.Sprintf("Invalid tower location %v, %v, collision with entity", x, y)
 			return &PlacementError{message}
 		}

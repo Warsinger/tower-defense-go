@@ -8,15 +8,16 @@ type ConfigData struct {
 	ServerPort     string
 	ClientHostPort string
 	Computer       bool
+	Sound          bool
 }
 
 var Config = donburi.NewComponentType[ConfigData]()
 
-func NewConfig(world donburi.World, debug bool, computer bool) *ConfigData {
+func NewConfig(world donburi.World, debug, computer, sound bool) *ConfigData {
 	entity := world.Create(Config)
 	entry := world.Entry(entity)
 
-	Config.Set(entry, &ConfigData{Debug: debug, Computer: computer})
+	Config.Set(entry, &ConfigData{Debug: debug, Computer: computer, Sound: sound})
 	return Config.Get(entry)
 }
 

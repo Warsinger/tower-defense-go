@@ -160,13 +160,15 @@ func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 
 	creep := entry.HasComponent(Creep)
 	NewBullet(entry.World, start, end, bulletSpeed, creep)
-	var sound string
-	if creep {
-		sound = "shoot1"
-	} else {
-		sound = "shoot2"
+	if config.GetConfig(entry.World).Sound {
+		var sound string
+		if creep {
+			sound = "shoot1"
+		} else {
+			sound = "shoot2"
+		}
+		assets.PlaySound(sound)
 	}
-	assets.PlaySound(sound)
 }
 
 func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, afterKill func(*donburi.Entry, *donburi.Entry), afterAttack func(*donburi.Entry), enemyType ...component.IComponentType) {
@@ -182,7 +184,9 @@ func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, afterKill func(*
 			enemyHealth.Health = enemyHealth.Health - attack.Power
 			if enemyHealth.Health <= 0 {
 				// kill enemy, remove from board, plays sound
-				assets.PlaySound("explosion")
+				if config.GetConfig(entry.World).Sound {
+					assets.PlaySound("explosion")
+				}
 
 				// do some other stuff in a callback
 				if afterKill != nil {

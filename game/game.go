@@ -30,7 +30,7 @@ type GameData struct {
 	startingTowerLevel   int
 }
 
-func NewGame(width, height, speed int, debug bool, startingTowerLevel int, computer bool) (*GameData, error) {
+func NewGame(width, height, speed int, startingTowerLevel int, debug, computer, nosound bool) (*GameData, error) {
 	err := assets.LoadAssets()
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func NewGame(width, height, speed int, debug bool, startingTowerLevel int, compu
 
 	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, gameStats: gameStats, startingTowerLevel: startingTowerLevel}
 
-	err = game.switchToTitle(gameStats, config.NewConfig(game.world, debug, computer))
+	err = game.switchToTitle(gameStats, config.NewConfig(game.world, debug, computer, !nosound))
 	if err != nil {
 		return nil, err
 	}

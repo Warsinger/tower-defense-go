@@ -27,7 +27,7 @@ func NewViewerScene(world donburi.World, width, height int, gameOptions *config.
 		world:     world,
 		width:     width,
 		height:    height,
-		config:    config.NewConfig(world, gameOptions.Debug, false),
+		config:    config.NewConfig(world, gameOptions.Debug, false, gameOptions.Sound),
 		translate: translate,
 	}, nil
 }
