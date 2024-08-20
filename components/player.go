@@ -7,6 +7,7 @@ import (
 	"math"
 
 	"tower-defense/assets"
+	"tower-defense/config"
 	"tower-defense/util"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -65,63 +66,99 @@ func (p *PlayerData) UserSpeedUpdate(entry *donburi.Entry) error {
 	if p.Dead {
 		return nil
 	}
+	debug := config.GetConfig(entry.World).Debug
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		cost := towerManager.GetCost("Ranged")
-		if p.Money >= cost {
-			x, y := ebiten.CursorPosition()
-			err := p.PlaceTower(entry.World, x, y)
 
-			if err != nil {
-				switch err.(type) {
-				case *PlacementError:
-					fmt.Println(err.Error())
-				default:
-					return err
-				}
-			} else {
-				p.Money -= cost
-			}
-		} else {
-			// TODO move into place tower
-			fmt.Printf("Not enough money for tower cost %v, remaining %v\n", cost, p.Money)
-			assets.PlaySound("invalid2")
+		x, y := ebiten.CursorPosition()
+		_, err := p.TryPlaceTower(entry.World, x, y, debug)
+		if err != nil {
+			return err
 		}
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyH) {
 		// find tower below the click and heal it if we have enough money
 		x, y := ebiten.CursorPosition()
 		towerEntry := findTower(entry.World, x, y)
 		if towerEntry != nil {
-			cost := towerManager.GetHealCost("Ranged")
-			if p.Money >= cost {
-				tower := Tower.Get(towerEntry)
-				if tower.Heal(towerEntry) {
-					p.Money -= cost
-				}
-			} else {
-				fmt.Printf("Not enough money to upgrade tower cost %v, remaining %v\n", cost, p.Money)
-				assets.PlaySound("invalid2")
-			}
+			_ = p.TryHealTower(towerEntry, debug)
+
 		}
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyU) {
 		// find tower below the click and upgrade it if we have enough money
 		x, y := ebiten.CursorPosition()
 		towerEntry := findTower(entry.World, x, y)
 		if towerEntry != nil {
-			cost := towerManager.GetUpgradeCost("Ranged")
-			if p.Money >= cost {
-				tower := Tower.Get(towerEntry)
-				if tower.Upgrade(towerEntry) {
-					p.Money -= cost
-					p.TowerLevels++
-				}
-			} else {
-				fmt.Printf("Not enough money to upgrade tower cost %v, remaining %v\n", cost, p.Money)
-				assets.PlaySound("invalid2")
-			}
+			_ = p.TryUpgradeTower(towerEntry, debug)
 		}
 	}
 
 	return nil
+}
+
+func (p *PlayerData) TryHealTower(entry *donburi.Entry, debug bool) bool {
+	healed := false
+	cost := towerManager.GetHealCost("Ranged")
+	if p.Money >= cost {
+		tower := Tower.Get(entry)
+		if tower.Heal(entry, debug) {
+			p.Money -= cost
+			healed = true
+		}
+	} else {
+		if debug {
+			fmt.Printf("Not enough money to upgrade tower cost %v, remaining %v\n", cost, p.Money)
+		}
+		assets.PlaySound("invalid2")
+	}
+	return healed
+}
+
+func (p *PlayerData) TryUpgradeTower(entry *donburi.Entry, debug bool) bool {
+	upgraded := false
+	cost := towerManager.GetUpgradeCost("Ranged")
+	if p.Money >= cost {
+		tower := Tower.Get(entry)
+		if tower.Upgrade(entry, debug) {
+			p.Money -= cost
+			p.TowerLevels++
+			upgraded = true
+		}
+	} else {
+		if debug {
+			fmt.Printf("Not enough money to upgrade tower cost %v, remaining %v\n", cost, p.Money)
+		}
+		// TODO turn off playing sound
+		assets.PlaySound("invalid2")
+	}
+	return upgraded
+}
+
+func (p *PlayerData) TryPlaceTower(world donburi.World, x, y int, debug bool) (bool, error) {
+	placed := false
+	cost := towerManager.GetCost("Ranged")
+	if p.Money >= cost {
+		err := p.PlaceTower(world, x, y)
+
+		if err != nil {
+			switch err.(type) {
+			case *PlacementError:
+				if debug {
+					fmt.Println(err.Error())
+				}
+			default:
+				return false, err
+			}
+		} else {
+			p.Money -= cost
+			placed = true
+		}
+	} else {
+		if debug {
+			fmt.Printf("Not enough money for tower cost %v, remaining %v\n", cost, p.Money)
+		}
+		// TODO turn off playing sound
+		assets.PlaySound("invalid2")
+	}
+	return placed, nil
 }
 
 func (p *PlayerData) GameSpeedUpdate(entry *donburi.Entry) error {
@@ -145,14 +182,16 @@ func (p *PlayerData) PlaceTower(world donburi.World, x, y int) error {
 	boardEntry := Board.MustFirst(world)
 	board := Board.Get(boardEntry)
 	if !rect.In(board.Bounds()) {
+		// TODO turn off playing sound
 		assets.PlaySound("invalid1")
 		message := fmt.Sprintf("Invalid tower location %v, %v, image out of bounds", x, y)
 		return &PlacementError{message}
 	} else {
 		collision := DetectCollisionsWorld(world, rect, filter.Contains(Player))
 		if collision != nil {
+			// TODO turn off playing sound
 			assets.PlaySound("invalid2")
-			message := fmt.Sprintf("Invalid tower location %v, %v, collision with entity collision", x, y)
+			message := fmt.Sprintf("Invalid tower location %v, %v, collision with entity", x, y)
 			return &PlacementError{message}
 		}
 	}

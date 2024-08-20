@@ -23,16 +23,14 @@ type Scene interface {
 	Draw(screen *ebiten.Image)
 }
 type GameData struct {
-	world donburi.World
-	// clientWorld          donburi.World
+	world                donburi.World
 	scenes               []Scene
 	width, height, speed int
 	gameStats            *scenes.GameStats
-	debug                bool
 	startingTowerLevel   int
 }
 
-func NewGame(width, height, speed int, debug bool, startingTowerLevel int) (*GameData, error) {
+func NewGame(width, height, speed int, debug bool, startingTowerLevel int, computer bool) (*GameData, error) {
 	err := assets.LoadAssets()
 	if err != nil {
 		return nil, err
@@ -42,9 +40,9 @@ func NewGame(width, height, speed int, debug bool, startingTowerLevel int) (*Gam
 
 	gameStats := LoadScores()
 
-	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, gameStats: gameStats, debug: debug, startingTowerLevel: startingTowerLevel}
+	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, gameStats: gameStats, startingTowerLevel: startingTowerLevel}
 
-	err = game.switchToTitle(gameStats, config.NewConfig(game.world, debug))
+	err = game.switchToTitle(gameStats, config.NewConfig(game.world, debug, computer))
 	if err != nil {
 		return nil, err
 	}

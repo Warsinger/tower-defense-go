@@ -14,10 +14,11 @@ func main() {
 	speed := flag.Int("speed", 60, "Ticks per second, min 0 max 60, + or - to adjust in game")
 	debug := flag.Bool("debug", false, "Show debug info, D to toggle in game")
 	towerLevel := flag.Int("level", 0, "Starting tower level to increase difficulty, 0 for default")
+	computer := flag.Bool("computer", false, "Enable computer player")
 
 	flag.Parse()
 
-	g, err := game.NewGame(*width, *height, *speed, *debug, *towerLevel)
+	g, err := game.NewGame(*width, *height, *speed, *debug, *towerLevel, *computer)
 	if err != nil {
 		log.Fatal(err)
 	}

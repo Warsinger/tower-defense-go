@@ -105,7 +105,12 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * ~~Power up towers~~
 * ~~Base can shoot back~~
 * Tower art
+  * Do a flash when tower is upgraded or healed
+  * Do a flash when tower is placed
+  * Explosion when tower is destroyed
 * Creep art
+  * Do a flash when creep spawns
+  * Explosion when creep is destroyed
 * ~~Highlight tower under mouse cursor~~
 * ~~Multiple creep types~~
 * ~~Click to place towers~~

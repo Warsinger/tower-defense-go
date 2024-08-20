@@ -9,6 +9,7 @@ import (
 	comp "tower-defense/components"
 	"tower-defense/config"
 	"tower-defense/network"
+	"tower-defense/strategy"
 	"tower-defense/util"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -28,6 +29,7 @@ type BattleScene struct {
 	speed              int
 	creepTimer         int
 	tickCounter        int
+	computerTicker     int
 	multiplayer        bool
 	config             *config.ConfigData
 	battleState        *comp.BattleSceneState
@@ -113,6 +115,7 @@ func (b *BattleScene) Clear() error {
 	b.battleState.Paused = false
 	b.creepTimer = maxCreepTimer - startCreepTimer
 	b.tickCounter = 0
+	b.computerTicker = 0
 	b.creepWave = 0
 
 	query := donburi.NewQuery(filter.Or(
@@ -161,13 +164,15 @@ func (b *BattleScene) Update() error {
 		return nil
 	}
 
-	// update player separately from other entities to allow user interactions outside of speed controls
-	err := player.UserSpeedUpdate(pe)
-	if err != nil {
-		return err
+	if !b.config.Computer {
+		// update player separately from other entities to allow user interactions outside of speed controls
+		err := player.UserSpeedUpdate(pe)
+		if err != nil {
+			return err
+		}
 	}
 	if b.multiplayer {
-		if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+		if !b.config.Computer && inpututil.IsKeyJustPressed(ebiten.KeyC) {
 			peers := router.Peers()
 			b.superCreepCooldown.CheckCooldown()
 
@@ -184,6 +189,17 @@ func (b *BattleScene) Update() error {
 			}
 		}
 		b.superCreepCooldown.IncrementTicker()
+	}
+	if b.config.Computer {
+		// TODO scale with game speed? or a difficulty setting
+		if b.computerTicker%30 == 0 {
+			if err := strategy.Update(b.world); err != nil {
+				return err
+			}
+			b.computerTicker = 1
+		} else {
+			b.computerTicker++
+		}
 	}
 
 	if b.speed != 0 && float32(b.tickCounter) > float32(ebiten.TPS())/float32(b.speed) {

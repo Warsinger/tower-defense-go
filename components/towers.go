@@ -64,10 +64,12 @@ func (t *TowerData) Update(entry *donburi.Entry) error {
 	return nil
 }
 
-func (t *TowerData) Heal(entry *donburi.Entry) bool {
+func (t *TowerData) Heal(entry *donburi.Entry, debug bool) bool {
 	health := Health.Get(entry)
 	if health.Health < health.MaxHealth {
-		fmt.Printf("tower healed from %v to %v\n", health.Health, health.MaxHealth)
+		if debug {
+			fmt.Printf("tower healed from %v to %v\n", health.Health, health.MaxHealth)
+		}
 		health.Health = health.MaxHealth
 		return true
 	}
@@ -82,10 +84,12 @@ func GetMaxTowerLevel(world donburi.World) int {
 	return initMaxTowerLevel + int(math.Trunc(float64(player.TowerLevels)/20))
 }
 
-func (t *TowerData) Upgrade(entry *donburi.Entry) bool {
+func (t *TowerData) Upgrade(entry *donburi.Entry, debug bool) bool {
 	level := Level.Get(entry)
 	if level.Level >= GetMaxTowerLevel(entry.World) {
-		fmt.Printf("Tower is max level %v\n", level.Level)
+		if debug {
+			fmt.Printf("Tower is max level %v\n", level.Level)
+		}
 		return false
 	}
 	level.Level++
