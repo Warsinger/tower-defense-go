@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	TimeScaler     = 30
+	// TODO configure computer speed
+	TimeScaler     = 60
 	towersPerRow   = 7
 	towerWidth     = 48
 	halfTowerWidth = towerWidth / 2
@@ -53,29 +54,25 @@ func Update(world donburi.World) error {
 	})
 
 	// if we have < the number of towers per row then check for a creep coming down and put a tower below it
-	if len(towers) < towersPerRow {
-		for _, creepEntry := range creeps {
-			pt := util.MidpointRect(comp.GetRect(creepEntry))
-			lane := findLane(lanes, pt.X)
-			if lane != -1 {
-				placed, err := player.TryPlaceTower(world, lane, board.Height/2, playSound, printTries)
-				if err != nil {
-					return err
+	for _, creepEntry := range creeps {
+		pt := util.MidpointRect(comp.GetRect(creepEntry))
+		lane := findLane(lanes, pt.X)
+		if lane != -1 {
+			placed, err := player.TryPlaceTower(world, lane, board.Height/2, playSound, printTries)
+			if err != nil {
+				return err
+			}
+			if placed {
+				if debug {
+					fmt.Printf("Placed tower below creep at %v, %v\n", pt, lane)
 				}
-				if placed {
-					if debug {
-						fmt.Printf("Placed tower below creep at %v, %v\n", pt, lane)
-					}
-					return nil
-				}
+				return nil
 			}
 		}
 	}
 
 	// while we have fewer than N towers, don't you dare upgrade
 	allowUpgrades := len(towers) >= towersPerRow && player.Money >= 75
-
-	// TODO fix upgrading too fast too early
 
 	// if we have towers, if any need healing badly then heal them if < N or upgrade if >=N (and we have enough money)
 	lowestHealthTower := findLowestHealthTower(towers)
@@ -137,8 +134,25 @@ func Update(world donburi.World) error {
 		}
 	}
 
-	// TOOD later game if we are full on towers and full on levels then start another row of towers to upgrade
+	// later game if we are full on towers and full on levels then start another row of towers to upgrade
 	// fill in the gaps in the lanes
+	if player.Money > 150 && len(towers) >= towersPerRow {
+		newY := board.Height/2 + towerWidth
+		for _, lane := range lanes {
+			// TODO work out from middle of the board
+			placed, err := player.TryPlaceTower(world, lane, newY, playSound, printTries)
+			if err != nil {
+				return err
+			}
+			if placed {
+				if debug {
+					fmt.Printf("Placed tower on 2nd row at %v, %v\n", lane, newY)
+				}
+				break
+			}
+		}
+	}
+	// TODO even later game allow a 3rd row either above or below the middle row
 
 	// TODO if multiplayer consider sending a creep over
 
