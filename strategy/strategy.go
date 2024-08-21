@@ -17,7 +17,7 @@ const (
 	towersPerRow   = 7
 	towerWidth     = 48
 	halfTowerWidth = towerWidth / 2
-	laneSpacing    = 44
+	laneSpacing    = 41
 	printTries     = false
 	playSound      = false
 )
@@ -137,7 +137,7 @@ func Update(world donburi.World) error {
 	// later game if we are full on towers and full on levels then start another row of towers to upgrade
 	// fill in the gaps in the lanes
 	if player.Money > 150 && len(towers) >= towersPerRow {
-		newY := board.Height/2 + towerWidth
+		newY := board.Height/2 + towerWidth + 10
 		for _, lane := range lanes {
 			// TODO work out from middle of the board
 			placed, err := player.TryPlaceTower(world, lane, newY, playSound, printTries)
@@ -192,11 +192,30 @@ func findLowestLevelTower(towers []*donburi.Entry) *donburi.Entry {
 
 func makeLanes() []int {
 	lanes := make([]int, towersPerRow)
-	lanes[0] = halfTowerWidth
+	lanes[0] = halfTowerWidth + 10
+
 	for i := 1; i < len(lanes); i++ {
 		lanes[i] = lanes[i-1] + towerWidth + laneSpacing
 	}
-	return lanes
+	var sign int
+
+	// order lanes starting from the middle position
+	orderedlanes := make([]int, towersPerRow)
+	mid := len(orderedlanes) / 2
+	var offset = 0
+	if len(lanes)%2 == 0 {
+		offset = 1
+	}
+	for i := 0; i < len(orderedlanes); i++ {
+		if i%2 == 0 {
+			sign = -1
+		} else {
+			sign = 1
+		}
+		mid = mid + i*sign
+		orderedlanes[i] = lanes[mid-offset]
+	}
+	return orderedlanes
 }
 
 // find the lane that is within towerWidth of the creep
