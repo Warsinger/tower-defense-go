@@ -306,6 +306,8 @@ func (b *BattleScene) UpdateEntities() error {
 			}
 			player.AddMoney(5 * count)
 			b.creepTimer = 0
+		} else {
+			player.AddMoney(5)
 		}
 	}
 
