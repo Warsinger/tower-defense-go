@@ -10,6 +10,10 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 
 ![Creep1](assets/images/creep1.png) ![Creep2](assets/images/creep2.png) ![Creep3](assets/images/creep3.png) ![Creep4](assets/images/creep4.png)
 
+#### SuperCreep (Multiplayer)
+
+![SuperCreep (Multiplayer)](assets/images/supercreep.png)
+
 ### Towers
 
 ![Tower](assets/images/tower.png)
@@ -45,6 +49,7 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * H to heal a tower under the cursor
   * U to upgrade a tower under the cursor, max 4 upgrades
   * '+' or '-' to adjust game speed
+  * S to toggle sounds
   * Q to quit
 * Title screen
   * Click Start Game or press Spacebar to start
@@ -99,6 +104,8 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * Bullets slow creeps
   * ~~Refresh tower health for % of initial cost~~
 * Let mouse clicks heal and upgrade towers, right click or double click
+* Bullets expire after traveling range + X
+  * Special bullets could create spots on the ground that will slow, damage, or annoy creeps
 * Levels
   * ~~More powerful creeps~~
   * ~~Money generates over time~~

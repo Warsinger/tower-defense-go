@@ -12,20 +12,36 @@ import (
 )
 
 const (
-	// TODO configure computer speed
-	TimeScaler     = 60
 	towersPerRow   = 7
 	towerWidth     = 48
+	towerHeight    = 48
 	halfTowerWidth = towerWidth / 2
 	laneSpacing    = 41
 	printTries     = false
 	playSound      = false
 )
 
-// 44 pixels between towers, 7 towers across starting
-var lanes = makeLanes()
+// laneSpacing pixels between towers, towersPerRow towers across starting
+var (
+	lanes      = makeLanes()
+	TimeScaler = 60
+)
 
-func Update(world donburi.World) error {
+func SetComputerLevel(computerLevel int) {
+	if computerLevel <= 1 {
+		TimeScaler = 90
+	} else if computerLevel == 2 {
+		TimeScaler = 75
+	} else if computerLevel == 3 {
+		TimeScaler = 60
+	} else if computerLevel == 4 {
+		TimeScaler = 45
+	} else if computerLevel >= 5 {
+		TimeScaler = 30
+	}
+}
+
+func Update(world donburi.World) (bool, error) {
 	// can perform only one action per tick, even this might be too fast so maybe move this into the game speed updates
 	pe := comp.Player.MustFirst(world)
 	player := comp.Player.Get(pe)
@@ -60,13 +76,13 @@ func Update(world donburi.World) error {
 		if lane != -1 {
 			placed, err := player.TryPlaceTower(world, lane, board.Height/2, playSound, printTries)
 			if err != nil {
-				return err
+				return false, err
 			}
 			if placed {
 				if debug {
 					fmt.Printf("Placed tower below creep at %v, %v\n", pt, lane)
 				}
-				return nil
+				return true, nil
 			}
 		}
 	}
@@ -85,13 +101,13 @@ func Update(world donburi.World) error {
 				if debug {
 					fmt.Printf("Upgraded lowest health/level tower\n")
 				}
-				return nil
+				return true, nil
 			}
 			if player.TryHealTower(lowestHealthTower, playSound, printTries) {
 				if debug {
 					fmt.Printf("Healed lowest health tower\n")
 				}
-				return nil
+				return true, nil
 			}
 		}
 		//if not the same then if the level of the lowest level tower is 2 less than the lowest health tower (or lowest health is max level)
@@ -103,14 +119,14 @@ func Update(world donburi.World) error {
 				if debug {
 					fmt.Printf("Healed lowest level tower\n")
 				}
-				return nil
+				return true, nil
 			}
 		} else {
 			if allowUpgrades && player.TryUpgradeTower(lowestHealthTower, playSound, printTries) {
 				if debug {
 					fmt.Printf("Upgraded lowest health tower\n")
 				}
-				return nil
+				return true, nil
 			}
 		}
 	}
@@ -123,43 +139,42 @@ func Update(world donburi.World) error {
 			if debug {
 				fmt.Printf("Upgraded lowest health tower\n")
 			}
-			return nil
+			return true, nil
 		}
 	} else if lowestHealthTower != nil {
 		if player.TryHealTower(lowestHealthTower, playSound, printTries) {
 			if debug {
 				fmt.Printf("Healed lowest health tower 2\n")
 			}
-			return nil
+			return true, nil
 		}
 	}
 
-	// later game if we are full on towers and full on levels then start another row of towers to upgrade
-	// fill in the gaps in the lanes
+	// later game if we are full on towers and full on levels then start additional rows (up to 4) of towers to upgrade
 	if player.Money > 150 && len(towers) >= towersPerRow {
-		newY := board.Height/2 + towerWidth + 10
-		for _, lane := range lanes {
-			// TODO work out from middle of the board
-			placed, err := player.TryPlaceTower(world, lane, newY, playSound, printTries)
-			if err != nil {
-				return err
-			}
-			if placed {
-				if debug {
-					fmt.Printf("Placed tower on 2nd row at %v, %v\n", lane, newY)
+		for i := 1; i <= 3; i++ {
+			newY := board.Height/2 + i*towerHeight + 10
+			for _, lane := range lanes {
+				placed, err := player.TryPlaceTower(world, lane, newY, playSound, printTries)
+				if err != nil {
+					return false, err
 				}
-				break
+				if placed {
+					if debug {
+						fmt.Printf("Placed tower on row %d at %v, %v\n", i, lane, newY)
+					}
+					return true, nil
+				}
 			}
 		}
 	}
-	// TODO even later game allow a 3rd row either above or below the middle row
 
 	// TODO if multiplayer consider sending a creep over
 
 	if debug {
 		fmt.Printf("Nothing on this tick\n")
 	}
-	return nil
+	return false, nil
 }
 
 func findLowestHealthTower(towers []*donburi.Entry) *donburi.Entry {

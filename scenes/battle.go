@@ -200,10 +200,15 @@ func (b *BattleScene) Update() error {
 	if b.config.Computer {
 		// TODO scale with game speed? or a difficulty setting
 		if b.computerTicker%strategy.TimeScaler == 0 {
-			if err := strategy.Update(b.world); err != nil {
+			acted, err := strategy.Update(b.world)
+			if err != nil {
 				return err
 			}
-			b.computerTicker = 1
+			if acted {
+				b.computerTicker = 1
+			} else {
+				b.computerTicker = 0
+			}
 		} else {
 			b.computerTicker++
 		}
