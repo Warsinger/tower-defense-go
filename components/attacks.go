@@ -137,7 +137,6 @@ func (a *AttackData) AttackEnemyRange(entry *donburi.Entry, afterAttack func(*do
 
 func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 	// create a bullet path from the midpoint of the launcher to the midpoint of the enemy
-
 	ownRect := GetRect(entry)
 	enemyRect := GetRect(enemy)
 
@@ -159,7 +158,7 @@ func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 	}
 
 	creep := entry.HasComponent(Creep)
-	NewBullet(entry.World, start, end, bulletSpeed, creep)
+	NewBullet(entry.World, start, end, a.Power, bulletSpeed, creep)
 	if config.GetConfig(entry.World).Sound {
 		var sound string
 		if creep {

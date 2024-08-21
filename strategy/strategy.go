@@ -36,8 +36,10 @@ func SetComputerLevel(computerLevel int) {
 		TimeScaler = 60
 	} else if computerLevel == 4 {
 		TimeScaler = 45
-	} else if computerLevel >= 5 {
+	} else if computerLevel == 5 {
 		TimeScaler = 30
+	} else if computerLevel >= 5 {
+		TimeScaler = 1
 	}
 }
 
@@ -153,7 +155,7 @@ func Update(world donburi.World) (bool, error) {
 	// later game if we are full on towers and full on levels then start additional rows (up to 4) of towers to upgrade
 	if player.Money > 150 && len(towers) >= towersPerRow {
 		for i := 1; i <= 3; i++ {
-			newY := board.Height/2 + i*towerHeight + 10
+			newY := board.Height/2 + i*(towerHeight+10)
 			for _, lane := range lanes {
 				placed, err := player.TryPlaceTower(world, lane, newY, playSound, printTries)
 				if err != nil {

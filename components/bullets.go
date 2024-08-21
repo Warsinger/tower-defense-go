@@ -29,7 +29,7 @@ var BulletRender = donburi.NewComponentType[BulletRenderData]()
 var creepBulletColor = color.RGBA{255, 0, 0, 255}
 var towerBulletColor = color.RGBA{40, 255, 40, 255}
 
-func NewBullet(world donburi.World, start, end image.Point, speed int, creep bool) (*donburi.Entry, error) {
+func NewBullet(world donburi.World, start, end image.Point, power, speed int, creep bool) (*donburi.Entry, error) {
 	bulletEntity := world.Create(Bullet, Position, Velocity, Attack, BulletRender)
 	err := srvsync.NetworkSync(world, &bulletEntity, Bullet, Position, Attack, BulletRender)
 	if err != nil {
@@ -50,7 +50,7 @@ func NewBullet(world donburi.World, start, end image.Point, speed int, creep boo
 		size = 4
 	}
 	BulletRender.Set(bullet, NewBulletRender(size, color))
-	Attack.Set(bullet, &AttackData{Power: 1, AttackType: RangedSingle, Range: 1, cooldown: util.NewCooldownTimer(30)})
+	Attack.Set(bullet, &AttackData{Power: power, AttackType: RangedSingle, Range: 1, cooldown: util.NewCooldownTimer(30)})
 	Bullet.Set(bullet, &BulletData{start: start, end: end, speed: speed, creep: creep})
 	return bullet, nil
 }
