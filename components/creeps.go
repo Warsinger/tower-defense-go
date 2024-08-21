@@ -39,7 +39,7 @@ func NewCreep(world donburi.World, x, y, creepLevel int) (*donburi.Entry, error)
 	name := fmt.Sprintf("creep%v", choose)
 	Creep.Set(creep, &CreepData{scoreValue: 10 * augment})
 	Health.Set(creep, NewHealthData(1+2*augment+creepLevel/3))
-	Attack.Set(creep, &AttackData{Power: 1 + (creepLevel-1)*augment/4, AttackType: RangedSingle, Range: 10 + 10*augment, cooldown: util.NewCooldownTimer(5 + 5*augment)})
+	Attack.Set(creep, &AttackData{Power: 1 + (creepLevel-1)*augment/4, AttackType: RangedSingle, Range: 20 + 10*augment, cooldown: util.NewCooldownTimer(5 + 5*augment)})
 	SpriteRender.Set(creep, &SpriteRenderData{Name: name})
 	RangeRender.Set(creep, &RangeRenderData{})
 	InfoRender.Set(creep, &InfoRenderData{})
@@ -111,17 +111,21 @@ func (c *CreepData) TryMoveTo(entry *donburi.Entry, curPos *PositionData, newPt 
 
 		return c.TryMoveTo(entry, curPos, image.Pt(newX, newPt.Y), maxTry-1)
 	} else {
+		// BUG creeps can still get stuck on each other just above the player and not be able to attack, and the player can't attack them
 		// if it can go a little way then let it move as far as possible
-		collRect := GetRect(collision)
+		// collRect := GetRect(collision)
 
-		if rect.Max.Y >= collRect.Min.Y {
-			newY := collRect.Min.Y - 1
-			return c.TryMoveTo(entry, curPos, image.Pt(newPt.X, newY), maxTry-1)
-		}
+		// if rect.Max.Y >= collRect.Min.Y {
+		// 	newY := collRect.Min.Y - 1
+		// 	return c.TryMoveTo(entry, curPos, image.Pt(newPt.X, newY), maxTry-1)
+		// }
+
+		// try to creep forward just a bit
+		return c.TryMoveTo(entry, curPos, image.Pt(curPos.X, curPos.Y+1), maxTry-1)
 	}
 
 	// TODO allow creeps to move sideways around the tower? (if so don't allow for player)
-	return false
+	// return false
 }
 
 func (c *CreepData) GetScoreValue() int {

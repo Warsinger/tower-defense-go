@@ -71,6 +71,8 @@ func Update(world donburi.World) (bool, error) {
 
 	})
 
+	// TODO after we get multipel rows in place when the first row starts losing towers, fall back to lower row rather than replacing the front line
+
 	// if we have < the number of towers per row then check for a creep coming down and put a tower below it
 	for _, creepEntry := range creeps {
 		pt := util.MidpointRect(comp.GetRect(creepEntry))
