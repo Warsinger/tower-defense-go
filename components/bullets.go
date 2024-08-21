@@ -69,6 +69,12 @@ func (brd *BulletRenderData) GetColor() color.Color {
 func (bd *BulletData) Update(entry *donburi.Entry) error {
 	pos := Position.Get(entry)
 	dist := util.DistancePoints(bd.start, bd.end)
+	// if the bullet has traveled past its range (plus a little buffer), remove it
+	// TODO add special bullets that do something when they expire (like a slow-down effect)
+	if util.DistancePoints(bd.start, image.Pt(pos.X, pos.Y)) > dist*3/2 {
+		entry.Remove()
+		return nil
+	}
 	ratio := dist / float64(bd.speed)
 	// fmt.Printf("dist: %v, ratio: %v, start: %v, end: %v\n", dist, ratio, bd.start, bd.end)
 

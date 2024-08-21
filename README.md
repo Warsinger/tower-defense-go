@@ -92,6 +92,8 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * ~~Add UI for configuring game options (server, client, debug, gridlines)~~
   * Choose options for game difficulty
     * Add input for tower level in game options
+    * Computer player options
+  * Sound options
     * ~~Implement game difficulty~~
   * ~~Set other options~~
     * ~~debug, range circles, etc~~
@@ -104,7 +106,7 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
   * Bullets slow creeps
   * ~~Refresh tower health for % of initial cost~~
 * Let mouse clicks heal and upgrade towers, right click or double click
-* Bullets expire after traveling range + X
+* ~~Bullets expire after traveling range + X~~
   * Special bullets could create spots on the ground that will slow, damage, or annoy creeps
 * Levels
   * ~~More powerful creeps~~
@@ -132,13 +134,13 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 * ~~Scores~~
   * ~~save high scores~~
 * Stretch
-  * Computer players
+  * ~~Computer players~~
+    * Additional strategies
   * ~~Networking players, possibly using [leap-fish/necs](https://github.com/leap-fish/necs)~~
     * ~~Send extra creeps to other player~~
     * Pick different types of creep to send
   * Simulation for testing
   * Play simulated network opponent
-  * Investigate donburi systems and events
 
 ## Remote viewer
 
