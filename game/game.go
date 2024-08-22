@@ -7,10 +7,13 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 	"tower-defense/assets"
 	"tower-defense/config"
 	"tower-defense/network"
 	"tower-defense/scenes"
+
+	comp "tower-defense/components"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -26,7 +29,7 @@ type GameData struct {
 	world                donburi.World
 	scenes               []Scene
 	width, height, speed int
-	gameStats            *scenes.GameStats
+	gameStats            *comp.GameStats
 	startingTowerLevel   int
 }
 
@@ -75,6 +78,7 @@ func (g *GameData) switchToBattle(broadcast bool, controller *scenes.Controller,
 	}
 	return nil
 }
+
 func (g *GameData) adjustWindowPosition() {
 	monWidth, _ := ebiten.Monitor().Size()
 	winX, winY := ebiten.WindowPosition()
@@ -86,24 +90,18 @@ func (g *GameData) adjustWindowPosition() {
 	ebiten.SetWindowPosition(winX, winY)
 }
 
-func (g *GameData) switchToTitle(gameStats *scenes.GameStats, gameOptions *config.ConfigData) error {
+func (g *GameData) switchToTitle(gameStats *comp.GameStats, gameOptions *config.ConfigData) error {
 	if gameStats != g.gameStats {
-		save := false
 		if gameStats.HighScore > g.gameStats.HighScore {
 			g.gameStats.HighScore = gameStats.HighScore
-			save = true
 		}
 		if gameStats.HighCreepLevel > g.gameStats.HighCreepLevel {
 			g.gameStats.HighCreepLevel = gameStats.HighCreepLevel
-			save = true
 		}
 		if gameStats.HighTowerLevel > g.gameStats.HighTowerLevel {
 			g.gameStats.HighTowerLevel = gameStats.HighTowerLevel
-			save = true
 		}
-		if save {
-			g.SaveScores()
-		}
+		g.SaveScores()
 	}
 
 	title, err := scenes.NewTitleScene(g.world, g.width, g.height, g.gameStats, gameOptions, g.switchToBattle)
@@ -118,8 +116,8 @@ func (g *GameData) switchToTitle(gameStats *scenes.GameStats, gameOptions *confi
 
 const statsFile = "score/stats.txt"
 
-func LoadScores() *scenes.GameStats {
-	var highScore, highCreepLevel, highTowerLevel int
+func LoadScores() *comp.GameStats {
+	gameStats := &comp.GameStats{}
 	bytes, err := os.ReadFile(statsFile)
 	if err == nil {
 		strings.Split(string(bytes), "\n")
@@ -130,26 +128,49 @@ func LoadScores() *scenes.GameStats {
 			}
 			switch values[0] {
 			case "score":
-				highScore, err = strconv.Atoi(values[1])
-				if err != nil {
-					fmt.Printf("WARN high score formatting err %v\n", err)
-				}
+				gameStats.HighScore = parseScore(values[0], values[1])
 			case "creepLevel":
-				highCreepLevel, err = strconv.Atoi(values[1])
-				if err != nil {
-					fmt.Printf("WARN high creep level formatting err %v\n", err)
-				}
+				gameStats.HighCreepLevel = parseScore(values[0], values[1])
 			case "towerLevel":
-				highTowerLevel, err = strconv.Atoi(values[1])
+				gameStats.HighTowerLevel = parseScore(values[0], values[1])
+			case "creepsSpawned":
+				gameStats.CreepsSpawned = parseScore(values[0], values[1])
+			case "creepsKilled":
+				gameStats.CreepsKilled = parseScore(values[0], values[1])
+			case "creepWaves":
+				gameStats.CreepWaves = parseScore(values[0], values[1])
+			case "towersBuilt":
+				gameStats.TowersBuilt = parseScore(values[0], values[1])
+			case "towersKilled":
+				gameStats.TowersKilled = parseScore(values[0], values[1])
+			case "towerBulletsFired":
+				gameStats.TowerBulletsFired = parseScore(values[0], values[1])
+			case "creepBulletsFired":
+				gameStats.CreepBulletsFired = parseScore(values[0], values[1])
+			case "bulletsExpired":
+				gameStats.BulletsExpired = parseScore(values[0], values[1])
+			case "playerDeaths":
+				gameStats.PlayerDeaths = parseScore(values[0], values[1])
+			case "gameTime":
+				gameStats.GameTime, err = time.ParseDuration(values[1])
 				if err != nil {
-					fmt.Printf("WARN high tower level formatting err %v\n", err)
+					fmt.Printf("WARN %s formatting err %s %v\n", values[0], values[1], err)
 				}
 			}
 		}
 	}
 
-	return &scenes.GameStats{HighScore: highScore, HighCreepLevel: highCreepLevel, HighTowerLevel: highTowerLevel}
+	return gameStats
 }
+
+func parseScore(label, val string) int {
+	score, err := strconv.Atoi(val)
+	if err != nil {
+		fmt.Printf("WARN %s formatting err %s %v\n", label, val, err)
+	}
+	return score
+}
+
 func (g *GameData) SaveScores() error {
 	dir, _ := filepath.Split(statsFile)
 
@@ -157,7 +178,9 @@ func (g *GameData) SaveScores() error {
 		return err
 	}
 
-	str := fmt.Sprintf("score=%d\ncreepLevel=%d\ntowerLevel=%d\n", g.gameStats.HighScore, g.gameStats.HighCreepLevel, g.gameStats.HighTowerLevel)
+	str := fmt.Sprintf("score=%d\ncreepLevel=%d\ntowerLevel=%d\ncreepsSpawned=%d\ncreepsKilled=%d\ncreepWaves=%d\ntowersBuilt=%d\ntowersKilled=%d\ntowersAmmoOut=%d\ntowerBulletsFired=%d\ncreepbulletsFired=%d\nbulletsExpired=%d\nplayerDeaths%d\ngameTime=%v\n",
+		g.gameStats.HighScore, g.gameStats.HighCreepLevel, g.gameStats.HighTowerLevel,
+		g.gameStats.CreepsSpawned, g.gameStats.CreepsKilled, g.gameStats.CreepWaves, g.gameStats.TowersBuilt, g.gameStats.TowersKilled, g.gameStats.TowersAmmoOut, g.gameStats.TowerBulletsFired, g.gameStats.CreepBulletsFired, g.gameStats.BulletsExpired, g.gameStats.PlayerDeaths, g.gameStats.CalcDuration())
 	return os.WriteFile(statsFile, []byte(str), 0644)
 }
 

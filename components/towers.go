@@ -79,9 +79,11 @@ func (t *TowerData) Heal(entry *donburi.Entry, debug bool) bool {
 const initMaxTowerLevel = 5
 
 func GetMaxTowerLevel(world donburi.World) int {
-	pe := Player.MustFirst(world)
-	player := Player.Get(pe)
-	return initMaxTowerLevel + int(math.Trunc(float64(player.TowerLevels)/20))
+	player := Player.Get(Player.MustFirst(world))
+	return player.GetMaxTowerLevel()
+}
+func (p *PlayerData) GetMaxTowerLevel() int {
+	return initMaxTowerLevel + int(math.Trunc(float64(p.TowerLevels)/20))
 }
 
 func (t *TowerData) Upgrade(entry *donburi.Entry, debug bool) bool {
@@ -121,6 +123,7 @@ func AfterTowerAttack(towerEntry *donburi.Entry) {
 	towerHealth.Health--
 	if towerHealth.Health <= 0 {
 		towerEntry.Remove()
+		GetGameStats().UpdateTowersAmmoOut()
 	}
 }
 

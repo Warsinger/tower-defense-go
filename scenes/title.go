@@ -17,7 +17,7 @@ import (
 type TitleScene struct {
 	width           int
 	height          int
-	gameStats       *GameStats
+	gameStats       *comp.GameStats
 	gameOptions     *config.ConfigData
 	newGameCallback NewGameCallback
 	world           donburi.World
@@ -28,7 +28,7 @@ var controller = Controller{}
 
 type NewGameCallback func(broadcast bool, controller *Controller, gameOptions *config.ConfigData) error
 
-func NewTitleScene(world donburi.World, width, height int, gameStats *GameStats, gameOptions *config.ConfigData, newGameCallback NewGameCallback) (*TitleScene, error) {
+func NewTitleScene(world donburi.World, width, height int, gameStats *comp.GameStats, gameOptions *config.ConfigData, newGameCallback NewGameCallback) (*TitleScene, error) {
 	title := &TitleScene{world: world, width: width, height: height, gameStats: gameStats, gameOptions: gameOptions, newGameCallback: newGameCallback}
 	title.ui = initUI(title.gameOptions, newGameCallback, title.handleOptions)
 	return title, nil

@@ -71,7 +71,7 @@ func Update(world donburi.World) (bool, error) {
 
 	})
 
-	// TODO after we get multipel rows in place when the first row starts losing towers, fall back to lower row rather than replacing the front line
+	// TODO after we get multiple rows in place when the first row starts losing towers, fall back to lower row rather than replacing the front line
 
 	// if we have < the number of towers per row then check for a creep coming down and put a tower below it
 	for _, creepEntry := range creeps {
@@ -118,7 +118,7 @@ func Update(world donburi.World) (bool, error) {
 		// then just heal the lowest health, otherwise upgrade it
 		levelLevel := comp.Level.Get(lowestLevelTower)
 		levelHealth := comp.Level.Get(lowestHealthTower)
-		if levelLevel.Level >= levelHealth.Level+2 || levelHealth.Level == comp.GetMaxTowerLevel(world) {
+		if levelLevel.Level >= levelHealth.Level+2 || levelHealth.Level == player.GetMaxTowerLevel() {
 			if player.TryHealTower(lowestHealthTower, playSound, printTries) {
 				if debug {
 					fmt.Printf("Healed lowest level tower\n")

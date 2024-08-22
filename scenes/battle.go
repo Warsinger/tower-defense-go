@@ -21,7 +21,7 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
-type EndGameCallBack func(*GameStats, *config.ConfigData) error
+type EndGameCallBack func(*comp.GameStats, *config.ConfigData) error
 type BattleScene struct {
 	world              donburi.World
 	width              int
@@ -30,21 +30,14 @@ type BattleScene struct {
 	creepTimer         int
 	tickCounter        int
 	computerTicker     int
+	startingTowerLevel int
 	multiplayer        bool
 	config             *config.ConfigData
 	battleState        *comp.BattleSceneState
-	gameStats          *GameStats
+	gameStats          *comp.GameStats
 	gameOptions        *config.ConfigData
 	endGameCallback    EndGameCallBack
 	superCreepCooldown *util.CooldownTimer
-	startingTowerLevel int
-	creepWave          int
-}
-
-type GameStats struct {
-	HighScore      int
-	HighCreepLevel int
-	HighTowerLevel int
 }
 
 type creeepSpawnChance struct {
@@ -57,7 +50,7 @@ const maxSpeed = 60
 const maxCreepTimer = 180
 const startCreepTimer = 120
 
-func NewBattleScene(world donburi.World, width, height, speed int, gameStats *GameStats, multiplayer bool, gameOptions *config.ConfigData, startingTowerLevel int, endGameCallback EndGameCallBack) (*BattleScene, error) {
+func NewBattleScene(world donburi.World, width, height, speed int, gameStats *comp.GameStats, multiplayer bool, gameOptions *config.ConfigData, startingTowerLevel int, endGameCallback EndGameCallBack) (*BattleScene, error) {
 	_, err := comp.NewBoard(world, width, height)
 	if err != nil {
 		return nil, err
@@ -116,7 +109,10 @@ func (b *BattleScene) Clear() error {
 	b.creepTimer = maxCreepTimer - startCreepTimer
 	b.tickCounter = 0
 	b.computerTicker = 0
-	b.creepWave = 0
+
+	b.gameStats.Reset()
+	// HACK remove gloabal variable gameStats
+	comp.SetGameStats(b.gameStats)
 
 	query := donburi.NewQuery(filter.Or(
 		filter.Contains(comp.Bullet),
@@ -136,7 +132,7 @@ func (b *BattleScene) Update() error {
 	player := comp.Player.Get(pe)
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
-		b.endGameCallback(&GameStats{player.GetScore(), player.GetCreepLevel(), comp.GetMaxTowerLevel(b.world)}, b.gameOptions)
+		b.endGameCallback(comp.NewGameStats(player.GetScore(), player.GetCreepLevel(), player.GetMaxTowerLevel()), b.gameOptions)
 	}
 
 	if b.battleState.GameOver {
@@ -232,7 +228,7 @@ func (b *BattleScene) Update() error {
 
 	b.gameStats.HighScore = max(player.GetScore(), b.gameStats.HighScore)
 	b.gameStats.HighCreepLevel = max(player.GetCreepLevel(), b.gameStats.HighCreepLevel)
-	b.gameStats.HighTowerLevel = max(comp.GetMaxTowerLevel(b.world), b.gameStats.HighTowerLevel)
+	b.gameStats.HighTowerLevel = max(player.GetMaxTowerLevel(), b.gameStats.HighTowerLevel)
 
 	return nil
 }
@@ -289,6 +285,7 @@ func (b *BattleScene) UpdateEntities() error {
 	playerHealth := comp.Health.Get(pe)
 	if playerHealth.Health <= 0 {
 		player.Kill()
+		b.gameStats.UpdatePlayerDeaths()
 		b.End()
 	}
 
@@ -304,6 +301,7 @@ func (b *BattleScene) UpdateEntities() error {
 			if err != nil {
 				return err
 			}
+			b.gameStats.UpdateCreepsSpawned(count)
 			player.AddMoney(5 * count)
 			b.creepTimer = 0
 		} else {
@@ -315,9 +313,9 @@ func (b *BattleScene) UpdateEntities() error {
 }
 
 func (b *BattleScene) SpawnCreeps(creepLevel int) (int, error) {
-	b.creepWave++
+	b.gameStats.UpdateCreepWaves()
 	// every 10 waves, creep level increases by 1 without giving extra tower levels to the player
-	extraCreepLevel := int(math.Floor(float64(creepLevel) / 10))
+	extraCreepLevel := int(math.Floor(float64(b.gameStats.CreepWaves) / 10))
 
 	levelBump := float32(creepLevel+extraCreepLevel) / 20
 

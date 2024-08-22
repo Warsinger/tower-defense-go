@@ -202,6 +202,7 @@ func (p *PlayerData) PlaceTower(world donburi.World, x, y int, sound bool) error
 			return &PlacementError{message}
 		}
 	}
+	GetGameStats().UpdateTowersBuilt()
 	return NewTower(world, rect.Min.X, rect.Min.Y)
 }
 
@@ -236,7 +237,7 @@ func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry, deb
 	str := fmt.Sprintf("$ %d", player.GetMoney())
 	nextY := DrawTextLines(screen, assets.ScoreFace, str, float64(board.Width), TextBorder, text.AlignStart, text.AlignStart)
 
-	str = fmt.Sprintf("Max Tower Level %d", GetMaxTowerLevel(entry.World))
+	str = fmt.Sprintf("Max Tower Level %d", player.GetMaxTowerLevel())
 	_ = DrawTextLines(screen, assets.InfoFace, str, float64(board.Width), nextY, text.AlignStart, text.AlignStart)
 
 	str = fmt.Sprintf("SCORE %05d", player.Score)

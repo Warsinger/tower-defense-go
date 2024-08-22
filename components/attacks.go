@@ -158,6 +158,11 @@ func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 	}
 
 	creep := entry.HasComponent(Creep)
+	if creep {
+		GetGameStats().UpdateCreepBulletsFired()
+	} else {
+		GetGameStats().UpdateTowerBulletsFired()
+	}
 	NewBullet(entry.World, start, end, a.Power, bulletSpeed, creep)
 	if config.GetConfig(entry.World).Sound {
 		var sound string
@@ -194,6 +199,11 @@ func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, afterKill func(*
 				// HACK Don't remove player upon kill, TODO find a better way to handle this
 				if !enemy.HasComponent(Player) {
 					enemy.Remove()
+					if enemy.HasComponent(Creep) {
+						GetGameStats().UpdateCreepsKilled()
+					} else {
+						GetGameStats().UpdateTowersKilled()
+					}
 				}
 			}
 			a.cooldown.StartCooldown()

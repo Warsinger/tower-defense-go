@@ -76,6 +76,7 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 
 ## TODOS
 
+* Collect, print and store game statistics
 * ~~Pass thru debug flag to renderers~~
 * ~~Collision detection for creep movement, creeps stop when running into a tower~~
   * ~~Restrict creep and tower spawn on existing objects or partially off the board~~
