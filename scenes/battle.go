@@ -72,7 +72,7 @@ func NewBattleScene(world donburi.World, width, height, speed int, gameStats *co
 		multiplayer:        multiplayer,
 		config:             gameOptions,
 		battleState:        bss,
-		gameStats:          gameStats,
+		gameStats:          comp.NewGameStats(gameStats.HighScore, gameStats.HighCreepLevel, gameStats.HighTowerLevel),
 		gameOptions:        gameOptions,
 		endGameCallback:    endGameCallback,
 		superCreepCooldown: util.NewCooldownTimer(maxCreepTimer),
@@ -132,7 +132,7 @@ func (b *BattleScene) Update() error {
 	player := comp.Player.Get(pe)
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
-		b.endGameCallback(comp.NewGameStats(player.GetScore(), player.GetCreepLevel(), player.GetMaxTowerLevel()), b.gameOptions)
+		b.endGameCallback(b.gameStats, b.gameOptions)
 	}
 
 	if b.battleState.GameOver {
@@ -233,7 +233,6 @@ func (b *BattleScene) Update() error {
 	return nil
 }
 func (b *BattleScene) UpdateEntities() error {
-	// query for all entities and have them do their updates
 	query := donburi.NewQuery(
 		filter.And(
 			filter.Or(
@@ -245,7 +244,6 @@ func (b *BattleScene) UpdateEntities() error {
 	)
 	var err error = nil
 	entries := make([]*donburi.Entry, 0, query.Count(b.world))
-	// update all entities
 	query.Each(b.world, func(entry *donburi.Entry) {
 		entries = append(entries, entry)
 	})

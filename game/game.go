@@ -34,7 +34,7 @@ func NewGame(width, height, speed int, startingTowerLevel int, debug, computer, 
 
 	ebiten.SetWindowTitle("Tower Defense")
 
-	gameStats := comp.LoadScores()
+	gameStats := comp.LoadStats()
 
 	game := &GameData{world: donburi.NewWorld(), width: width, height: height, speed: speed, gameStats: gameStats, startingTowerLevel: startingTowerLevel}
 
@@ -94,7 +94,8 @@ func (g *GameData) switchToTitle(gameStats *comp.GameStats, gameOptions *config.
 		if gameStats.HighTowerLevel > g.gameStats.HighTowerLevel {
 			g.gameStats.HighTowerLevel = gameStats.HighTowerLevel
 		}
-		g.gameStats.SaveScores()
+		g.gameStats.Update(gameStats)
+		g.gameStats.SaveStats()
 	}
 
 	title, err := scenes.NewTitleScene(g.world, g.width, g.height, g.gameStats, gameOptions, g.switchToBattle)
@@ -110,7 +111,7 @@ func (g *GameData) switchToTitle(gameStats *comp.GameStats, gameOptions *config.
 func (g *GameData) Update() error {
 	// TODO move this into the title scene so we can determine if the config has focus
 	if !scenes.IsModalOpen() && inpututil.IsKeyJustPressed(ebiten.KeyQ) {
-		if err := g.gameStats.SaveScores(); err != nil {
+		if err := g.gameStats.SaveStats(); err != nil {
 			return err
 		}
 

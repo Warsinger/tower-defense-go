@@ -102,6 +102,7 @@ func (p *PlayerData) TryHealTower(entry *donburi.Entry, sound, debug bool) bool 
 		tower := Tower.Get(entry)
 		if tower.Heal(entry, debug) {
 			p.Money -= cost
+			GetGameStats().MoneySpent += cost
 			healed = true
 		}
 	} else {
@@ -122,6 +123,7 @@ func (p *PlayerData) TryUpgradeTower(entry *donburi.Entry, sound, debug bool) bo
 		tower := Tower.Get(entry)
 		if tower.Upgrade(entry, debug) {
 			p.Money -= cost
+			GetGameStats().MoneySpent += cost
 			p.TowerLevels++
 			upgraded = true
 		}
@@ -153,6 +155,7 @@ func (p *PlayerData) TryPlaceTower(world donburi.World, x, y int, sound, debug b
 			}
 		} else {
 			p.Money -= cost
+			GetGameStats().MoneySpent += cost
 			placed = true
 		}
 	} else {

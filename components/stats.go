@@ -15,20 +15,24 @@ type GameStats struct {
 	HighCreepLevel int
 	HighTowerLevel int
 
-	CreepsSpawned     int
-	CreepsKilled      int
-	CreepWaves        int
-	TowersBuilt       int
-	TowersKilled      int
-	TowersAmmoOut     int
-	TowerBulletsFired int
-	CreepBulletsFired int
 	BulletsExpired    int
-	PlayerDeaths      int
+	CreepBulletsFired int
+	CreepsKilled      int
+	CreepsSpawned     int
+	CreepWaves        int
 	MoneySpent        int
+	PlayerDeaths      int
+	TowerBulletsFired int
+	TowersAmmoOut     int
+	TowersBuilt       int
+	TowersHealed      int
+	TowersKilled      int
+	TowersUpgraded    int
 	StartTime         time.Time
 	GameTime          time.Duration
 }
+
+const statsFile = "score/stats.txt"
 
 var gameStats *GameStats
 
@@ -42,6 +46,31 @@ func NewGameStats(highScore, highCreepLevel, highTowerLevel int) *GameStats {
 	return &GameStats{HighScore: highScore, HighCreepLevel: highCreepLevel, HighTowerLevel: highTowerLevel}
 }
 
+func (gs *GameStats) Update(other *GameStats) {
+	if other.HighScore > gs.HighScore {
+		gs.HighScore = other.HighScore
+	}
+	if other.HighCreepLevel > gs.HighCreepLevel {
+		gs.HighCreepLevel = other.HighCreepLevel
+	}
+	if other.HighTowerLevel > gs.HighTowerLevel {
+		gs.HighTowerLevel = other.HighTowerLevel
+	}
+	gs.BulletsExpired = other.BulletsExpired
+	gs.CreepBulletsFired = other.CreepBulletsFired
+	gs.CreepWaves = other.CreepWaves
+	gs.CreepsKilled = other.CreepsKilled
+	gs.CreepsSpawned = other.CreepsSpawned
+	gs.GameTime += other.CalcDuration()
+	gs.MoneySpent = other.MoneySpent
+	gs.PlayerDeaths = other.PlayerDeaths
+	gs.TowerBulletsFired = other.TowerBulletsFired
+	gs.TowersAmmoOut = other.TowersAmmoOut
+	gs.TowersBuilt = other.TowersBuilt
+	gs.TowersHealed = other.TowersHealed
+	gs.TowersKilled = other.TowersKilled
+	gs.TowersUpgraded = other.TowersUpgraded
+}
 func (gs *GameStats) UpdateCreepsSpawned(count int) {
 	gs.CreepsSpawned += count
 }
@@ -53,6 +82,12 @@ func (gs *GameStats) UpdateCreepWaves() {
 }
 func (gs *GameStats) UpdateTowersBuilt() {
 	gs.TowersBuilt++
+}
+func (gs *GameStats) UpdateTowersHealed() {
+	gs.TowersHealed++
+}
+func (gs *GameStats) UpdateTowersUpgraded() {
+	gs.TowersUpgraded++
 }
 func (gs *GameStats) UpdateTowersKilled() {
 	gs.TowersKilled++
@@ -91,13 +126,13 @@ func (gs *GameStats) Reset() {
 	gs.BulletsExpired = 0
 	gs.PlayerDeaths = 0
 	gs.MoneySpent = 0
+	gs.TowersHealed = 0
+	gs.TowersUpgraded = 0
 	gs.StartTime = time.Now()
 	gs.GameTime = 0
 }
 
-const statsFile = "score/stats.txt"
-
-func LoadScores() *GameStats {
+func LoadStats() *GameStats {
 	gameStats := &GameStats{}
 	bytes, err := os.ReadFile(statsFile)
 	if err == nil {
@@ -132,6 +167,10 @@ func LoadScores() *GameStats {
 				gameStats.BulletsExpired = parseScore(values[0], values[1])
 			case "playerDeaths":
 				gameStats.PlayerDeaths = parseScore(values[0], values[1])
+			case "towersHealed":
+				gameStats.TowersHealed = parseScore(values[0], values[1])
+			case "towersUpgraded":
+				gameStats.TowersUpgraded = parseScore(values[0], values[1])
 			case "gameTime":
 				gameStats.GameTime, err = time.ParseDuration(values[1])
 				if err != nil {
@@ -152,16 +191,16 @@ func parseScore(label, val string) int {
 	return score
 }
 
-func (gs *GameStats) SaveScores() error {
+func (gs *GameStats) SaveStats() error {
 	dir, _ := filepath.Split(statsFile)
 
 	if err := ensureDir(dir); err != nil {
 		return err
 	}
 
-	str := fmt.Sprintf("score=%d\ncreepLevel=%d\ntowerLevel=%d\ncreepsSpawned=%d\ncreepsKilled=%d\ncreepWaves=%d\ntowersBuilt=%d\ntowersKilled=%d\ntowersAmmoOut=%d\ntowerBulletsFired=%d\ncreepbulletsFired=%d\nbulletsExpired=%d\nplayerDeaths%d\ngameTime=%v\n",
+	str := fmt.Sprintf("score=%d\ncreepLevel=%d\ntowerLevel=%d\ncreepsSpawned=%d\ncreepsKilled=%d\ncreepWaves=%d\ntowersBuilt=%d\ntowersKilled=%d\ntowersAmmoOut=%d\ntowerBulletsFired=%d\ncreepbulletsFired=%d\nbulletsExpired=%d\nplayerDeaths%d\ntowersHealed=%d\ntowersUpgraded=%d\ngameTime=%v\n",
 		gs.HighScore, gs.HighCreepLevel, gs.HighTowerLevel,
-		gs.CreepsSpawned, gs.CreepsKilled, gs.CreepWaves, gs.TowersBuilt, gs.TowersKilled, gs.TowersAmmoOut, gs.TowerBulletsFired, gs.CreepBulletsFired, gs.BulletsExpired, gs.PlayerDeaths, gs.CalcDuration())
+		gs.CreepsSpawned, gs.CreepsKilled, gs.CreepWaves, gs.TowersBuilt, gs.TowersKilled, gs.TowersAmmoOut, gs.TowerBulletsFired, gs.CreepBulletsFired, gs.BulletsExpired, gs.PlayerDeaths, gs.TowersHealed, gs.TowersUpgraded, gs.CalcDuration())
 	return os.WriteFile(statsFile, []byte(str), 0644)
 }
 
