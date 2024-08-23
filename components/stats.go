@@ -48,6 +48,7 @@ var (
 		"CreepsKilled",
 		"CreepsSpawned",
 		"CreepWaves",
+		"Games",
 		"HighCreepLevel",
 		"HighScore",
 		"HighTowerLevel",
@@ -100,9 +101,10 @@ func (gs *GameStats) Update(other *GameStats) {
 	}
 	gs.stats["BulletsExpired"] += other.stats["BulletsExpired"]
 	gs.stats["CreepBulletsFired"] += other.stats["CreepBulletsFired"]
-	gs.stats["CreepWaves"] += other.stats["CreepWaves"]
 	gs.stats["CreepsKilled"] += other.stats["CreepsKilled"]
 	gs.stats["CreepsSpawned"] += other.stats["CreepsSpawned"]
+	gs.stats["CreepWaves"] += other.stats["CreepWaves"]
+	gs.stats["Games"]++
 	gs.stats["MoneySpent"] += other.stats["MoneySpent"]
 	gs.stats["PlayerDeaths"] += other.stats["PlayerDeaths"]
 	gs.stats["TowerBulletsFired"] += other.stats["TowerBulletsFired"]
