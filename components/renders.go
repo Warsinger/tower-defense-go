@@ -212,5 +212,6 @@ func DrawTextLines(screen *ebiten.Image, face text.Face, str string, width, yPos
 		text.Draw(screen, line, face, op)
 		yPos += textHeight
 	}
+
 	return yPos
 }

@@ -85,15 +85,6 @@ func (g *GameData) adjustWindowPosition() {
 
 func (g *GameData) switchToTitle(gameStats *comp.GameStats, gameOptions *config.ConfigData) error {
 	if gameStats != g.gameStats {
-		if gameStats.HighScore > g.gameStats.HighScore {
-			g.gameStats.HighScore = gameStats.HighScore
-		}
-		if gameStats.HighCreepLevel > g.gameStats.HighCreepLevel {
-			g.gameStats.HighCreepLevel = gameStats.HighCreepLevel
-		}
-		if gameStats.HighTowerLevel > g.gameStats.HighTowerLevel {
-			g.gameStats.HighTowerLevel = gameStats.HighTowerLevel
-		}
 		g.gameStats.Update(gameStats)
 		g.gameStats.SaveStats()
 	}

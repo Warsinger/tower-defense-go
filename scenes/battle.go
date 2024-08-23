@@ -72,7 +72,7 @@ func NewBattleScene(world donburi.World, width, height, speed int, gameStats *co
 		multiplayer:        multiplayer,
 		config:             gameOptions,
 		battleState:        bss,
-		gameStats:          comp.NewGameStats(gameStats.HighScore, gameStats.HighCreepLevel, gameStats.HighTowerLevel),
+		gameStats:          comp.NewGameStats(gameStats),
 		gameOptions:        gameOptions,
 		endGameCallback:    endGameCallback,
 		superCreepCooldown: util.NewCooldownTimer(maxCreepTimer),
@@ -154,6 +154,9 @@ func (b *BattleScene) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
 		b.config.Sound = !b.config.Sound
 	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyT) {
+		b.config.ShowStats = !b.config.ShowStats
+	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyP) || inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		b.battleState.Paused = !b.battleState.Paused
@@ -226,9 +229,7 @@ func (b *BattleScene) Update() error {
 		b.tickCounter++
 	}
 
-	b.gameStats.HighScore = max(player.GetScore(), b.gameStats.HighScore)
-	b.gameStats.HighCreepLevel = max(player.GetCreepLevel(), b.gameStats.HighCreepLevel)
-	b.gameStats.HighTowerLevel = max(player.GetMaxTowerLevel(), b.gameStats.HighTowerLevel)
+	b.gameStats.UpdateHighs(player.GetScore(), player.GetCreepLevel(), player.GetMaxTowerLevel())
 
 	return nil
 }
@@ -313,7 +314,7 @@ func (b *BattleScene) UpdateEntities() error {
 func (b *BattleScene) SpawnCreeps(creepLevel int) (int, error) {
 	b.gameStats.UpdateCreepWaves()
 	// every 10 waves, creep level increases by 1 without giving extra tower levels to the player
-	extraCreepLevel := int(math.Floor(float64(b.gameStats.CreepWaves) / 10))
+	extraCreepLevel := int(math.Floor(float64(b.gameStats.GetStat("CreepWaves")) / 10))
 
 	levelBump := float32(creepLevel+extraCreepLevel) / 20
 
@@ -359,6 +360,7 @@ func (b *BattleScene) End() {
 		assets.PlaySound("killed")
 	}
 	b.battleState.GameOver = true
+	b.gameStats.FinalizeTime()
 }
 
 func (b *BattleScene) Draw(screen *ebiten.Image) {
@@ -371,12 +373,12 @@ func (b *BattleScene) DrawText(screen *ebiten.Image) {
 	width, height := float64(board.Width), float64(board.Height)
 
 	// draw high score
-	str := fmt.Sprintf("HIGH %05d", b.gameStats.HighScore)
+	str := fmt.Sprintf("HIGH %05d", b.gameStats.GetStat("HighScore"))
 	nextY := comp.DrawTextLines(screen, assets.ScoreFace, str, width, comp.TextBorder, text.AlignEnd, text.AlignStart)
-	str = fmt.Sprintf("High Creep Level %d\nHigh Tower Level %d\n", b.gameStats.HighCreepLevel, b.gameStats.HighTowerLevel)
+	str = fmt.Sprintf("High Creep Level %d\nHigh Tower Level %d\n", b.gameStats.GetStat("HighCreepLevel"), b.gameStats.GetStat("HighTowerLevel"))
 	_ = comp.DrawTextLines(screen, assets.InfoFace, str, width, nextY, text.AlignEnd, text.AlignStart)
 
-	b.battleState.Draw(screen, width, height)
+	b.battleState.Draw(screen, width, height, b.config, b.gameStats)
 
 	if b.multiplayer && b.superCreepCooldown.InCooldown {
 		str := fmt.Sprintf("Super Creep CD %d", b.superCreepCooldown.GetDisplay())

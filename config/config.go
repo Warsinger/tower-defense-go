@@ -3,12 +3,14 @@ package config
 import "github.com/yohamta/donburi"
 
 type ConfigData struct {
-	Debug          bool
-	GridLines      bool
-	ServerPort     string
+	Computer  bool
+	Debug     bool
+	GridLines bool
+	ShowStats bool
+	Sound     bool
+
 	ClientHostPort string
-	Computer       bool
-	Sound          bool
+	ServerPort     string
 }
 
 var Config = donburi.NewComponentType[ConfigData]()

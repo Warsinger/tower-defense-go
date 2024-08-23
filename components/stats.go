@@ -3,38 +3,65 @@ package components
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
 )
 
 type GameStats struct {
-	HighScore      int
-	HighCreepLevel int
-	HighTowerLevel int
+	stats map[string]int
+	/*
+		HighScore      int
+		HighCreepLevel int
+		HighTowerLevel int
 
-	BulletsExpired    int
-	CreepBulletsFired int
-	CreepsKilled      int
-	CreepsSpawned     int
-	CreepWaves        int
-	MoneySpent        int
-	PlayerDeaths      int
-	TowerBulletsFired int
-	TowersAmmoOut     int
-	TowersBuilt       int
-	TowersHealed      int
-	TowersKilled      int
-	TowersUpgraded    int
-	StartTime         time.Time
-	GameTime          time.Duration
+		BulletsExpired    int
+		CreepBulletsFired int
+		CreepsKilled      int
+		CreepsSpawned     int
+		CreepWaves        int
+		MoneySpent        int
+		PlayerDeaths      int
+		TowerBulletsFired int
+		TowersAmmoOut     int
+		TowersBuilt       int
+		TowersHealed      int
+		TowersKilled      int
+		TowersUpgraded    int
+	*/
+	StartTime time.Time
+	GameTime  time.Duration
 }
 
 const statsFile = "score/stats.txt"
 
-var gameStats *GameStats
+var (
+	gameStats  *GameStats
+	validStats = []string{
+		"BulletsExpired",
+		"CreepBulletsFired",
+		"CreepsKilled",
+		"CreepsSpawned",
+		"CreepWaves",
+		"HighCreepLevel",
+		"HighScore",
+		"HighTowerLevel",
+		"MoneySpent",
+		"PlayerDeaths",
+		"TowerBulletsFired",
+		"TowersAmmoOut",
+		"TowersBuilt",
+		"TowersHealed",
+		"TowersKilled",
+		"TowersUpgraded",
+	}
+	displayNames = makeDisplayNames(validStats)
+)
 
 func SetGameStats(gs *GameStats) {
 	gameStats = gs
@@ -42,98 +69,117 @@ func SetGameStats(gs *GameStats) {
 func GetGameStats() *GameStats {
 	return gameStats
 }
-func NewGameStats(highScore, highCreepLevel, highTowerLevel int) *GameStats {
-	return &GameStats{HighScore: highScore, HighCreepLevel: highCreepLevel, HighTowerLevel: highTowerLevel}
+func NewGameStats(old *GameStats) *GameStats {
+	gs := &GameStats{stats: make(map[string]int, 16), StartTime: time.Now()}
+	if old != nil {
+		gs.stats["HighScore"] = old.stats["HighScore"]
+		gs.stats["HighCreepLevel"] = old.stats["HighCreepLevel"]
+		gs.stats["HighTowerLevel"] = old.stats["HighTowerLevel"]
+	}
+	return gs
+}
+func (gs *GameStats) GetStat(name string) int {
+	return gs.stats[name]
 }
 
-func (gs *GameStats) Update(other *GameStats) {
-	if other.HighScore > gs.HighScore {
-		gs.HighScore = other.HighScore
-	}
-	if other.HighCreepLevel > gs.HighCreepLevel {
-		gs.HighCreepLevel = other.HighCreepLevel
-	}
-	if other.HighTowerLevel > gs.HighTowerLevel {
-		gs.HighTowerLevel = other.HighTowerLevel
-	}
-	gs.BulletsExpired = other.BulletsExpired
-	gs.CreepBulletsFired = other.CreepBulletsFired
-	gs.CreepWaves = other.CreepWaves
-	gs.CreepsKilled = other.CreepsKilled
-	gs.CreepsSpawned = other.CreepsSpawned
-	gs.GameTime += other.CalcDuration()
-	gs.MoneySpent = other.MoneySpent
-	gs.PlayerDeaths = other.PlayerDeaths
-	gs.TowerBulletsFired = other.TowerBulletsFired
-	gs.TowersAmmoOut = other.TowersAmmoOut
-	gs.TowersBuilt = other.TowersBuilt
-	gs.TowersHealed = other.TowersHealed
-	gs.TowersKilled = other.TowersKilled
-	gs.TowersUpgraded = other.TowersUpgraded
+func (gs *GameStats) UpdateHighs(score, creepLevel, maxTowerLevel int) {
+	gs.stats["HighScore"] = max(score, gs.stats["HighScore"])
+	gs.stats["HighCreepLevel"] = max(creepLevel, gs.stats["HighCreepLevel"])
+	gs.stats["HighTowerLevel"] = max(maxTowerLevel, gs.stats["HighTowerLevel"])
+
 }
+func (gs *GameStats) Update(other *GameStats) {
+	if other.stats["HighScore"] > gs.stats["HighScore"] {
+		gs.stats["HighScore"] = other.stats["HighScore"]
+	}
+	if other.stats["HighCreepLevel"] > gs.stats["HighCreepLevel"] {
+		gs.stats["HighCreepLevel"] = other.stats["HighCreepLevel"]
+	}
+	if other.stats["HighTowerLevel"] > gs.stats["HighTowerLevel"] {
+		gs.stats["HighTowerLevel"] = other.stats["HighTowerLevel"]
+	}
+	gs.stats["BulletsExpired"] += other.stats["BulletsExpired"]
+	gs.stats["CreepBulletsFired"] += other.stats["CreepBulletsFired"]
+	gs.stats["CreepWaves"] += other.stats["CreepWaves"]
+	gs.stats["CreepsKilled"] += other.stats["CreepsKilled"]
+	gs.stats["CreepsSpawned"] += other.stats["CreepsSpawned"]
+	gs.stats["MoneySpent"] += other.stats["MoneySpent"]
+	gs.stats["PlayerDeaths"] += other.stats["PlayerDeaths"]
+	gs.stats["TowerBulletsFired"] += other.stats["TowerBulletsFired"]
+	gs.stats["TowersAmmoOut"] += other.stats["TowersAmmoOut"]
+	gs.stats["TowersBuilt"] += other.stats["TowersBuilt"]
+	gs.stats["TowersHealed"] += other.stats["TowersHealed"]
+	gs.stats["TowersKilled"] += other.stats["TowersKilled"]
+	gs.stats["TowersUpgraded"] += other.stats["TowersUpgraded"]
+	gs.GameTime += other.GameTime
+}
+
 func (gs *GameStats) UpdateCreepsSpawned(count int) {
-	gs.CreepsSpawned += count
+	gs.stats["CreepsSpawned"] += count
 }
 func (gs *GameStats) UpdateCreepsKilled() {
-	gs.CreepsKilled++
+	gs.stats["CreepsKilled"]++
 }
 func (gs *GameStats) UpdateCreepWaves() {
-	gs.CreepWaves++
+	gs.stats["CreepWaves"]++
 }
 func (gs *GameStats) UpdateTowersBuilt() {
-	gs.TowersBuilt++
+	gs.stats["TowersBuilt"]++
 }
 func (gs *GameStats) UpdateTowersHealed() {
-	gs.TowersHealed++
+	gs.stats["TowersHealed"]++
 }
 func (gs *GameStats) UpdateTowersUpgraded() {
-	gs.TowersUpgraded++
+	gs.stats["TowersUpgraded"]++
 }
 func (gs *GameStats) UpdateTowersKilled() {
-	gs.TowersKilled++
+	gs.stats["TowersKilled"]++
 }
 func (gs *GameStats) UpdateTowersAmmoOut() {
-	gs.TowersAmmoOut++
+	gs.stats["TowersAmmoOut"]++
 }
 func (gs *GameStats) UpdateTowerBulletsFired() {
-	gs.TowerBulletsFired++
+	gs.stats["TowerBulletsFired"]++
 }
 func (gs *GameStats) UpdateCreepBulletsFired() {
-	gs.CreepBulletsFired++
+	gs.stats["CreepBulletsFired"]++
 }
 func (gs *GameStats) UpdateBulletsExpired() {
-	gs.BulletsExpired++
+	gs.stats["BulletsExpired"]++
 }
 func (gs *GameStats) UpdatePlayerDeaths() {
-	gs.PlayerDeaths++
+	gs.stats["PlayerDeaths"]++
 }
-func (gs *GameStats) UpdateMoneyspent(money int) {
-	gs.CreepsSpawned += money
+func (gs *GameStats) UpdateMoneySpent(money int) {
+	gs.stats["MoneySpent"] += money
 }
 
-func (gs *GameStats) CalcDuration() time.Duration {
+func (gs *GameStats) RunningTime() time.Duration {
 	return time.Since(gs.StartTime)
+}
+func (gs *GameStats) FinalizeTime() {
+	gs.GameTime = time.Since(gs.StartTime)
 }
 
 func (gs *GameStats) Reset() {
-	gs.CreepsSpawned = 0
-	gs.CreepsKilled = 0
-	gs.CreepWaves = 0
-	gs.TowersBuilt = 0
-	gs.TowersKilled = 0
-	gs.TowerBulletsFired = 0
-	gs.CreepBulletsFired = 0
-	gs.BulletsExpired = 0
-	gs.PlayerDeaths = 0
-	gs.MoneySpent = 0
-	gs.TowersHealed = 0
-	gs.TowersUpgraded = 0
+	gs.stats["BulletsExpired"] = 0
+	gs.stats["CreepBulletsFired"] = 0
+	gs.stats["CreepsKilled"] = 0
+	gs.stats["CreepsSpawned"] = 0
+	gs.stats["CreepWaves"] = 0
+	gs.stats["MoneySpent"] = 0
+	gs.stats["PlayerDeaths"] = 0
+	gs.stats["TowerBulletsFired"] = 0
+	gs.stats["TowersBuilt"] = 0
+	gs.stats["TowersHealed"] = 0
+	gs.stats["TowersKilled"] = 0
+	gs.stats["TowersUpgraded"] = 0
 	gs.StartTime = time.Now()
 	gs.GameTime = 0
 }
 
 func LoadStats() *GameStats {
-	gameStats := &GameStats{}
+	gameStats := NewGameStats(nil)
 	bytes, err := os.ReadFile(statsFile)
 	if err == nil {
 		strings.Split(string(bytes), "\n")
@@ -142,40 +188,16 @@ func LoadStats() *GameStats {
 			if len(values) != 2 {
 				continue
 			}
-			switch values[0] {
-			case "score":
-				gameStats.HighScore = parseScore(values[0], values[1])
-			case "creepLevel":
-				gameStats.HighCreepLevel = parseScore(values[0], values[1])
-			case "towerLevel":
-				gameStats.HighTowerLevel = parseScore(values[0], values[1])
-			case "creepsSpawned":
-				gameStats.CreepsSpawned = parseScore(values[0], values[1])
-			case "creepsKilled":
-				gameStats.CreepsKilled = parseScore(values[0], values[1])
-			case "creepWaves":
-				gameStats.CreepWaves = parseScore(values[0], values[1])
-			case "towersBuilt":
-				gameStats.TowersBuilt = parseScore(values[0], values[1])
-			case "towersKilled":
-				gameStats.TowersKilled = parseScore(values[0], values[1])
-			case "towerBulletsFired":
-				gameStats.TowerBulletsFired = parseScore(values[0], values[1])
-			case "creepBulletsFired":
-				gameStats.CreepBulletsFired = parseScore(values[0], values[1])
-			case "bulletsExpired":
-				gameStats.BulletsExpired = parseScore(values[0], values[1])
-			case "playerDeaths":
-				gameStats.PlayerDeaths = parseScore(values[0], values[1])
-			case "towersHealed":
-				gameStats.TowersHealed = parseScore(values[0], values[1])
-			case "towersUpgraded":
-				gameStats.TowersUpgraded = parseScore(values[0], values[1])
-			case "gameTime":
-				gameStats.GameTime, err = time.ParseDuration(values[1])
+			name, value := values[0], values[1]
+			if name == "GameTime" {
+				gameStats.GameTime, err = time.ParseDuration(value)
 				if err != nil {
-					fmt.Printf("WARN %s formatting err %s %v\n", values[0], values[1], err)
+					fmt.Printf("WARN %s formatting err %s %v\n", name, value, err)
 				}
+			} else if slices.Contains(validStats, name) {
+				gameStats.stats[name] = parseScore(name, value)
+			} else {
+				fmt.Printf("Invalid stat loaded %s\n", line)
 			}
 		}
 	}
@@ -198,10 +220,35 @@ func (gs *GameStats) SaveStats() error {
 		return err
 	}
 
-	str := fmt.Sprintf("score=%d\ncreepLevel=%d\ntowerLevel=%d\ncreepsSpawned=%d\ncreepsKilled=%d\ncreepWaves=%d\ntowersBuilt=%d\ntowersKilled=%d\ntowersAmmoOut=%d\ntowerBulletsFired=%d\ncreepbulletsFired=%d\nbulletsExpired=%d\nplayerDeaths%d\ntowersHealed=%d\ntowersUpgraded=%d\ngameTime=%v\n",
-		gs.HighScore, gs.HighCreepLevel, gs.HighTowerLevel,
-		gs.CreepsSpawned, gs.CreepsKilled, gs.CreepWaves, gs.TowersBuilt, gs.TowersKilled, gs.TowersAmmoOut, gs.TowerBulletsFired, gs.CreepBulletsFired, gs.BulletsExpired, gs.PlayerDeaths, gs.TowersHealed, gs.TowersUpgraded, gs.CalcDuration())
-	return os.WriteFile(statsFile, []byte(str), 0644)
+	return os.WriteFile(statsFile, []byte(gs.StatsLines("=", false, false)), 0644)
+}
+
+func (gs *GameStats) StatsLines(delim string, runningTime, forDisplay bool, excludePrefixes ...string) string {
+	var b strings.Builder
+
+	for _, name := range slices.Sorted(maps.Keys(gs.stats)) {
+		var exclude bool = false
+		for _, prefix := range excludePrefixes {
+			if strings.HasPrefix(name, prefix) {
+				exclude = true
+			}
+		}
+		if !exclude {
+			displayName := name
+			if forDisplay {
+				displayName = displayNames[name]
+			}
+			fmt.Fprintf(&b, "%s%s%d\n", displayName, delim, gs.stats[name])
+		}
+	}
+	var duration time.Duration
+	if runningTime {
+		duration = gs.RunningTime()
+	} else {
+		duration = gs.GameTime
+	}
+	fmt.Fprintf(&b, "GameTime%s%v\n", delim, duration.Round(time.Second))
+	return b.String()
 }
 
 func ensureDir(dirName string) error {
@@ -221,4 +268,21 @@ func ensureDir(dirName string) error {
 		return nil
 	}
 	return err
+}
+
+func makeDisplayNames(validStats []string) map[string]string {
+	displayNames := make(map[string]string, len(validStats))
+	for _, name := range validStats {
+		displayNames[name] = makeDisplayName(name)
+	}
+	return displayNames
+}
+
+func makeDisplayName(name string) string {
+	// Regular expression to match word boundaries in camel case strings
+	re := regexp.MustCompile(`([a-z0-9])([A-Z])`)
+
+	// Replace the matched boundaries with a space and the matched characters
+	return re.ReplaceAllString(name, "${1} ${2}")
+
 }

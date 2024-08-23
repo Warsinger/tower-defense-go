@@ -62,9 +62,9 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 	width := float64(t.width)
 	halfWidth := width / 2
 
-	str := fmt.Sprintf("HIGH %05d", t.gameStats.HighScore)
+	str := fmt.Sprintf("HIGH %05d", t.gameStats.GetStat("HighScore"))
 	nextY := comp.DrawTextLines(screen, assets.ScoreFace, str, width, comp.TextBorder, text.AlignEnd, text.AlignStart)
-	str = fmt.Sprintf("High Creep Level %d\nHigh Tower Level %d\n", t.gameStats.HighCreepLevel, t.gameStats.HighTowerLevel)
+	str = fmt.Sprintf("High Creep Level %d\nHigh Tower Level %d\n", t.gameStats.GetStat("HighCreepLevel"), t.gameStats.GetStat("HighTowerLevel"))
 	_ = comp.DrawTextLines(screen, assets.InfoFace, str, width, nextY, text.AlignEnd, text.AlignStart)
 
 	str = "TOWER DEFENSE"
