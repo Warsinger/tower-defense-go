@@ -71,7 +71,7 @@ func (t *TowerData) Heal(entry *donburi.Entry, debug bool) bool {
 			fmt.Printf("tower healed from %v to %v\n", health.Health, health.MaxHealth)
 		}
 		health.Health = health.MaxHealth
-		GetGameStats().UpdateTowersHealed()
+		GetGameStats().IncrementStat("TowersHealed")
 		return true
 	}
 	return false
@@ -103,7 +103,7 @@ func (t *TowerData) Upgrade(entry *donburi.Entry, debug bool) bool {
 	attack.Power += level.Level / 3
 	attack.Range += 3
 	attack.cooldown.Cooldown = max(3, attack.cooldown.Cooldown-3)
-	GetGameStats().UpdateTowersUpgraded()
+	GetGameStats().IncrementStat("TowersUpgraded")
 
 	return true
 }
@@ -125,7 +125,7 @@ func AfterTowerAttack(towerEntry *donburi.Entry) {
 	towerHealth.Health--
 	if towerHealth.Health <= 0 {
 		towerEntry.Remove()
-		GetGameStats().UpdateTowersAmmoOut()
+		GetGameStats().IncrementStat("TowersAmmoOut")
 	}
 }
 

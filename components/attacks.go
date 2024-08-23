@@ -159,9 +159,9 @@ func (a *AttackData) LaunchBullet(entry *donburi.Entry, enemy *donburi.Entry) {
 
 	creep := entry.HasComponent(Creep)
 	if creep {
-		GetGameStats().UpdateCreepBulletsFired()
+		GetGameStats().IncrementStat("CreepBulletsFired")
 	} else {
-		GetGameStats().UpdateTowerBulletsFired()
+		GetGameStats().IncrementStat("TowerBulletsFired")
 	}
 	NewBullet(entry.World, start, end, a.Power, bulletSpeed, creep)
 	if config.GetConfig(entry.World).Sound {
@@ -200,9 +200,9 @@ func (a *AttackData) AttackEnemyIntersect(entry *donburi.Entry, afterKill func(*
 				if !enemy.HasComponent(Player) {
 					enemy.Remove()
 					if enemy.HasComponent(Creep) {
-						GetGameStats().UpdateCreepsKilled()
+						GetGameStats().IncrementStat("CreepsKilled")
 					} else {
-						GetGameStats().UpdateTowersKilled()
+						GetGameStats().IncrementStat("TowersKilled")
 					}
 				}
 			}

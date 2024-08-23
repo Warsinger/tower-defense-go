@@ -132,6 +132,7 @@ func (b *BattleScene) Update() error {
 	player := comp.Player.Get(pe)
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+		b.gameStats.FinalizeTime()
 		b.endGameCallback(b.gameStats, b.gameOptions)
 	}
 
@@ -284,7 +285,7 @@ func (b *BattleScene) UpdateEntities() error {
 	playerHealth := comp.Health.Get(pe)
 	if playerHealth.Health <= 0 {
 		player.Kill()
-		b.gameStats.UpdatePlayerDeaths()
+		b.gameStats.IncrementStat("PlayerDeaths")
 		b.End()
 	}
 
@@ -300,7 +301,7 @@ func (b *BattleScene) UpdateEntities() error {
 			if err != nil {
 				return err
 			}
-			b.gameStats.UpdateCreepsSpawned(count)
+			b.gameStats.UpdateStat("CreepsSpawned", count)
 			player.AddMoney(5 * count)
 			b.creepTimer = 0
 		} else {
@@ -312,7 +313,7 @@ func (b *BattleScene) UpdateEntities() error {
 }
 
 func (b *BattleScene) SpawnCreeps(creepLevel int) (int, error) {
-	b.gameStats.UpdateCreepWaves()
+	b.gameStats.IncrementStat("CreepWaves")
 	// every 10 waves, creep level increases by 1 without giving extra tower levels to the player
 	extraCreepLevel := int(math.Floor(float64(b.gameStats.GetStat("CreepWaves")) / 10))
 

@@ -73,7 +73,7 @@ func (bd *BulletData) Update(entry *donburi.Entry) error {
 	// TODO add special bullets that do something when they expire (like a slow-down effect)
 	if util.DistancePoints(bd.start, image.Pt(pos.X, pos.Y)) > dist*3/2 {
 		entry.Remove()
-		GetGameStats().UpdateBulletsExpired()
+		GetGameStats().IncrementStat("BulletsExpired")
 		return nil
 	}
 	ratio := dist / float64(bd.speed)
@@ -87,7 +87,7 @@ func (bd *BulletData) Update(entry *donburi.Entry) error {
 
 	if newX < 0 || newX > board.Width || newY < 0 || newY > board.Height {
 		entry.Remove()
-		GetGameStats().UpdateBulletsExpired()
+		GetGameStats().IncrementStat("BulletsExpired")
 	} else {
 		// if enemy in range, attack it
 		a := Attack.Get(entry)

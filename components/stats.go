@@ -90,70 +90,30 @@ func (gs *GameStats) UpdateHighs(score, creepLevel, maxTowerLevel int) {
 
 }
 func (gs *GameStats) Update(other *GameStats) {
-	if other.stats["HighScore"] > gs.stats["HighScore"] {
-		gs.stats["HighScore"] = other.stats["HighScore"]
-	}
-	if other.stats["HighCreepLevel"] > gs.stats["HighCreepLevel"] {
-		gs.stats["HighCreepLevel"] = other.stats["HighCreepLevel"]
-	}
-	if other.stats["HighTowerLevel"] > gs.stats["HighTowerLevel"] {
-		gs.stats["HighTowerLevel"] = other.stats["HighTowerLevel"]
-	}
-	gs.stats["BulletsExpired"] += other.stats["BulletsExpired"]
-	gs.stats["CreepBulletsFired"] += other.stats["CreepBulletsFired"]
-	gs.stats["CreepsKilled"] += other.stats["CreepsKilled"]
-	gs.stats["CreepsSpawned"] += other.stats["CreepsSpawned"]
-	gs.stats["CreepWaves"] += other.stats["CreepWaves"]
+	gs.UpdateHighs(other.stats["HighScore"], other.stats["HighCreepLevel"], other.stats["HighTowerLevel"])
 	gs.stats["Games"]++
-	gs.stats["MoneySpent"] += other.stats["MoneySpent"]
-	gs.stats["PlayerDeaths"] += other.stats["PlayerDeaths"]
-	gs.stats["TowerBulletsFired"] += other.stats["TowerBulletsFired"]
-	gs.stats["TowersAmmoOut"] += other.stats["TowersAmmoOut"]
-	gs.stats["TowersBuilt"] += other.stats["TowersBuilt"]
-	gs.stats["TowersHealed"] += other.stats["TowersHealed"]
-	gs.stats["TowersKilled"] += other.stats["TowersKilled"]
-	gs.stats["TowersUpgraded"] += other.stats["TowersUpgraded"]
+	gs.UpdateStats(other, "Game", "High")
 	gs.GameTime += other.GameTime
 }
+func (gs *GameStats) UpdateStats(other *GameStats, excludePrefixes ...string) {
+	for _, name := range slices.Sorted(maps.Keys(gs.stats)) {
+		var exclude bool = false
+		for _, prefix := range excludePrefixes {
+			if strings.HasPrefix(name, prefix) {
+				exclude = true
+			}
+		}
+		if !exclude {
+			gs.stats[name] += other.stats[name]
+		}
+	}
+}
 
-func (gs *GameStats) UpdateCreepsSpawned(count int) {
-	gs.stats["CreepsSpawned"] += count
+func (gs *GameStats) UpdateStat(name string, count int) {
+	gs.stats[name] += count
 }
-func (gs *GameStats) UpdateCreepsKilled() {
-	gs.stats["CreepsKilled"]++
-}
-func (gs *GameStats) UpdateCreepWaves() {
-	gs.stats["CreepWaves"]++
-}
-func (gs *GameStats) UpdateTowersBuilt() {
-	gs.stats["TowersBuilt"]++
-}
-func (gs *GameStats) UpdateTowersHealed() {
-	gs.stats["TowersHealed"]++
-}
-func (gs *GameStats) UpdateTowersUpgraded() {
-	gs.stats["TowersUpgraded"]++
-}
-func (gs *GameStats) UpdateTowersKilled() {
-	gs.stats["TowersKilled"]++
-}
-func (gs *GameStats) UpdateTowersAmmoOut() {
-	gs.stats["TowersAmmoOut"]++
-}
-func (gs *GameStats) UpdateTowerBulletsFired() {
-	gs.stats["TowerBulletsFired"]++
-}
-func (gs *GameStats) UpdateCreepBulletsFired() {
-	gs.stats["CreepBulletsFired"]++
-}
-func (gs *GameStats) UpdateBulletsExpired() {
-	gs.stats["BulletsExpired"]++
-}
-func (gs *GameStats) UpdatePlayerDeaths() {
-	gs.stats["PlayerDeaths"]++
-}
-func (gs *GameStats) UpdateMoneySpent(money int) {
-	gs.stats["MoneySpent"] += money
+func (gs *GameStats) IncrementStat(name string) {
+	gs.stats[name]++
 }
 
 func (gs *GameStats) RunningTime() time.Duration {
@@ -164,18 +124,7 @@ func (gs *GameStats) FinalizeTime() {
 }
 
 func (gs *GameStats) Reset() {
-	gs.stats["BulletsExpired"] = 0
-	gs.stats["CreepBulletsFired"] = 0
-	gs.stats["CreepsKilled"] = 0
-	gs.stats["CreepsSpawned"] = 0
-	gs.stats["CreepWaves"] = 0
-	gs.stats["MoneySpent"] = 0
-	gs.stats["PlayerDeaths"] = 0
-	gs.stats["TowerBulletsFired"] = 0
-	gs.stats["TowersBuilt"] = 0
-	gs.stats["TowersHealed"] = 0
-	gs.stats["TowersKilled"] = 0
-	gs.stats["TowersUpgraded"] = 0
+	gs.initStats("High", "Game")
 	gs.StartTime = time.Now()
 	gs.GameTime = 0
 }
@@ -223,6 +172,20 @@ func (gs *GameStats) SaveStats() error {
 	}
 
 	return os.WriteFile(statsFile, []byte(gs.StatsLines("=", false, false)), 0644)
+}
+
+func (gs *GameStats) initStats(excludePrefixes ...string) {
+	for _, name := range slices.Sorted(maps.Keys(gs.stats)) {
+		var exclude bool = false
+		for _, prefix := range excludePrefixes {
+			if strings.HasPrefix(name, prefix) {
+				exclude = true
+			}
+		}
+		if !exclude {
+			gs.stats[name] = 0
+		}
+	}
 }
 
 func (gs *GameStats) StatsLines(delim string, runningTime, forDisplay bool, excludePrefixes ...string) string {
