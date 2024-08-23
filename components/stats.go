@@ -92,21 +92,11 @@ func (gs *GameStats) UpdateHighs(score, creepLevel, maxTowerLevel int) {
 func (gs *GameStats) Update(other *GameStats) {
 	gs.UpdateHighs(other.stats["HighScore"], other.stats["HighCreepLevel"], other.stats["HighTowerLevel"])
 	gs.stats["Games"]++
-	gs.UpdateStats(other, "Game", "High")
+
+	gs.iterExcludePrefix(func(name string) {
+		gs.stats[name] += other.stats[name]
+	}, "Game", "High")
 	gs.GameTime += other.GameTime
-}
-func (gs *GameStats) UpdateStats(other *GameStats, excludePrefixes ...string) {
-	for _, name := range slices.Sorted(maps.Keys(gs.stats)) {
-		var exclude bool = false
-		for _, prefix := range excludePrefixes {
-			if strings.HasPrefix(name, prefix) {
-				exclude = true
-			}
-		}
-		if !exclude {
-			gs.stats[name] += other.stats[name]
-		}
-	}
 }
 
 func (gs *GameStats) UpdateStat(name string, count int) {
@@ -124,7 +114,9 @@ func (gs *GameStats) FinalizeTime() {
 }
 
 func (gs *GameStats) Reset() {
-	gs.initStats("High", "Game")
+	gs.iterExcludePrefix(func(name string) {
+		gs.stats[name] = 0
+	}, "High", "Game")
 	gs.StartTime = time.Now()
 	gs.GameTime = 0
 }
@@ -174,16 +166,20 @@ func (gs *GameStats) SaveStats() error {
 	return os.WriteFile(statsFile, []byte(gs.StatsLines("=", false, false)), 0644)
 }
 
-func (gs *GameStats) initStats(excludePrefixes ...string) {
-	for _, name := range slices.Sorted(maps.Keys(gs.stats)) {
-		var exclude bool = false
+func (gs *GameStats) iterExcludePrefix(iter func(string), excludePrefixes ...string) {
+	gs.iterExclude(iter, func(name string) bool {
 		for _, prefix := range excludePrefixes {
 			if strings.HasPrefix(name, prefix) {
-				exclude = true
+				return true
 			}
 		}
-		if !exclude {
-			gs.stats[name] = 0
+		return false
+	})
+}
+func (gs *GameStats) iterExclude(iter func(string), exclude func(string) bool) {
+	for _, name := range slices.Sorted(maps.Keys(gs.stats)) {
+		if !exclude(name) {
+			iter(name)
 		}
 	}
 }
@@ -191,21 +187,14 @@ func (gs *GameStats) initStats(excludePrefixes ...string) {
 func (gs *GameStats) StatsLines(delim string, runningTime, forDisplay bool, excludePrefixes ...string) string {
 	var b strings.Builder
 
-	for _, name := range slices.Sorted(maps.Keys(gs.stats)) {
-		var exclude bool = false
-		for _, prefix := range excludePrefixes {
-			if strings.HasPrefix(name, prefix) {
-				exclude = true
-			}
+	gs.iterExcludePrefix(func(name string) {
+		displayName := name
+		if forDisplay {
+			displayName = displayNames[name]
 		}
-		if !exclude {
-			displayName := name
-			if forDisplay {
-				displayName = displayNames[name]
-			}
-			fmt.Fprintf(&b, "%s%s%d\n", displayName, delim, gs.stats[name])
-		}
-	}
+		fmt.Fprintf(&b, "%s%s%d\n", displayName, delim, gs.stats[name])
+	}, excludePrefixes...)
+
 	var duration time.Duration
 	if runningTime {
 		duration = gs.RunningTime()
