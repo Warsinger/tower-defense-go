@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/ebitenui/ebitenui v0.5.8
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
-	github.com/hajimehoshi/ebiten/v2 v2.7.8
+	github.com/hajimehoshi/ebiten/v2 v2.7.9
 	github.com/leap-fish/necs v0.0.4
 	github.com/yohamta/donburi v1.4.4
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
