@@ -1,57 +1,71 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
 name: Go build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-
   build:
+    name: Build (${{ matrix.artifact }})
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            artifact: linux-amd64
+            binary: build/tower-defense-linux-amd64
+          - os: windows-latest
+            artifact: windows-amd64
+            binary: build/tower-defense-windows-amd64.exe
+          - os: macos-latest
+            artifact: darwin-arm64
+            binary: build/tower-defense-darwin-arm64
+          - os: macos-15-intel
+            artifact: darwin-amd64
+            binary: build/tower-defense-darwin-amd64
     runs-on: ${{ matrix.os }}
+
     steps:
-    - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v7
 
-    - name: Install dependencies
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install libasound2-dev libgl1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libgl1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev xvfb
 
-    - name: Xvfb
-      if: runner.os == 'Linux'
-      run: |
-        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - name: Start virtual display
+        if: runner.os == 'Linux'
+        run: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version-file: './go.mod'
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
 
-    - name: Build (Linux, Windows)
-      if: runner.os == 'Linux'
-      run: |
-        go build -v -o build/tower-defense-lin
+      - name: Test
+        env:
+          DISPLAY: :99
+        run: go test ./...
 
-    - name: Build (Linux, Windows)
-      if: runner.os == 'Windows'
-      run: |
-        env GOOS=windows GOARCH=amd64 go build -v -o build/tower-defense.exe
-       
-    - name: go build (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        env CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -v -o build/tower-defense-mac-arm
-        env CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -v -o build/tower-defense-mac-int
+      - name: Create build directory
+        run: mkdir -p build
+        shell: bash
 
-    - name: Upload Go test results
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ runner.os }}
-        path: build/*
+      - name: Build binary
+        run: go build -v -o ${{ matrix.binary }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: tower-defense-${{ matrix.artifact }}
+          path: ${{ matrix.binary }}
+          if-no-files-found: error
