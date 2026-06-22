@@ -71,7 +71,10 @@ func GetGameStats() *GameStats {
 	return gameStats
 }
 func NewGameStats(old *GameStats) *GameStats {
-	gs := &GameStats{stats: make(map[string]int, 16), StartTime: time.Now()}
+	gs := &GameStats{stats: make(map[string]int, len(validStats)), StartTime: time.Now()}
+	for _, name := range validStats {
+		gs.stats[name] = 0
+	}
 	if old != nil {
 		gs.stats["HighScore"] = old.stats["HighScore"]
 		gs.stats["HighCreepLevel"] = old.stats["HighCreepLevel"]

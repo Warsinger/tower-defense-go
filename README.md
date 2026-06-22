@@ -6,6 +6,7 @@ Simple tower defense game.
 
 * [Project spec](docs/PROJECT_SPEC.md) describes the current game behavior, rules, controls, runtime, stats, and networking model.
 * [Coding standards](docs/CODING_STANDARDS.md) captures the current Go/ECS style so it can evolve intentionally.
+* [Testing guide](docs/TESTING.md) describes the current test strategy, coverage focus, and known test seams.
 
 ## Graphics assets
 
