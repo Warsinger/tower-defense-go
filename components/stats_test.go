@@ -136,3 +136,70 @@ func TestGameStatsLinesFormatsStorageAndDisplayNames(t *testing.T) {
 		t.Fatalf("display stats missing display name: %q", display)
 	}
 }
+func TestIterExcludeKeepsInputOrderAndSkipsExcludedValues(t *testing.T) {
+	values := []string{"TowersBuilt", "Games", "HighScore", "CreepsKilled"}
+	var got []string
+
+	iterExclude(values, func(name string) {
+		got = append(got, name)
+	}, func(name string) bool {
+		return name == "Games" || strings.HasPrefix(name, "High")
+	})
+
+	want := []string{"TowersBuilt", "CreepsKilled"}
+	if strings.Join(got, ",") != strings.Join(want, ",") {
+		t.Fatalf("iterExclude visited %v, want %v", got, want)
+	}
+}
+
+func TestIterExcludePrefixSkipsAnyMatchingPrefix(t *testing.T) {
+	values := []string{"BulletsExpired", "Games", "HighScore", "HighTowerLevel", "TowersBuilt"}
+	var got []string
+
+	iterExcludePrefix(values, func(name string) {
+		got = append(got, name)
+	}, "Game", "High")
+
+	want := []string{"BulletsExpired", "TowersBuilt"}
+	if strings.Join(got, ",") != strings.Join(want, ",") {
+		t.Fatalf("iterExcludePrefix visited %v, want %v", got, want)
+	}
+}
+
+func TestGameStatsIterExcludeVisitsSortedMapKeys(t *testing.T) {
+	stats := NewGameStats(nil)
+	stats.UpdateStat("TowersBuilt", 1)
+	stats.UpdateStat("CreepsKilled", 2)
+	stats.UpdateStat("Games", 3)
+	stats.UpdateHighs(10, 2, 4)
+
+	var got []string
+	stats.iterExclude(func(name string) {
+		got = append(got, name)
+	}, func(name string) bool {
+		return name == "Games" || strings.HasPrefix(name, "High")
+	})
+
+	want := []string{"CreepsKilled", "TowersBuilt"}
+	if strings.Join(got, ",") != strings.Join(want, ",") {
+		t.Fatalf("GameStats.iterExclude visited %v, want %v", got, want)
+	}
+}
+
+func TestGameStatsIterExcludePrefixUsesSortedMapKeys(t *testing.T) {
+	stats := NewGameStats(nil)
+	stats.UpdateStat("TowersBuilt", 1)
+	stats.UpdateStat("CreepsKilled", 2)
+	stats.UpdateStat("Games", 3)
+	stats.UpdateHighs(10, 2, 4)
+
+	var got []string
+	stats.iterExcludePrefix(func(name string) {
+		got = append(got, name)
+	}, "Game", "High")
+
+	want := []string{"CreepsKilled", "TowersBuilt"}
+	if strings.Join(got, ",") != strings.Join(want, ",") {
+		t.Fatalf("GameStats.iterExcludePrefix visited %v, want %v", got, want)
+	}
+}
