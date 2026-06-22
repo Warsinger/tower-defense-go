@@ -79,6 +79,7 @@ When adding new behavior, put it in the package that owns the concept rather tha
 
 - Keep `README.md` useful for players and quick start information.
 - Keep `docs/PROJECT_SPEC.md` aligned with implemented behavior.
+- Keep `docs/TESTING.md` aligned with tested behavior and known test seams.
 - Update this coding standards document when a new pattern becomes preferred.
 - Document known gaps as gaps rather than silently implying they are supported.
 

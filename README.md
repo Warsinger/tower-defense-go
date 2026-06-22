@@ -6,6 +6,7 @@ Simple tower defense game.
 
 * [Project spec](docs/PROJECT_SPEC.md) describes the current game behavior, rules, controls, runtime, stats, and networking model.
 * [Coding standards](docs/CODING_STANDARDS.md) captures the current Go/ECS style so it can evolve intentionally.
+* [Testing guide](docs/TESTING.md) describes the current test strategy, coverage focus, and known test seams.
 
 ## Graphics assets
 
@@ -81,7 +82,7 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 
 ## TODOS
 
-* Collect, print and store game statistics
+* ~~Collect, print and store game statistics~~
 * ~~Pass thru debug flag to renderers~~
 * ~~Collision detection for creep movement, creeps stop when running into a tower~~
   * ~~Restrict creep and tower spawn on existing objects or partially off the board~~
@@ -147,6 +148,10 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
     * Pick different types of creep to send
   * Simulation for testing
   * Play simulated network opponent
+  * External configuration of tower and creep parameters
+* CI/CD
+  * Additional testing (e.g. helper functions in the stats class like iterExclude and iterExcludePrefix)
+  * cache build dependencies across architectures for faster builds
 
 ## Remote viewer
 
@@ -162,4 +167,3 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 ## Network play
 
 Things to send over network: Position, Health, Creep, Player, Tower, Bullet (and render), Game.highScore, Attack (mainly for cooldown, also debug info), Sprite renders (maybe just image name), gameover/paused status
-

@@ -71,7 +71,7 @@ func GetGameStats() *GameStats {
 	return gameStats
 }
 func NewGameStats(old *GameStats) *GameStats {
-	gs := &GameStats{stats: make(map[string]int, 16), StartTime: time.Now()}
+	gs := &GameStats{stats: make(map[string]int, len(validStats)), StartTime: time.Now()}
 	if old != nil {
 		gs.stats["HighScore"] = old.stats["HighScore"]
 		gs.stats["HighCreepLevel"] = old.stats["HighCreepLevel"]
@@ -93,7 +93,8 @@ func (gs *GameStats) Update(other *GameStats) {
 	gs.UpdateHighs(other.stats["HighScore"], other.stats["HighCreepLevel"], other.stats["HighTowerLevel"])
 	gs.stats["Games"]++
 
-	gs.iterExcludePrefix(func(name string) {
+
+	iterExcludePrefix(validStats, func(name string) {
 		gs.stats[name] += other.stats[name]
 	}, "Game", "High")
 	gs.GameTime += other.GameTime
@@ -177,7 +178,22 @@ func (gs *GameStats) iterExcludePrefix(iter func(string), excludePrefixes ...str
 	})
 }
 func (gs *GameStats) iterExclude(iter func(string), exclude func(string) bool) {
-	for _, name := range slices.Sorted(maps.Keys(gs.stats)) {
+	values := slices.Sorted(maps.Keys(gs.stats))
+	iterExclude(values, iter, exclude)
+}
+
+func iterExcludePrefix(values []string, iter func(string), excludePrefixes ...string) {
+	iterExclude(values, iter, func(name string) bool {
+		for _, prefix := range excludePrefixes {
+			if strings.HasPrefix(name, prefix) {
+				return true
+			}
+		}
+		return false
+	})
+}
+func iterExclude(values []string, iter func(string), exclude func(string) bool) {
+	for _, name := range values {
 		if !exclude(name) {
 			iter(name)
 		}
