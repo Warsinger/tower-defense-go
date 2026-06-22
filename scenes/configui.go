@@ -9,10 +9,11 @@ import (
 	"tower-defense/config"
 
 	"github.com/ebitenui/ebitenui"
-
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 var isModalOpen = false
@@ -325,8 +326,18 @@ func loadButtonImage() *widget.ButtonImage {
 }
 
 func loadCheckboxGraphicImage() *widget.CheckboxImage {
+	const size = 17
+	radius := float32(size / 2)
+	center := float32(radius + 1)
+
+	unchecked := ebiten.NewImage(size, size)
+	vector.DrawFilledCircle(unchecked, center, center, radius, color.Black, true)
+
+	checked := ebiten.NewImage(size, size)
+	vector.DrawFilledCircle(checked, center, center, radius, color.White, true)
+
 	return &widget.CheckboxImage{
-		Unchecked: image.NewNineSliceColor(color.NRGBA{R: 0, G: 0, B: 0, A: 255}),
-		Checked:   image.NewNineSliceColor(color.NRGBA{R: 255, G: 255, B: 255, A: 255}),
+		Unchecked: image.NewFixedNineSlice(unchecked),
+		Checked:   image.NewFixedNineSlice(checked),
 	}
 }
