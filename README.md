@@ -166,3 +166,4 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 ## Network play
 
 Things to send over network: Position, Health, Creep, Player, Tower, Bullet (and render), Game.highScore, Attack (mainly for cooldown, also debug info), Sprite renders (maybe just image name), gameover/paused status
+
