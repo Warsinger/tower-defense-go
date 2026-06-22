@@ -148,6 +148,7 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
     * Pick different types of creep to send
   * Simulation for testing
   * Play simulated network opponent
+  * External configuration of tower and creep parameters
 * CI/CD
   * Additional testing (e.g. helper functions in the stats class like iterExclude and iterExcludePrefix)
   * cache build dependencies across architectures for faster builds
@@ -166,4 +167,3 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 ## Network play
 
 Things to send over network: Position, Health, Creep, Player, Tower, Bullet (and render), Game.highScore, Attack (mainly for cooldown, also debug info), Sprite renders (maybe just image name), gameover/paused status
-
