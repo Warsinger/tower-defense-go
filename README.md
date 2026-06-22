@@ -2,6 +2,11 @@
 
 Simple tower defense game.
 
+## Project documentation
+
+* [Project spec](docs/PROJECT_SPEC.md) describes the current game behavior, rules, controls, runtime, stats, and networking model.
+* [Coding standards](docs/CODING_STANDARDS.md) captures the current Go/ECS style so it can evolve intentionally.
+
 ## Graphics assets
 
 Graphics and sounds by Matt. Nathan created the Lego builds that were used for the assets. I took pictures of the ships and used the iPhone foreground cutting tool and some recoloration to create the spites. Then I shrunk them down to appropriate size.
@@ -157,3 +162,4 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 ## Network play
 
 Things to send over network: Position, Health, Creep, Player, Tower, Bullet (and render), Game.highScore, Attack (mainly for cooldown, also debug info), Sprite renders (maybe just image name), gameover/paused status
+

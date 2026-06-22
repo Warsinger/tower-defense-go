@@ -9,12 +9,11 @@ import (
 	"tower-defense/config"
 
 	"github.com/ebitenui/ebitenui"
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
-
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 var isModalOpen = false
@@ -50,7 +49,7 @@ func initUI(gameOptions *config.ConfigData, newGameCallback NewGameCallback, gam
 
 	buttonStart := widget.NewButton(
 		widget.ButtonOpts.Image(buttonImage),
-		widget.ButtonOpts.Text("Start Game", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Start Game", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 		widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
@@ -61,7 +60,7 @@ func initUI(gameOptions *config.ConfigData, newGameCallback NewGameCallback, gam
 	buttonContainer.AddChild(buttonStart)
 	buttonMultiplayer := widget.NewButton(
 		widget.ButtonOpts.Image(buttonImage),
-		widget.ButtonOpts.Text("Game Options", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Game Options", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 		widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
@@ -80,7 +79,7 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 	var rw widget.RemoveWindowFunc
 	var window *widget.Window
 	var saveButton *widget.Button
-	var radioServer, radioClient *widget.LabeledCheckbox
+	var radioServer, radioClient *widget.Checkbox
 	clr := color.NRGBA{254, 255, 255, 255}
 	face := assets.GoFace
 	imageBtn := loadButtonImage()
@@ -95,14 +94,14 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 				widget.GridLayoutOpts.Stretch([]bool{true, false, false}, []bool{true}))))
 
 	titleContainer.AddChild(widget.NewText(
-		widget.TextOpts.Text("Multiplayer Configuration", face, clr),
+		widget.TextOpts.Text("Multiplayer Configuration", &face, clr),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
 	titleContainer.AddChild(widget.NewButton(
 		widget.ButtonOpts.Image(imageBtn),
 		widget.ButtonOpts.TextPadding(padding),
-		widget.ButtonOpts.Text("X", face, colorBtnTxt),
+		widget.ButtonOpts.Text("X", &face, colorBtnTxt),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			rw()
 		}),
@@ -135,13 +134,12 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 		}),
 		widget.TextInputOpts.Color(ticolor),
 		widget.TextInputOpts.Padding(padding),
-		widget.TextInputOpts.Face(face),
-		widget.TextInputOpts.CaretOpts(widget.CaretOpts.Size(face, 2)),
+		widget.TextInputOpts.Face(&face),
 		widget.TextInputOpts.SubmitHandler(func(args *widget.TextInputChangedEventArgs) {
 			saveButton.Click()
 		}),
 		widget.TextInputOpts.ChangedHandler(func(args *widget.TextInputChangedEventArgs) {
-			if radioServer.Checkbox().State() == widget.WidgetChecked {
+			if radioServer.State() == widget.WidgetChecked {
 				saveButton.GetWidget().Disabled = !validateServerText(args.InputText)
 			} else {
 				saveButton.GetWidget().Disabled = !validateClientText(args.InputText)
@@ -149,21 +147,15 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 		}),
 	}
 
-	radioServer = widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.Spacing(10),
-		widget.LabeledCheckboxOpts.CheckboxOpts(
-			widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(imageBtn)),
-			widget.CheckboxOpts.Image(loadCheckboxGraphicImage()),
-		),
-		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Server", face, &widget.LabelColor{Idle: color.NRGBA{254, 255, 255, 255}})),
+	radioServer = widget.NewCheckbox(
+		widget.CheckboxOpts.Spacing(10),
+		widget.CheckboxOpts.Image(loadCheckboxGraphicImage()),
+		widget.CheckboxOpts.Text("Server", &face, &widget.LabelColor{Idle: color.NRGBA{254, 255, 255, 255}}),
 	)
-	radioClient = widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.Spacing(10),
-		widget.LabeledCheckboxOpts.CheckboxOpts(
-			widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(imageBtn)),
-			widget.CheckboxOpts.Image(loadCheckboxGraphicImage()),
-		),
-		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Client", face, &widget.LabelColor{Idle: color.NRGBA{254, 255, 255, 255}})),
+	radioClient = widget.NewCheckbox(
+		widget.CheckboxOpts.Spacing(10),
+		widget.CheckboxOpts.Image(loadCheckboxGraphicImage()),
+		widget.CheckboxOpts.Text("Client", &face, &widget.LabelColor{Idle: color.NRGBA{254, 255, 255, 255}}),
 	)
 	textServer := widget.NewTextInput(append(
 		tiOpts,
@@ -189,20 +181,20 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 	windowContainer.AddChild(textClient)
 	var initialElement *widget.Checkbox
 	if serverSelect {
-		initialElement = radioServer.Checkbox()
+		initialElement = radioServer
 	} else {
-		initialElement = radioClient.Checkbox()
+		initialElement = radioClient
 	}
 	widget.NewRadioGroup(
-		widget.RadioGroupOpts.Elements(radioServer.Checkbox(), radioClient.Checkbox()),
+		widget.RadioGroupOpts.Elements(radioServer, radioClient),
 		widget.RadioGroupOpts.ChangedHandler(func(args *widget.RadioGroupChangedEventArgs) {
-			if args.Active == radioServer.Checkbox() {
-				textServer.GetWidget().Visibility = widget.Visibility_Show
-				textClient.GetWidget().Visibility = widget.Visibility_Hide_Blocking
+			if args.Active == radioServer {
+				textServer.GetWidget().SetVisibility(widget.Visibility_Show)
+				textClient.GetWidget().SetVisibility(widget.Visibility_Hide_Blocking)
 				textServer.Focus(true)
 			} else {
-				textServer.GetWidget().Visibility = widget.Visibility_Hide_Blocking
-				textClient.GetWidget().Visibility = widget.Visibility_Show
+				textServer.GetWidget().SetVisibility(widget.Visibility_Hide_Blocking)
+				textClient.GetWidget().SetVisibility(widget.Visibility_Show)
 				textClient.Focus(true)
 			}
 		}),
@@ -215,28 +207,22 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 	} else {
 		initialState = widget.WidgetUnchecked
 	}
-	chkDebug := widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.Spacing(10),
-		widget.LabeledCheckboxOpts.CheckboxOpts(
-			widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(imageBtn)),
-			widget.CheckboxOpts.Image(loadCheckboxGraphicImage()),
-			widget.CheckboxOpts.InitialState(initialState),
-		),
-		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Debug Info", face, &widget.LabelColor{Idle: color.NRGBA{254, 255, 255, 255}})),
+	chkDebug := widget.NewCheckbox(
+		widget.CheckboxOpts.Spacing(10),
+		widget.CheckboxOpts.Image(loadCheckboxGraphicImage()),
+		widget.CheckboxOpts.InitialState(initialState),
+		widget.CheckboxOpts.Text("Debug Info", &face, &widget.LabelColor{Idle: color.NRGBA{254, 255, 255, 255}}),
 	)
 	if gameOptions.GridLines {
 		initialState = widget.WidgetChecked
 	} else {
 		initialState = widget.WidgetUnchecked
 	}
-	chkGridLines := widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.Spacing(10),
-		widget.LabeledCheckboxOpts.CheckboxOpts(
-			widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(imageBtn)),
-			widget.CheckboxOpts.Image(loadCheckboxGraphicImage()),
-			widget.CheckboxOpts.InitialState(initialState),
-		),
-		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("GridLines", face, &widget.LabelColor{Idle: color.NRGBA{254, 255, 255, 255}})),
+	chkGridLines := widget.NewCheckbox(
+		widget.CheckboxOpts.Spacing(10),
+		widget.CheckboxOpts.Image(loadCheckboxGraphicImage()),
+		widget.CheckboxOpts.InitialState(initialState),
+		widget.CheckboxOpts.Text("GridLines", &face, &widget.LabelColor{Idle: color.NRGBA{254, 255, 255, 255}}),
 	)
 	windowContainer.AddChild(chkDebug)
 	windowContainer.AddChild(chkGridLines)
@@ -251,15 +237,15 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 	saveButton = widget.NewButton(
 		widget.ButtonOpts.Image(imageBtn),
 		widget.ButtonOpts.TextPadding(padding),
-		widget.ButtonOpts.Text("Save", face, colorBtnTxt),
+		widget.ButtonOpts.Text("Save", &face, colorBtnTxt),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			if radioServer.Checkbox().State() == widget.WidgetChecked {
+			if radioServer.State() == widget.WidgetChecked {
 				gameOptions.ServerPort = textServer.GetText()
 			} else {
 				gameOptions.ClientHostPort = textClient.GetText()
 			}
-			gameOptions.Debug = chkDebug.Checkbox().State() == widget.WidgetChecked
-			gameOptions.GridLines = chkGridLines.Checkbox().State() == widget.WidgetChecked
+			gameOptions.Debug = chkDebug.State() == widget.WidgetChecked
+			gameOptions.GridLines = chkGridLines.State() == widget.WidgetChecked
 			callback(gameOptions)
 			rw()
 		}),
@@ -269,7 +255,7 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 	cancelButton := widget.NewButton(
 		widget.ButtonOpts.Image(imageBtn),
 		widget.ButtonOpts.TextPadding(padding),
-		widget.ButtonOpts.Text("Cancel", face, colorBtnTxt),
+		widget.ButtonOpts.Text("Cancel", &face, colorBtnTxt),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			rw()
 		}),
@@ -277,13 +263,13 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 	bc.AddChild(cancelButton)
 
 	if serverSelect {
-		textServer.GetWidget().Visibility = widget.Visibility_Show
-		textClient.GetWidget().Visibility = widget.Visibility_Hide_Blocking
+		textServer.GetWidget().SetVisibility(widget.Visibility_Show)
+		textClient.GetWidget().SetVisibility(widget.Visibility_Hide_Blocking)
 		saveButton.GetWidget().Disabled = !validateServerText(textServer.GetText())
 		textServer.Focus(true)
 	} else {
-		textClient.GetWidget().Visibility = widget.Visibility_Show
-		textServer.GetWidget().Visibility = widget.Visibility_Hide_Blocking
+		textClient.GetWidget().SetVisibility(widget.Visibility_Show)
+		textServer.GetWidget().SetVisibility(widget.Visibility_Hide_Blocking)
 		saveButton.GetWidget().Disabled = !validateClientText(textClient.GetText())
 		textClient.Focus(true)
 	}
@@ -339,17 +325,19 @@ func loadButtonImage() *widget.ButtonImage {
 	}
 }
 
-func loadCheckboxGraphicImage() *widget.CheckboxGraphicImage {
-	size := 17
+func loadCheckboxGraphicImage() *widget.CheckboxImage {
+	const size = 17
 	radius := float32(size / 2)
 	center := float32(radius + 1)
+
 	unchecked := ebiten.NewImage(size, size)
 	vector.DrawFilledCircle(unchecked, center, center, radius, color.Black, true)
-	checked := ebiten.NewImage(17, 17)
+
+	checked := ebiten.NewImage(size, size)
 	vector.DrawFilledCircle(checked, center, center, radius, color.White, true)
 
-	return &widget.CheckboxGraphicImage{
-		Unchecked: &widget.ButtonImageImage{Idle: unchecked},
-		Checked:   &widget.ButtonImageImage{Idle: checked},
+	return &widget.CheckboxImage{
+		Unchecked: image.NewFixedNineSlice(unchecked),
+		Checked:   image.NewFixedNineSlice(checked),
 	}
 }
