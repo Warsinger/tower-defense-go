@@ -40,15 +40,8 @@ type BattleScene struct {
 	superCreepCooldown *util.CooldownTimer
 }
 
-type creeepSpawnChance struct {
-	count  int
-	chance float32
-}
-
 const minSpeed = 0
 const maxSpeed = 60
-const maxCreepTimer = 180
-const startCreepTimer = 120
 
 func NewBattleScene(world donburi.World, width, height, speed int, gameStats *comp.GameStats, multiplayer bool, gameOptions *config.ConfigData, startingTowerLevel int, endGameCallback EndGameCallBack) (*BattleScene, error) {
 	_, err := comp.NewBoard(world, width, height)
@@ -63,19 +56,20 @@ func NewBattleScene(world donburi.World, width, height, speed int, gameStats *co
 		speed = maxSpeed
 	}
 
+	balance := config.GetBalance(world)
 	return &BattleScene{
 		world:              world,
 		width:              width,
 		height:             height,
 		speed:              speed,
-		creepTimer:         maxCreepTimer - startCreepTimer,
+		creepTimer:         balance.Wave.MaxCreepTimer - balance.Wave.StartCreepTimer,
 		multiplayer:        multiplayer,
 		config:             gameOptions,
 		battleState:        bss,
 		gameStats:          comp.NewGameStats(gameStats),
 		gameOptions:        gameOptions,
 		endGameCallback:    endGameCallback,
-		superCreepCooldown: util.NewCooldownTimer(maxCreepTimer),
+		superCreepCooldown: util.NewCooldownTimer(balance.Multiplayer.SuperCreepCooldown),
 		startingTowerLevel: startingTowerLevel,
 	}, nil
 }
@@ -106,7 +100,8 @@ func (b *BattleScene) Init() error {
 func (b *BattleScene) Clear() error {
 	b.battleState.GameOver = false
 	b.battleState.Paused = false
-	b.creepTimer = maxCreepTimer - startCreepTimer
+	balance := config.GetBalance(b.world)
+	b.creepTimer = balance.Wave.MaxCreepTimer - balance.Wave.StartCreepTimer
 	b.tickCounter = 0
 	b.computerTicker = 0
 
@@ -230,7 +225,8 @@ func (b *BattleScene) Update() error {
 		b.tickCounter++
 	}
 
-	b.gameStats.UpdateHighs(player.GetScore(), player.GetCreepLevel(), player.GetMaxTowerLevel())
+	balance := config.GetBalance(b.world)
+	b.gameStats.UpdateHighs(player.GetScore(), player.GetCreepLevel(balance), player.GetMaxTowerLevel(balance))
 
 	return nil
 }
@@ -289,23 +285,23 @@ func (b *BattleScene) UpdateEntities() error {
 		b.End()
 	}
 
-	const maxCreepTick = 4
-	const maxCreepCount = 25
-	creepLevel := player.GetCreepLevel()
-	b.creepTimer += max((creepLevel/10)+1, maxCreepTick)
-	if b.creepTimer >= maxCreepTimer-creepLevel {
+	balance := config.GetBalance(b.world)
+	creepLevel := player.GetCreepLevel(balance)
+	wave := balance.Wave
+	b.creepTimer += max((creepLevel/wave.TimerLevelDivisor)+1, wave.MinCreepTick)
+	if b.creepTimer >= wave.MaxCreepTimer-creepLevel {
 		query := donburi.NewQuery(filter.Contains(comp.Creep))
 		count := query.Count(b.world)
-		if count <= maxCreepCount {
+		if count <= wave.MaxCreepCount {
 			count, err := b.SpawnCreeps(creepLevel)
 			if err != nil {
 				return err
 			}
 			b.gameStats.UpdateStat("CreepsSpawned", count)
-			player.AddMoney(5 * count)
+			player.AddMoney(wave.SpawnIncomePerCreep * count)
 			b.creepTimer = 0
 		} else {
-			player.AddMoney(5)
+			player.AddMoney(wave.OverflowIncome)
 		}
 	}
 
@@ -314,25 +310,17 @@ func (b *BattleScene) UpdateEntities() error {
 
 func (b *BattleScene) SpawnCreeps(creepLevel int) (int, error) {
 	b.gameStats.IncrementStat("CreepWaves")
-	// every 10 waves, creep level increases by 1 without giving extra tower levels to the player
-	extraCreepLevel := int(math.Floor(float64(b.gameStats.GetStat("CreepWaves")) / 10))
+	balance := config.GetBalance(b.world).Wave
+	// every configured number of waves, creep level increases by 1 without giving extra tower levels to the player
+	extraCreepLevel := int(math.Floor(float64(b.gameStats.GetStat("CreepWaves")) / float64(balance.ExtraCreepLevelWaves)))
 
-	levelBump := float32(creepLevel+extraCreepLevel) / 20
-
-	spawnChance := []creeepSpawnChance{
-		{8, -0.7},
-		{7, -0.5},
-		{6, -0.3},
-		{5, -0.1},
-		{4, 0.1},
-		{3, 0.3},
-		{2, 0.5}}
+	levelBump := float32(creepLevel+extraCreepLevel) / float32(balance.LevelBumpDivisor)
 
 	val := rand.Float32() - levelBump
 	var count = 1
-	for _, spawnChance := range spawnChance {
-		if val < spawnChance.chance {
-			count = spawnChance.count
+	for _, spawnChance := range balance.SpawnChances {
+		if val < spawnChance.Chance {
+			count = spawnChance.Count
 			break
 		}
 	}
@@ -342,11 +330,11 @@ func (b *BattleScene) SpawnCreeps(creepLevel int) (int, error) {
 		board := comp.Board.Get(be)
 
 		x := rand.IntN(board.Width/count) + board.Width/count*(i)
-		y := comp.SpawnBorder
-		if x < comp.SpawnBorder {
-			x = comp.SpawnBorder
-		} else if x > board.Width-comp.SpawnBorder {
-			x = board.Width - comp.SpawnBorder
+		y := balance.SpawnBorder
+		if x < balance.SpawnBorder {
+			x = balance.SpawnBorder
+		} else if x > board.Width-balance.SpawnBorder {
+			x = board.Width - balance.SpawnBorder
 		}
 		_, err := comp.NewCreep(b.world, x, y, creepLevel)
 		if err != nil {

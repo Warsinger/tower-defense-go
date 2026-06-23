@@ -1,6 +1,9 @@
 package components
 
-import "testing"
+import (
+	"testing"
+	"tower-defense/config"
+)
 
 func TestPlayerData_GetCreepLevel(t *testing.T) {
 	tests := []struct {
@@ -18,7 +21,7 @@ func TestPlayerData_GetCreepLevel(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			player := &PlayerData{TowerLevels: tt.towerLevels}
-			if got := player.GetCreepLevel(); got != tt.want {
+			if got := player.GetCreepLevel(config.DefaultBalance()); got != tt.want {
 				t.Errorf("GetCreepLevel() = %v, want %v", got, tt.want)
 			}
 		})
@@ -40,7 +43,7 @@ func TestPlayerData_GetMaxTowerLevel(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			player := &PlayerData{TowerLevels: tt.towerLevels}
-			if got := player.GetMaxTowerLevel(); got != tt.want {
+			if got := player.GetMaxTowerLevel(config.DefaultBalance()); got != tt.want {
 				t.Errorf("GetMaxTowerLevel() = %v, want %v", got, tt.want)
 			}
 		})

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"tower-defense/config"
 	"tower-defense/game"
 	"tower-defense/strategy"
 
@@ -18,11 +19,16 @@ func main() {
 	computer := flag.Bool("computer", false, "Enable computer player")
 	computerLevel := flag.Int("complevel", 3, "Computer player difficulty level [1 slowest, 2 slow, 3 normal, 4 fast, 5 fastest]")
 	nosound := flag.Bool("nosound", false, "Turn off sound effects, S to toggle in game")
+	balancePath := flag.String("balance", "", "Path to game balance JSON config, empty for default")
 
 	flag.Parse()
 
 	strategy.SetComputerLevel(*computerLevel)
-	g, err := game.NewGame(*width, *height, *speed, *towerLevel, *debug, *computer, *nosound)
+	balance, err := config.LoadBalance(*balancePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	g, err := game.NewGame(*width, *height, *speed, *towerLevel, *debug, *computer, *nosound, balance)
 	if err != nil {
 		log.Fatal(err)
 	}

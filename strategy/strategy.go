@@ -118,7 +118,7 @@ func Update(world donburi.World) (bool, error) {
 		// then just heal the lowest health, otherwise upgrade it
 		levelLevel := comp.Level.Get(lowestLevelTower)
 		levelHealth := comp.Level.Get(lowestHealthTower)
-		if levelLevel.Level >= levelHealth.Level+2 || levelHealth.Level == player.GetMaxTowerLevel() {
+		if levelLevel.Level >= levelHealth.Level+2 || levelHealth.Level == player.GetMaxTowerLevel(config.GetBalance(world)) {
 			if player.TryHealTower(lowestHealthTower, playSound, printTries) {
 				if debug {
 					fmt.Printf("Healed lowest level tower\n")
