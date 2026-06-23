@@ -5,6 +5,7 @@ import (
 	"image"
 	"math/rand/v2"
 
+	"tower-defense/config"
 	"tower-defense/util"
 
 	"github.com/leap-fish/necs/esync/srvsync"
@@ -26,20 +27,25 @@ func NewCreep(world donburi.World, x, y, creepLevel int) (*donburi.Entry, error)
 	creep := world.Entry(entity)
 	Position.Set(creep, &PositionData{X: x, Y: y})
 
-	const bigCreepChance = 0.3
-	choose := 1
+	balance := config.GetBalance(world).Creep
+	choose := balance.SmallCreepFirstChoice
 	augment := 1
-	if rand.Float32() < bigCreepChance {
-		choose = 4
-		augment = 2
+	if rand.Float32() < balance.BigCreepChance {
+		choose = balance.BigCreepChoice
+		augment = balance.BigCreepAugment
 	} else {
-		choose += rand.IntN(3)
+		choose += rand.IntN(balance.SmallCreepVariants)
 	}
-	Velocity.Set(creep, &VelocityData{X: 0, Y: 5 - augment + creepLevel/2})
+	Velocity.Set(creep, &VelocityData{X: 0, Y: balance.BaseVelocityY - augment + creepLevel/2})
 	name := fmt.Sprintf("creep%v", choose)
-	Creep.Set(creep, &CreepData{scoreValue: 10 * augment})
-	Health.Set(creep, NewHealthData(1+2*augment+creepLevel/3))
-	Attack.Set(creep, &AttackData{Power: 1 + (creepLevel-1)*augment/4, AttackType: RangedSingle, Range: 20 + 10*augment, cooldown: util.NewCooldownTimer(5 + 5*augment)})
+	Creep.Set(creep, &CreepData{scoreValue: balance.ScoreValueBase * augment})
+	Health.Set(creep, NewHealthData(balance.HealthBase+balance.HealthAugmentMultiplier*augment+creepLevel/balance.HealthLevelDivisor))
+	Attack.Set(creep, &AttackData{
+		Power:      balance.AttackPowerBase + (creepLevel-balance.AttackPowerLevelOffset)*augment/balance.AttackPowerLevelDivisor,
+		AttackType: RangedSingle,
+		Range:      balance.AttackRangeBase + balance.AttackRangeAugmentMultiplier*augment,
+		cooldown:   util.NewCooldownTimer(balance.AttackCooldownBase + balance.AttackCooldownAugmentMultiplier*augment),
+	})
 	SpriteRender.Set(creep, &SpriteRenderData{Name: name})
 	RangeRender.Set(creep, &RangeRenderData{})
 	InfoRender.Set(creep, &InfoRenderData{})
@@ -53,11 +59,12 @@ func NewSuperCreep(world donburi.World, x, y int) (*donburi.Entry, error) {
 	}
 	creep := world.Entry(entity)
 	Position.Set(creep, &PositionData{X: x, Y: y})
-	Velocity.Set(creep, &VelocityData{X: 5, Y: 5})
+	balance := config.GetBalance(world).SuperCreep
+	Velocity.Set(creep, &VelocityData{X: balance.VelocityX, Y: balance.VelocityY})
 	name := "supercreep"
-	Creep.Set(creep, &CreepData{scoreValue: 50})
-	Health.Set(creep, NewHealthData(20))
-	Attack.Set(creep, &AttackData{Power: 8, AttackType: RangedSingle, Range: 20, cooldown: util.NewCooldownTimer(10)})
+	Creep.Set(creep, &CreepData{scoreValue: balance.ScoreValue})
+	Health.Set(creep, NewHealthData(balance.Health))
+	Attack.Set(creep, &AttackData{Power: balance.AttackPower, AttackType: RangedSingle, Range: balance.AttackRange, cooldown: util.NewCooldownTimer(balance.AttackCooldown)})
 	SpriteRender.Set(creep, &SpriteRenderData{Name: name})
 	RangeRender.Set(creep, &RangeRenderData{})
 	InfoRender.Set(creep, &InfoRenderData{})

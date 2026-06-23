@@ -70,10 +70,14 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 	str = "TOWER DEFENSE"
 	_ = comp.DrawTextLines(screen, assets.ScoreFace, str, width, 100, text.AlignCenter, text.AlignStart)
 
-	str = "Click to place towers Cost: $50"
+	balance := config.GetBalance(t.world)
+	tower := balance.Tower
+	defaultTowerCost := tower.Costs[tower.DefaultType]
+	healCost := defaultTowerCost / tower.HealCostDivisor
+	str = fmt.Sprintf("Click to place towers Cost: $%d", defaultTowerCost)
 	nextY = comp.DrawTextLines(screen, assets.ScoreFace, str, width, 250, text.AlignCenter, text.AlignStart)
 
-	str = "Mouse over a tower\nPress H to heal to full Cost: $25\nPress U to upgrade and heal to full Cost: $50\nMax upgrade level is 5 (+1 for every 20 upgrades)"
+	str = fmt.Sprintf("Mouse over a tower\nPress H to heal to full Cost: $%d\nPress U to upgrade and heal to full Cost: $%d\nMax upgrade level is %d (+1 for every %d upgrades)", healCost, defaultTowerCost, balance.Player.MaxTowerInitialLevel, balance.Player.MaxTowerLevelsPerBonus)
 	nextY = comp.DrawTextLines(screen, assets.InfoFace, str, width, nextY, text.AlignCenter, text.AlignStart)
 
 	towerImage := assets.GetImage("tower")

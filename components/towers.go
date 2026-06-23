@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"tower-defense/config"
 	"tower-defense/util"
 
 	"github.com/leap-fish/necs/esync/srvsync"
@@ -16,27 +17,17 @@ type TowerData struct {
 
 var Tower = donburi.NewComponentType[TowerData]()
 
-type CostList map[string]int
-
-type TowerManagerData struct {
-	costList CostList
+func getTowerCost(world donburi.World, name string) int {
+	return config.GetBalance(world).Tower.Costs[name]
 }
 
-var towerManager = &TowerManagerData{costList: CostList{"Melee": 50, "Ranged": 50}}
-
-func (tm *TowerManagerData) GetCostList() CostList {
-	return tm.costList
+func getTowerHealCost(world donburi.World, name string) int {
+	balance := config.GetBalance(world).Tower
+	return balance.Costs[name] / balance.HealCostDivisor
 }
 
-func (tm *TowerManagerData) GetCost(name string) int {
-	return tm.costList[name]
-}
-func (tm *TowerManagerData) GetHealCost(name string) int {
-	return tm.costList[name] / 2
-}
-
-func (tm *TowerManagerData) GetUpgradeCost(name string) int {
-	return tm.costList[name]
+func getTowerUpgradeCost(world donburi.World, name string) int {
+	return getTowerCost(world, name)
 }
 
 func NewTower(world donburi.World, x, y int) error {
@@ -47,10 +38,11 @@ func NewTower(world donburi.World, x, y int) error {
 	}
 	tower := world.Entry(towerEntity)
 
+	balance := config.GetBalance(world).Tower
 	Position.Set(tower, &PositionData{x, y})
-	Health.Set(tower, NewHealthData(20))
-	Attack.Set(tower, &AttackData{Power: 1, AttackType: RangedSingle, Range: 50, cooldown: util.NewCooldownTimer(30)})
-	Level.Set(tower, &LevelData{Level: 1})
+	Health.Set(tower, NewHealthData(balance.Health))
+	Attack.Set(tower, &AttackData{Power: balance.AttackPower, AttackType: RangedSingle, Range: balance.AttackRange, cooldown: util.NewCooldownTimer(balance.AttackCooldown)})
+	Level.Set(tower, &LevelData{Level: balance.InitialLevel})
 	SpriteRender.Set(tower, &SpriteRenderData{Name: "tower"})
 	RangeRender.Set(tower, &RangeRenderData{})
 	InfoRender.Set(tower, &InfoRenderData{})
@@ -77,14 +69,12 @@ func (t *TowerData) Heal(entry *donburi.Entry, debug bool) bool {
 	return false
 }
 
-const initMaxTowerLevel = 5
-
 func GetMaxTowerLevel(world donburi.World) int {
 	player := Player.Get(Player.MustFirst(world))
-	return player.GetMaxTowerLevel()
+	return player.GetMaxTowerLevel(config.GetBalance(world))
 }
-func (p *PlayerData) GetMaxTowerLevel() int {
-	return initMaxTowerLevel + int(math.Trunc(float64(p.TowerLevels)/20))
+func (p *PlayerData) GetMaxTowerLevel(balance *config.BalanceData) int {
+	return balance.Player.MaxTowerInitialLevel + int(math.Trunc(float64(p.TowerLevels)/float64(balance.Player.MaxTowerLevelsPerBonus)))
 }
 
 func (t *TowerData) Upgrade(entry *donburi.Entry, debug bool) bool {
@@ -97,12 +87,13 @@ func (t *TowerData) Upgrade(entry *donburi.Entry, debug bool) bool {
 	}
 	level.Level++
 	health := Health.Get(entry)
-	health.MaxHealth += 5
+	balance := config.GetBalance(entry.World).Tower
+	health.MaxHealth += balance.UpgradeMaxHealthAdd
 	health.Health = health.MaxHealth
 	attack := Attack.Get(entry)
-	attack.Power += level.Level / 3
-	attack.Range += 3
-	attack.cooldown.Cooldown = max(3, attack.cooldown.Cooldown-3)
+	attack.Power += level.Level / balance.UpgradePowerLevelDivisor
+	attack.Range += balance.UpgradeRangeAdd
+	attack.cooldown.Cooldown = max(balance.UpgradeMinCooldown, attack.cooldown.Cooldown-balance.UpgradeCooldownReduction)
 	GetGameStats().IncrementStat("TowersUpgraded")
 
 	return true
