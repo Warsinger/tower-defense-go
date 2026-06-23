@@ -37,6 +37,28 @@ Supported flags:
 | `-computer` | `false` | Enable the computer player strategy instead of direct player placement. |
 | `-complevel` | `3` | Computer player action speed from `1` slowest to `5` fastest. |
 | `-nosound` | `false` | Start with sound effects disabled. |
+| `-balance` | `""` | Optional path to a game balance JSON file. Empty uses the embedded default balance. |
+
+## Balance Configuration
+
+Gameplay balance is data-driven through `config.BalanceData`.
+
+- The embedded default balance lives in `config/default_balance.json`.
+- `config/balance.go` embeds that file, parses it at startup, and exposes it through a Donburi `Balance` component.
+- `main.go` accepts `-balance <path>` to load an external JSON balance file instead of the embedded default.
+- `game.NewGame` installs the loaded balance into the game world before scenes are created.
+- Code that needs balance values reads them with `config.GetBalance(world)`. If a world has no balance component, it falls back to the embedded default.
+
+The external JSON schema currently covers:
+
+- Player/base starting money, health, attack values, creep-level progression, and max-tower-level progression.
+- Tower default type, costs, starting stats, heal cost divisor, and upgrade scaling.
+- Normal creep variant odds, movement, stat scaling, attack values, and score value.
+- Super creep movement, score value, health, and attack values.
+- Wave timer, spawn border, creep cap, income, extra creep-level cadence, and spawn-count probabilities.
+- Multiplayer super-creep send cost and cooldown.
+
+The embedded default balance preserves the pre-config behavior.
 
 ## Scene Flow
 
@@ -71,13 +93,14 @@ Core entity/component groups:
 - Bullet: position, velocity, attack, bullet render, and launch path metadata.
 - Battle state: paused and game-over flags.
 - Config: debug, grid lines, stats display, sound, computer, server port, and client address.
+- Balance: gameplay tuning values loaded from the embedded default or an external JSON file.
 
 ## Player/Base Rules
 
 - The base starts near the bottom of the board at `board.Height - 70`.
-- The base starts with 100 health.
-- The player starts each run with `$500`.
-- The base has a short-range attack against creeps.
+- The base defaults to 100 health.
+- The player starts each run with `$500` by default.
+- The base has a short-range attack against creeps; its power, range, and cooldown are balance-configured.
 - The base does not get removed when health reaches zero; it is marked dead and battle enters game-over state.
 - Score increases when towers kill creeps.
 - Money increases from creep kills and from periodic creep-wave income.
@@ -85,31 +108,32 @@ Core entity/component groups:
 Tower-level progress controls difficulty:
 
 - `TowerLevels` starts from the `-level` flag.
-- Creep level is `floor(TowerLevels / 5) + 1`.
-- Max tower level is `5 + floor(TowerLevels / 20)`.
+- Creep level defaults to `floor(TowerLevels / 5) + 1`.
+- Max tower level defaults to `5 + floor(TowerLevels / 20)`.
 - Upgrading a tower increments `TowerLevels`.
 
 ## Tower Rules
 
-- Towers cost `$50` to place.
+- The default tower type is `Ranged`.
+- Towers cost `$50` to place by default.
 - Towers are centered on the mouse click.
 - A tower cannot be placed out of board bounds.
 - A tower cannot overlap the base or existing blocking entities.
-- New towers start with 20 health, level 1, ranged single-target attack, power 1, range 50, and attack cooldown 30 ticks.
+- New towers default to 20 health, level 1, ranged single-target attack, power 1, range 50, and attack cooldown 30 ticks.
 - Tower health also acts as ammo. Each tower shot decrements tower health by 1.
 - A tower is removed when its health/ammo reaches zero.
-- Healing a tower costs `$25` and restores it to full health.
-- Upgrading a tower costs `$50`, heals it to full, and increases level, max health, power, range, and attack speed.
-- Each upgrade adds 5 max health, adds 3 range, reduces cooldown by 3 to a minimum of 3, and adds `level / 3` power.
+- Healing a tower defaults to half the tower placement cost and restores it to full health.
+- Upgrading a tower defaults to the tower placement cost, heals it to full, and increases level, max health, power, range, and attack speed.
+- Each upgrade defaults to adding 5 max health, adding 3 range, reducing cooldown by 3 to a minimum of 3, and adding `level / 3` power.
 - Towers cannot be upgraded beyond the current max tower level.
 
 ## Creep Rules
 
-- Creeps spawn near the top of the board at `SpawnBorder` (`60`) and move downward.
-- A normal creep has a 30% chance to become the larger variant.
+- Creeps spawn near the top of the board at the configured spawn border, defaulting to `60`, and move downward.
+- A normal creep has a 30% default chance to become the larger variant.
 - Creep speed, health, attack power, range, cooldown, and score value scale with creep level and variant.
-- Normal creep score value is 10 or 20 depending on variant.
-- Super creeps are multiplayer-only creeps with score value 50, health 20, power 8, diagonal velocity, and the `supercreep` sprite.
+- Normal creep score value defaults to 10 or 20 depending on variant.
+- Super creeps are multiplayer-only creeps with default score value 50, health 20, power 8, diagonal velocity, and the `supercreep` sprite.
 - Creeps try to move toward their target position each game tick.
 - If blocked by another creep, they attempt small sideways movement.
 - If blocked by a tower or base, they try to creep forward slightly and attack when in range.
@@ -129,13 +153,13 @@ Tower-level progress controls difficulty:
 ## Wave And Difficulty Rules
 
 - Battle starts with a partially advanced creep timer.
-- The creep timer advances by at least 4 each entity-update tick and scales upward with creep level.
-- A new wave can spawn when the timer reaches `180 - creepLevel`.
-- At most 25 creeps can be on the board before spawning pauses.
-- If the board is at the creep cap, the player still receives `$5` income.
+- The creep timer advances by at least 4 each entity-update tick by default and scales upward with creep level.
+- A new wave can spawn when the timer reaches `180 - creepLevel` by default.
+- At most 25 creeps can be on the board before spawning pauses by default.
+- If the board is at the creep cap, the player still receives `$5` default income.
 - When a wave spawns, the wave count increments, spawn count is selected probabilistically, and higher creep and wave levels bias toward larger waves.
-- Every 10 waves adds one extra creep level for spawn calculations.
-- The player receives `$5` per spawned creep.
+- Every 10 waves adds one extra creep level for spawn calculations by default.
+- The player receives `$5` per spawned creep by default.
 
 ## Controls
 
@@ -217,7 +241,7 @@ Current constraints:
 - Networking assumes a direct WebSocket connection between peers.
 - Client/server lifecycle cleanup is incomplete.
 - Server sync failures currently terminate the process.
-- Super creep sending has a cooldown and currently checks for `$50`, but the money is not deducted.
+- Super creep sending has a balance-configured cooldown and cost check, but the money is not deducted.
 
 ## Known Gaps
 
@@ -227,4 +251,4 @@ Current constraints:
 - Network setup and teardown need hardening.
 - Some collision edge cases are acknowledged in code comments.
 - Stats storage is plain text and local to the process working directory.
-- Test coverage is currently limited to stats display-name formatting.
+- Test coverage currently covers selected stats, player progression, tower behavior, and utility behavior, but remains limited.

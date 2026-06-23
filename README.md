@@ -148,10 +148,10 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
     * Pick different types of creep to send
   * Simulation for testing
   * Play simulated network opponent
-  * External configuration of tower and creep parameters
+  * ~~External configuration of tower and creep parameters~~
 * CI/CD
   * Additional testing (e.g. helper functions in the stats class like iterExclude and iterExcludePrefix)
-  * cache build dependencies across architectures for faster builds
+  * ~~cache build dependencies across architectures for faster builds (Reverted because it didn't speed things up, default cache is fine)~~
 
 ## Remote viewer
 
