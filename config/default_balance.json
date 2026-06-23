@@ -1,0 +1,83 @@
+{
+  "player": {
+    "startingMoney": 500,
+    "health": 100,
+    "attackPower": 1,
+    "attackRange": 15,
+    "attackCooldown": 10,
+    "creepLevelTowerLevels": 5,
+    "maxTowerInitialLevel": 5,
+    "maxTowerLevelsPerBonus": 20
+  },
+  "tower": {
+    "defaultType": "Ranged",
+    "costs": {
+      "Melee": 50,
+      "Ranged": 50
+    },
+    "healCostDivisor": 2,
+    "health": 20,
+    "attackPower": 1,
+    "attackRange": 50,
+    "attackCooldown": 30,
+    "initialLevel": 1,
+    "upgradeMaxHealthAdd": 5,
+    "upgradePowerLevelDivisor": 3,
+    "upgradeRangeAdd": 3,
+    "upgradeCooldownReduction": 3,
+    "upgradeMinCooldown": 3
+  },
+  "creep": {
+    "bigCreepChance": 0.3,
+    "bigCreepChoice": 4,
+    "bigCreepAugment": 2,
+    "smallCreepFirstChoice": 1,
+    "smallCreepVariants": 3,
+    "baseVelocityY": 5,
+    "healthBase": 1,
+    "healthAugmentMultiplier": 2,
+    "healthLevelDivisor": 3,
+    "attackPowerBase": 1,
+    "attackPowerLevelOffset": 1,
+    "attackPowerLevelDivisor": 4,
+    "attackRangeBase": 20,
+    "attackRangeAugmentMultiplier": 10,
+    "attackCooldownBase": 5,
+    "attackCooldownAugmentMultiplier": 5,
+    "scoreValueBase": 10
+  },
+  "superCreep": {
+    "velocityX": 5,
+    "velocityY": 5,
+    "scoreValue": 50,
+    "health": 20,
+    "attackPower": 8,
+    "attackRange": 20,
+    "attackCooldown": 10
+  },
+  "wave": {
+    "spawnBorder": 60,
+    "maxCreepTimer": 180,
+    "startCreepTimer": 120,
+    "minCreepTick": 4,
+    "maxCreepCount": 25,
+    "timerLevelDivisor": 10,
+    "extraCreepLevelWaves": 10,
+    "levelBumpDivisor": 20,
+    "spawnIncomePerCreep": 5,
+    "overflowIncome": 5,
+    "spawnChances": [
+      { "count": 8, "chance": -0.7 },
+      { "count": 7, "chance": -0.5 },
+      { "count": 6, "chance": -0.3 },
+      { "count": 5, "chance": -0.1 },
+      { "count": 4, "chance": 0.1 },
+      { "count": 3, "chance": 0.3 },
+      { "count": 2, "chance": 0.5 }
+    ]
+  },
+  "multiplayer": {
+    "superCreepCost": 50,
+    "superCreepCooldown": 180
+  }
+}
