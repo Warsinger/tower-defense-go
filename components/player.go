@@ -43,9 +43,10 @@ func NewPlayer(world donburi.World, startingTowerLevel int) error {
 	board := Board.Get(be)
 
 	Position.Set(entry, &PositionData{X: 0, Y: board.Height - yBorderBottom})
-	Player.Set(entry, &PlayerData{Money: 500, TowerLevels: startingTowerLevel})
-	Health.Set(entry, NewHealthData(100))
-	Attack.Set(entry, &AttackData{Power: 1, AttackType: RangedSingle, Range: 15, cooldown: util.NewCooldownTimer(10), noLead: true})
+	balance := config.GetBalance(world)
+	Player.Set(entry, &PlayerData{Money: balance.Player.StartingMoney, TowerLevels: startingTowerLevel})
+	Health.Set(entry, NewHealthData(balance.Player.Health))
+	Attack.Set(entry, &AttackData{Power: balance.Player.AttackPower, AttackType: RangedSingle, Range: balance.Player.AttackRange, cooldown: util.NewCooldownTimer(balance.Player.AttackCooldown), noLead: true})
 	SpriteRender.Set(entry, &SpriteRenderData{Name: "base"})
 	PlayerRender.Set(entry, &PlayerRenderData{})
 	InfoRender.Set(entry, &InfoRenderData{})
@@ -97,7 +98,7 @@ func (p *PlayerData) UserSpeedUpdate(entry *donburi.Entry) error {
 
 func (p *PlayerData) TryHealTower(entry *donburi.Entry, sound, debug bool) bool {
 	healed := false
-	cost := towerManager.GetHealCost("Ranged")
+	cost := getTowerHealCost(entry.World, config.GetBalance(entry.World).Tower.DefaultType)
 	if p.Money >= cost {
 		tower := Tower.Get(entry)
 		if tower.Heal(entry, debug) {
@@ -118,7 +119,7 @@ func (p *PlayerData) TryHealTower(entry *donburi.Entry, sound, debug bool) bool 
 
 func (p *PlayerData) TryUpgradeTower(entry *donburi.Entry, sound, debug bool) bool {
 	upgraded := false
-	cost := towerManager.GetUpgradeCost("Ranged")
+	cost := getTowerUpgradeCost(entry.World, config.GetBalance(entry.World).Tower.DefaultType)
 	if p.Money >= cost {
 		tower := Tower.Get(entry)
 		if tower.Upgrade(entry, debug) {
@@ -140,7 +141,7 @@ func (p *PlayerData) TryUpgradeTower(entry *donburi.Entry, sound, debug bool) bo
 
 func (p *PlayerData) TryPlaceTower(world donburi.World, x, y int, sound, debug bool) (bool, error) {
 	placed := false
-	cost := towerManager.GetCost("Ranged")
+	cost := getTowerCost(world, config.GetBalance(world).Tower.DefaultType)
 	if p.Money >= cost {
 		err := p.PlaceTower(world, x, y, sound)
 
@@ -223,8 +224,8 @@ func (p *PlayerData) Kill() {
 	p.Dead = true
 }
 
-func (player *PlayerData) GetCreepLevel() int {
-	return int(math.Trunc(float64(player.TowerLevels)/5)) + 1
+func (player *PlayerData) GetCreepLevel(balance *config.BalanceData) int {
+	return int(math.Trunc(float64(player.TowerLevels)/float64(balance.Player.CreepLevelTowerLevels))) + 1
 }
 
 func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry, debug bool) {
@@ -240,13 +241,13 @@ func (pr *PlayerRenderData) Draw(screen *ebiten.Image, entry *donburi.Entry, deb
 	str := fmt.Sprintf("$ %d", player.GetMoney())
 	nextY := DrawTextLines(screen, assets.ScoreFace, str, float64(board.Width), TextBorder, text.AlignStart, text.AlignStart)
 
-	str = fmt.Sprintf("Max Tower Level %d", player.GetMaxTowerLevel())
+	str = fmt.Sprintf("Max Tower Level %d", player.GetMaxTowerLevel(config.GetBalance(entry.World)))
 	_ = DrawTextLines(screen, assets.InfoFace, str, float64(board.Width), nextY, text.AlignStart, text.AlignStart)
 
 	str = fmt.Sprintf("SCORE %05d", player.Score)
 	_ = DrawTextLines(screen, assets.ScoreFace, str, float64(board.Width), TextBorder, text.AlignCenter, text.AlignStart)
 
-	str = fmt.Sprintf("Creep Level %d", player.GetCreepLevel())
+	str = fmt.Sprintf("Creep Level %d", player.GetCreepLevel(config.GetBalance(entry.World)))
 	if debug {
 		str = fmt.Sprintf("%s (%d)", str, player.TowerLevels)
 	}
