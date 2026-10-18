@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"maps"
 	"os"
-	"path/filepath"
 	"regexp"
 	"slices"
 	"strconv"
@@ -93,7 +92,6 @@ func (gs *GameStats) Update(other *GameStats) {
 	gs.UpdateHighs(other.stats["HighScore"], other.stats["HighCreepLevel"], other.stats["HighTowerLevel"])
 	gs.stats["Games"]++
 
-
 	iterExcludePrefix(validStats, func(name string) {
 		gs.stats[name] += other.stats[name]
 	}, "Game", "High")
@@ -124,7 +122,7 @@ func (gs *GameStats) Reset() {
 
 func LoadStats() *GameStats {
 	gameStats := NewGameStats(nil)
-	bytes, err := os.ReadFile(statsFile)
+	bytes, err := readStats()
 	if err == nil {
 		strings.Split(string(bytes), "\n")
 		for _, line := range strings.Split(string(bytes), "\n") {
@@ -158,13 +156,7 @@ func parseScore(label, val string) int {
 }
 
 func (gs *GameStats) SaveStats() error {
-	dir, _ := filepath.Split(statsFile)
-
-	if err := ensureDir(dir); err != nil {
-		return err
-	}
-
-	return os.WriteFile(statsFile, []byte(gs.StatsLines("=", false, false)), 0644)
+	return writeStats([]byte(gs.StatsLines("=", false, false)))
 }
 
 func (gs *GameStats) iterExcludePrefix(iter func(string), excludePrefixes ...string) {
@@ -222,7 +214,7 @@ func (gs *GameStats) StatsLines(delim string, runningTime, forDisplay bool, excl
 }
 
 func ensureDir(dirName string) error {
-	err := os.Mkdir(dirName, os.ModeDir)
+	err := os.Mkdir(dirName, 0755)
 	if err == nil {
 		return nil
 	}

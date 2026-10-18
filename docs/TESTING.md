@@ -26,6 +26,10 @@ go tool cover -html coverage.out -o coverage.html
 
 Open `coverage.html` in a browser to inspect uncovered lines. `coverage-summary.txt` contains the package/function totals in plain text.
 
+## Browser validation
+
+`go run ./cmd/web` builds the Wasm bundle and matching Go runtime support. `go run ./cmd/web -serve` serves it locally for graphical checks. See [Browser preview](BROWSER.md) for the manual checklist. CI builds/uploads the bundle; it does not run browser UI tests. Native score persistence has a temporary-directory save/load round-trip test.
+
 ## Coverage Tracking
 
 Coverage is tracked with Go's built-in coverage tools and GitHub Actions only. The `Coverage` workflow job:

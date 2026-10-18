@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"tower-defense/assets"
 	"tower-defense/config"
+	"tower-defense/platform"
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
@@ -93,8 +94,12 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 			widget.NewGridLayout(widget.GridLayoutOpts.Columns(3),
 				widget.GridLayoutOpts.Stretch([]bool{true, false, false}, []bool{true}))))
 
+	optionsTitle := "Multiplayer Configuration"
+	if platform.Browser {
+		optionsTitle = "Game Options (single-player)"
+	}
 	titleContainer.AddChild(widget.NewText(
-		widget.TextOpts.Text("Multiplayer Configuration", &face, clr),
+		widget.TextOpts.Text(optionsTitle, &face, clr),
 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
 	))
 
@@ -175,10 +180,12 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 	)
 	textClient.SetText(gameOptions.ClientHostPort)
 
-	windowContainer.AddChild(radioServer)
-	windowContainer.AddChild(textServer)
-	windowContainer.AddChild(radioClient)
-	windowContainer.AddChild(textClient)
+	if !platform.Browser {
+		windowContainer.AddChild(radioServer)
+		windowContainer.AddChild(textServer)
+		windowContainer.AddChild(radioClient)
+		windowContainer.AddChild(textClient)
+	}
 	var initialElement *widget.Checkbox
 	if serverSelect {
 		initialElement = radioServer
@@ -239,7 +246,10 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 		widget.ButtonOpts.TextPadding(padding),
 		widget.ButtonOpts.Text("Save", &face, colorBtnTxt),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			if radioServer.State() == widget.WidgetChecked {
+			if platform.Browser {
+				gameOptions.ServerPort = ""
+				gameOptions.ClientHostPort = ""
+			} else if radioServer.State() == widget.WidgetChecked {
 				gameOptions.ServerPort = textServer.GetText()
 			} else {
 				gameOptions.ClientHostPort = textClient.GetText()
@@ -272,6 +282,15 @@ func openWindow(ui *ebitenui.UI, gameOptions *config.ConfigData, callback GameOp
 		textServer.GetWidget().SetVisibility(widget.Visibility_Hide_Blocking)
 		saveButton.GetWidget().Disabled = !validateClientText(textClient.GetText())
 		textClient.Focus(true)
+	}
+
+	if platform.Browser {
+		for _, field := range []widget.HasWidget{radioServer, radioClient, textServer, textClient} {
+			field.GetWidget().SetVisibility(widget.Visibility_Hide_Blocking)
+		}
+		saveButton.GetWidget().Disabled = false
+		textServer.Focus(false)
+		textClient.Focus(false)
 	}
 
 	window = widget.NewWindow(
