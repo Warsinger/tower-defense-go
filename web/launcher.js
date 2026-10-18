@@ -1,11 +1,12 @@
 "use strict";
+const gameURL = new URL("game.html", document.currentScript.src);
 const frame = document.getElementById("game");
 const status = document.getElementById("status");
 document.getElementById("launch").addEventListener("click", (event) => {
   event.currentTarget.hidden = true;
   frame.hidden = false;
   status.textContent = "Loading game…";
-  frame.src = "game.html";
+  frame.src = gameURL.href;
 });
 window.addEventListener("message", (event) => {
   if (event.origin !== location.origin || event.source !== frame.contentWindow) return;
