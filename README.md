@@ -2,6 +2,20 @@
 
 Simple tower defense game.
 
+## Build and test
+
+Install Go 1.27.2 or later, matching the version in `go.mod`. From the repository root:
+
+```sh
+go mod download
+go test ./...
+go vet ./...
+go build ./...
+go run .
+```
+
+Linux requires the graphics/audio development libraries and a display described in the CI workflow; headless tests use Xvfb.
+
 ## Project documentation
 
 * [Project spec](docs/PROJECT_SPEC.md) describes the current game behavior, rules, controls, runtime, stats, and networking model.
