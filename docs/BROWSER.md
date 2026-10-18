@@ -62,7 +62,13 @@ No native score file is read, migrated, overwritten, or deleted by the browser.
 ## Validation
 
 Run `go test ./...`, `go vet ./...`, `go build ./...`, and `go run ./cmd/web`.
-The CI browser job builds and uploads the static bundle; it does not simulate
+Run `node scripts/test-browser-storage.mjs` (Node 22 or later) to exercise the actual
+Go/Wasm storage functions with normal storage, a throwing localStorage property
+getter, throwing getItem/setItem methods, and missing storage. Each failure case
+must preserve an in-memory score round trip without terminating the runtime.
+Node is needed only for this regression harness, not to build or serve the game.
+
+The CI browser job runs this harness, builds and uploads the static bundle; it does not simulate
 graphical browser interaction. Test locally using the server procedure above.
 
 Manual checks: launch/loading/title rendering; Game Options save/cancel; starting

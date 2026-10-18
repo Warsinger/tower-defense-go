@@ -128,6 +128,8 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - name: Test browser storage fallback
+        run: node scripts/test-browser-storage.mjs
       - name: Build browser bundle
         run: go run ./cmd/web
       - uses: actions/upload-artifact@v7
