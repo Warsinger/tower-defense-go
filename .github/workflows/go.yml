@@ -11,6 +11,55 @@ permissions:
   contents: read
 
 jobs:
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libgl1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev xvfb
+
+      - name: Start virtual display
+        run: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Test with coverage
+        env:
+          DISPLAY: :99
+        run: go test -coverprofile coverage.out -covermode atomic ./...
+
+      - name: Generate coverage reports
+        run: |
+          go tool cover -func coverage.out | tee coverage-summary.txt
+          go tool cover -html coverage.out -o coverage.html
+          {
+            echo "## Go Coverage"
+            echo
+            echo '```text'
+            cat coverage-summary.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: go-coverage
+          path: |
+            coverage.out
+            coverage-summary.txt
+            coverage.html
+          if-no-files-found: error
+
   build:
     name: Build (${{ matrix.artifact }})
     strategy:

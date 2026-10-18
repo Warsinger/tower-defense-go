@@ -3,3 +3,6 @@ score/
 tower-defense.exe
 tower-defense
 build/
+coverage.out
+coverage-summary.txt
+coverage.html
