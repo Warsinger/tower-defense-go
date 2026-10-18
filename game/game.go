@@ -4,6 +4,7 @@ import (
 	"tower-defense/assets"
 	"tower-defense/config"
 	"tower-defense/network"
+	"tower-defense/platform"
 	"tower-defense/scenes"
 
 	comp "tower-defense/components"
@@ -102,7 +103,7 @@ func (g *GameData) switchToTitle(gameStats *comp.GameStats, gameOptions *config.
 
 func (g *GameData) Update() error {
 	// TODO move this into the title scene so we can determine if the config has focus
-	if !scenes.IsModalOpen() && inpututil.IsKeyJustPressed(ebiten.KeyQ) {
+	if !platform.Browser && !scenes.IsModalOpen() && inpututil.IsKeyJustPressed(ebiten.KeyQ) {
 		if err := g.gameStats.SaveStats(); err != nil {
 			return err
 		}
@@ -122,8 +123,12 @@ func (g *GameData) Draw(screen *ebiten.Image) {
 	for _, scene := range g.scenes {
 		scene.Draw(screen)
 	}
+	platform.Ready()
 }
 
 func (g *GameData) Layout(width, height int) (int, int) {
+	if platform.Browser {
+		return g.width * len(g.scenes), g.height
+	}
 	return width, height
 }

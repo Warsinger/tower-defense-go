@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tower Defense</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #131a22; color: #dff4ff; font: 16px system-ui, sans-serif; text-align: center; }
+  main { max-width: 900px; margin: auto; padding: 16px; }
+  h1 { margin: 0 0 8px; }
+  button { font: inherit; padding: 12px 24px; cursor: pointer; }
+  iframe { display: block; border: 1px solid #596c80; margin: 16px auto; width: min(600px, 100%); aspect-ratio: 3 / 4; background: black; }
+  [hidden] { display: none; }
+  #status[data-error="true"] { color: #ffb6b6; }
+  p { line-height: 1.5; }
+</style>
+<main>
+  <h1>Tower Defense</h1>
+  <p>Protect your base. Place towers, heal them, and upgrade your defenses.</p>
+  <button id="launch">Launch game</button>
+  <p id="status" role="status" aria-live="polite">Ready to launch. Sound starts after you interact with the game.</p>
+  <iframe id="game" title="Tower Defense game" allow="autoplay; fullscreen" hidden></iframe>
+  <p>Click inside the game to focus. Space/P: pause · R: return to title · H: heal · U: upgrade · S: sound.<br>
+  Scores save in this browser when you return to the title with R. If storage is blocked, scores last for this session only.<br>
+  Single-player desktop browser preview. Multiplayer is available in the native app.</p>
+</main>
+<script src="launcher.js"></script>
+</html>

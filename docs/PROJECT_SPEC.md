@@ -23,6 +23,10 @@ The project currently supports:
 
 The executable starts from `main.go`, parses CLI flags, loads assets, initializes game state, and runs the Ebiten game loop.
 
+## Browser target
+
+The WebAssembly build shares the native gameplay and assets. It uses a fixed 600×800 logical board in a scaling frame, browser-local score storage with a session fallback, and single-player options. Native peer networking, local balance-file overrides, and Q-to-exit are unavailable in the browser. See [Browser preview](BROWSER.md).
+
 ## Launch Options
 
 Supported flags:

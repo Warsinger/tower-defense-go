@@ -118,3 +118,22 @@ jobs:
           name: tower-defense-${{ matrix.artifact }}
           path: ${{ matrix.binary }}
           if-no-files-found: error
+
+  browser:
+    name: Browser (WebAssembly)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Test browser storage fallback
+        run: node scripts/test-browser-storage.mjs
+      - name: Build browser bundle
+        run: go run ./cmd/web
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tower-defense-web
+          path: build/web
+          if-no-files-found: error
