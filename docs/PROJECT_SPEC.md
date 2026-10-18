@@ -15,7 +15,7 @@ The project currently supports:
 
 ## Runtime
 
-- Language: Go 1.23.1.
+- Language: Go 1.27.2 (see `go.mod`; CI uses the same version).
 - Renderer/input/audio: Ebiten.
 - UI widgets: EbitenUI.
 - ECS: Donburi.
