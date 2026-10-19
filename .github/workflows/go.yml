@@ -143,7 +143,7 @@ jobs:
       - name: Test browser storage fallback
         run: node scripts/test-browser-storage.mjs
       - name: Test Pages packaging
-        run: node --test scripts/package-pages.test.mjs scripts/pages-target.test.mjs scripts/pages-project.test.mjs
+        run: node --test scripts/package-pages.test.mjs scripts/pages-target.test.mjs scripts/pages-project.test.mjs scripts/game-loader.test.mjs
       - name: Build browser bundle
         run: go run ./cmd/web
       - name: Package versioned Pages assets

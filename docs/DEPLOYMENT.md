@@ -66,11 +66,10 @@ The game loads its matching runtime and Wasm from there. Root HTML revalidates;
 versioned assets are immutable for one year. A root 404 page prevents missing
 assets from falling back to the game's HTML. No cross-origin isolation is needed.
 
-The roughly 35 MB Go Wasm binary is precompressed with gzip and served with
-`Content-Encoding: gzip` and `Content-Type: application/wasm`. Browser fetch
-decodes it before Wasm instantiation. This keeps each uploaded file below the
-Pages limit without a paid storage service. Generic local file servers must
-supply this encoding header to serve the Pages bundle; the existing `cmd/web`
+The roughly 35 MB Go Wasm binary is precompressed as `game.wasm.gz` and served
+as `application/gzip`, without a custom Content-Encoding header. The loader
+uses the browser DecompressionStream API to decode it before Wasm instantiation. This keeps each uploaded file below the
+Pages limit without a paid storage service. Ordinary local file servers can serve the Pages bundle; the existing `cmd/web`
 local preview continues to serve its ordinary uncompressed bundle.
 
 The packager rejects compressed files larger than the Pages 25 MiB asset limit. Upload only

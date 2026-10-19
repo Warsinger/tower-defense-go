@@ -15,12 +15,15 @@ test('release paths bind launcher, runtime, and Wasm; changed assets change URLs
   });
   const source = path.join(root, 'source'); fs.mkdirSync(source);
   for (const name of ['game.html', 'launcher.js', 'game.js', 'wasm_exec.js', 'game.wasm']) fs.writeFileSync(path.join(source, name), name);
+  fs.writeFileSync(path.join(source, 'game.js'), 'fetch("game.wasm")');
   fs.writeFileSync(path.join(source, 'index.html'), '<script src="launcher.js"></script>');
   const first = path.join(root, 'first');
   const hash = packagePages(source, first, 'abc');
   assert.match(fs.readFileSync(path.join(first, 'index.html'), 'utf8'), new RegExp(`assets/${hash}/launcher.js`));
-  assert.equal(gunzipSync(fs.readFileSync(path.join(first, `assets/${hash}/game.wasm`))).toString(), 'game.wasm');
+  assert.equal(gunzipSync(fs.readFileSync(path.join(first, `assets/${hash}/game.wasm.gz`))).toString(), 'game.wasm');
   assert.ok(fs.existsSync(path.join(first, '404.html')));
+  assert.match(fs.readFileSync(path.join(first, `assets/${hash}/game.js`), 'utf8'), /game\.wasm\.gz/);
+  assert.doesNotMatch(fs.readFileSync(path.join(first, '_headers'), 'utf8'), /Content-Encoding/);
   assert.match(fs.readFileSync(path.join(first, '_headers'), 'utf8'), /immutable/);
   assert.equal(packagePages(source, path.join(root, 'same')), hash);
   fs.writeFileSync(path.join(source, 'wasm_exec.js'), 'new runtime');
