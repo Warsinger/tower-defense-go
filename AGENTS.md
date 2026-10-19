@@ -1,7 +1,7 @@
 # Project workflow
 
 - For issue work, use a dedicated branch and create a GitHub pull request targeting `main`; do not push issue implementation directly to `main`.
-- Link the relevant issue in the PR, using a closing reference when the PR completes its scope.
+- Link the relevant issue and PR in GitHub's Development sidebar, not only through a comment or a plain cross-reference. Use a closing reference such as `Closes #10` when the PR completes the issue scope, and verify the PR's `closingIssuesReferences` includes the issue before handoff.
 - Automatically assign every issue and pull request you create to `Warsinger`.
 - Request a review from `Warsinger` on every new pull request, in addition to assigning it to that account.
 - Apply appropriate issue labels. Use `dependencies` for dependency/toolchain work and `build-and-release` for CI, builds, packaging, and releases. Use `priority: high`, `priority: medium`, or `priority: low` when the user explicitly prioritizes the work; do not infer urgency from task order alone.
