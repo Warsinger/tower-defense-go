@@ -51,7 +51,11 @@ otherwise missing projects fail. It does not alter plans or enable other service
 main revisions and stale/closed/fork PR previews fail before upload. GitHub may
 replace an older pending job with a newer one; rerun explicitly if needed.
 
-On success, **Open the game** appears in the Actions summary. Record the exact
+On success, **Open the game** appears as a clickable link in the Actions summary.
+For a preview, GitHub Actions also creates one marked **Browser preview** PR
+comment with **Play Tower Defense**, the revision, and the workflow link. Later
+deployments update that same bot-owned comment instead of adding a stream of
+comments; an identical result is a no-op. Record the exact
 deployment URL, revision, browser/OS, and verification results in the PR/issue.
 Until the workflow changes are merged, manual dispatch on the implementation
 branch is used for preview validation; production publishing begins only after
