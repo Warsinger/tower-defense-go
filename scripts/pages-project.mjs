@@ -1,5 +1,5 @@
 export async function pagesProject(fetcher, base, headers, allowCreate) {
-  const project = 'tower-defense-go';
+  const project = 'tower-def';
   let operation = 'lookup';
   let response = await fetcher(`${base}/${project}`, { headers });
   if (response.status === 404 && allowCreate) {
@@ -16,7 +16,7 @@ export async function pagesProject(fetcher, base, headers, allowCreate) {
   }
   const result = await response.json();
   if (!result.success || result.result?.name !== project || result.result.production_branch !== 'main' || result.result.source) {
-    throw new Error('Expected the tower-defense-go Direct Upload project with production branch main');
+    throw new Error('Expected the tower-def Direct Upload project with production branch main');
   }
   return result.result;
 }

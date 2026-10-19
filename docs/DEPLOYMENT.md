@@ -1,16 +1,15 @@
 # Cloudflare Pages deployment
 
 Agreed target: the same Cloudflare account as math-visualization, free Pages
-Direct Upload project `tower-defense-go`, production branch `main`. The actual
-assigned `pages.dev` hostname is read from the project API and printed in the
-workflow summary. Do not buy a domain, enable a paid plan, Functions, Workers,
+Direct Upload project `tower-def`, production branch `main`. The assigned hostname is **https://tower-def.pages.dev/**; the workflow verifies
+that exact hostname before publishing. Do not buy a domain, enable a paid plan, Functions, Workers,
 R2, or another backend. Report a free-tier limit rather than enabling billing.
 
 ## Owner setup
 
 1. Either enable **create_project** on an explicit manual deployment to create
    only the approved project if missing, or in the existing Cloudflare account create a **Pages Direct Upload** project
-   named `tower-defense-go` with production branch `main`. Do not connect a
+   named `tower-def` with production branch `main`. Do not connect a
    second Cloudflare Git build. Confirm the assigned hostname.
 2. Install repository Actions secrets `CLOUDFLARE_ACCOUNT_ID` and
    `CLOUDFLARE_API_TOKEN` in this repository. Use an expiring token with only

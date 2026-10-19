@@ -3,7 +3,7 @@ import { deploymentBranch } from './pages-target.mjs';
 import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
-const project = 'tower-defense-go';
+const project = 'tower-def';
 const account = process.env.CLOUDFLARE_ACCOUNT_ID;
 const token = process.env.CLOUDFLARE_API_TOKEN;
 const repo = 'Warsinger/tower-defense-go';
@@ -25,7 +25,7 @@ const branch = await deploymentBranch(process.env, github);
 const config = await pagesProject(fetch, `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(account)}/pages/projects`,
   { Authorization: `Bearer ${token}` }, process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' && process.env.CREATE_PROJECT === 'true');
 const hostname = config.subdomain;
-if (!/^[a-z0-9-]+\.pages\.dev$/.test(hostname || '')) throw new Error('Unexpected Pages hostname');
+if (hostname !== 'tower-def.pages.dev') throw new Error('Unexpected Pages hostname');
 const version = JSON.parse(fs.readFileSync('build/pages/version.json', 'utf8'));
 if (version.revision !== sha) throw new Error('Artifact revision does not match the checked workflow revision');
 const command = process.platform === 'win32' ? 'npx.cmd' : 'npx';

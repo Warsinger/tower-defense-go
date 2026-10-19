@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { pagesProject } from './pages-project.mjs';
-const valid = { name: 'tower-defense-go', production_branch: 'main', source: null };
+const valid = { name: 'tower-def', production_branch: 'main', source: null };
 const result = () => new Response(JSON.stringify({ success: true, result: valid }));
 test('existing project requires no mutation', async () => {
   let calls = 0;
@@ -13,7 +13,7 @@ test('only explicit setup creates the exact missing Direct Upload project', asyn
   await pagesProject(async (_, options) => {
     if (++calls === 1) return new Response('', { status: 404 });
     assert.equal(options.method, 'POST');
-    assert.deepEqual(JSON.parse(options.body), { name: 'tower-defense-go', production_branch: 'main' });
+    assert.deepEqual(JSON.parse(options.body), { name: 'tower-def', production_branch: 'main' });
     return result();
   }, 'https://example.test/projects', {}, true);
   assert.equal(calls, 2);
