@@ -8,7 +8,8 @@ R2, or another backend. Report a free-tier limit rather than enabling billing.
 
 ## Owner setup
 
-1. In the existing Cloudflare account, create a **Pages Direct Upload** project
+1. Either enable **create_project** on an explicit manual deployment to create
+   only the approved project if missing, or in the existing Cloudflare account create a **Pages Direct Upload** project
    named `tower-defense-go` with production branch `main`. Do not connect a
    second Cloudflare Git build. Confirm the assigned hostname.
 2. Install repository Actions secrets `CLOUDFLARE_ACCOUNT_ID` and
@@ -46,8 +47,8 @@ removed in Cloudflare; automatic PR-close cleanup is not included in this issue.
 
 The publishing job downloads the already tested bundle, checks its source SHA,
 validates the exact project and its Direct Upload/main configuration, and uses
-pinned Wrangler 4.151.1. It does not create projects, alter plans, or enable
-services. Publishing jobs share a non-cancelling concurrency group. Superseded
+pinned Wrangler 4.151.1. It creates the exact approved project only when explicit manual setup is enabled;
+otherwise missing projects fail. It does not alter plans or enable other services. Publishing jobs share a non-cancelling concurrency group. Superseded
 main revisions and stale/closed/fork PR previews fail before upload. GitHub may
 replace an older pending job with a newer one; rerun explicitly if needed.
 

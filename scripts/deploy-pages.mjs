@@ -1,3 +1,4 @@
+import { pagesProject } from './pages-project.mjs';
 import { deploymentBranch } from './pages-target.mjs';
 import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -21,15 +22,9 @@ async function github(endpoint) {
 
 const branch = await deploymentBranch(process.env, github);
 
-const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(account)}/pages/projects/${project}`, {
-  headers: { Authorization: `Bearer ${token}` },
-});
-if (!response.ok) throw new Error(`Cloudflare project access failed: HTTP ${response.status}`);
-const result = await response.json();
-if (!result.success || result.result?.name !== project || result.result.production_branch !== 'main' || result.result.source) {
-  throw new Error('Expected the tower-defense-go Direct Upload project with production branch main');
-}
-const hostname = result.result.subdomain;
+const config = await pagesProject(fetch, `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(account)}/pages/projects`,
+  { Authorization: `Bearer ${token}` }, process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' && process.env.CREATE_PROJECT === 'true');
+const hostname = config.subdomain;
 if (!/^[a-z0-9-]+\.pages\.dev$/.test(hostname || '')) throw new Error('Unexpected Pages hostname');
 const version = JSON.parse(fs.readFileSync('build/pages/version.json', 'utf8'));
 if (version.revision !== sha) throw new Error('Artifact revision does not match the checked workflow revision');
