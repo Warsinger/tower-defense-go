@@ -17,7 +17,7 @@ test('release paths bind launcher, runtime, and Wasm; changed assets change URLs
   const icons = ['favicon.ico', 'icon-16.png', 'icon-32.png', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
   for (const name of ['game.html', 'launcher.js', 'game.js', 'wasm_exec.js', 'game.wasm', ...icons]) fs.writeFileSync(path.join(source, name), name);
   fs.writeFileSync(path.join(source, 'game.js'), 'fetch("game.wasm")');
-  fs.writeFileSync(path.join(source, 'index.html'), '<script src="launcher.js"></script><link rel="icon" href="icon-32.png">');
+  fs.writeFileSync(path.join(source, 'index.html'), '<script src=></script><link rel="icon" href="icon-32.png">');
   const first = path.join(root, 'first');
   const hash = packagePages(source, first, 'abc');
   assert.match(fs.readFileSync(path.join(first, 'index.html'), 'utf8'), new RegExp(`assets/${hash}/launcher.js`));
