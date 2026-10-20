@@ -63,6 +63,11 @@ func build() error {
 			return err
 		}
 	}
+	for _, name := range []string{"favicon.ico", "icon-16.png", "icon-32.png", "icon-180.png", "icon-192.png", "icon-512.png"} {
+		if err := copyFile(filepath.Join("assets", "icons", name), filepath.Join("build/web", name)); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
