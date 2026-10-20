@@ -65,7 +65,7 @@ an authorized merge and successful main checks.
 
 All launcher, game JavaScript, Go runtime JavaScript, playfield HTML, and Wasm
 bytes contribute to a single SHA-256 asset directory. The root HTML points to
-that directory; its launcher resolves the playfield within the same directory.
+that directory; its iframe immediately loads the playfield from the same directory.
 The game loads its matching runtime and Wasm from there. Root HTML revalidates;
 versioned assets are immutable for one year. A root 404 page prevents missing
 assets from falling back to the game's HTML. No cross-origin isolation is needed.

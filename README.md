@@ -18,7 +18,7 @@ Linux requires the graphics/audio development libraries and a display described 
 
 ## Browser preview
 
-Run `go run ./cmd/web -serve`, open <http://localhost:8080>, and select **Launch game**. See [Browser preview](docs/BROWSER.md) for build commands, score storage, controls, and limitations.
+Run `go run ./cmd/web -serve` and open <http://localhost:8080>. The game loads automatically; press Space or select **Start Game** on its title screen to play. See [Browser preview](docs/BROWSER.md) for build commands, score storage, controls, and limitations.
 
 Cloudflare setup, publishing, and rollback: [Deployment guide](docs/DEPLOYMENT.md).
 

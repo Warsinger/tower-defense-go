@@ -58,7 +58,7 @@ func build() error {
 	if err := copyFile(runtime, "build/web/wasm_exec.js"); err != nil {
 		return err
 	}
-	for _, name := range []string{"index.html",  "game.html", "game.js"} {
+	for _, name := range []string{"index.html", "launcher.js", "game.html", "game.js"} {
 		if err := copyFile(filepath.Join("web", name), filepath.Join("build/web", name)); err != nil {
 			return err
 		}

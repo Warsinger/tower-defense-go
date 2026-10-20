@@ -30,6 +30,12 @@ Open `coverage.html` in a browser to inspect uncovered lines. `coverage-summary.
 
 `go run ./cmd/web` builds the Wasm bundle and matching Go runtime support. `go run ./cmd/web -serve` serves it locally for graphical checks. See [Browser preview](BROWSER.md) for the manual checklist. CI builds/uploads the bundle; it does not run browser UI tests. Native score persistence has a temporary-directory save/load round-trip test.
 
+`node --test scripts/*.test.mjs` checks browser startup messages and packages the
+real HTML/JavaScript templates with fixture Wasm/runtime bytes. It verifies the
+automatically loaded iframe, runtime script order, absence of recursive frames,
+and that all local and versioned script/frame/icon references exist. Graphical
+gameplay still needs the manual browser check above.
+
 ## Coverage Tracking
 
 Coverage is tracked with Go's built-in coverage tools and GitHub Actions only. The `Coverage` workflow job:

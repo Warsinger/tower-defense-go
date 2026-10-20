@@ -1,7 +1,13 @@
-
-  <p>Protect your base. Place towers, heal them, and upgrade your defenses.</p>
-  <p id="status" role="status" aria-live="polite">Ready to launch. Sound starts after you interact with the game.</p>
-  <iframe id="game" title="Tower Defense game" allow="autoplay; fullscreen" src="game.html"></iframe>
-  <p>Click inside the game to focus. Space/P: pause · R: return to title · H: heal · U: upgrade · S: sound.<br>
-  Scores save in this browser when you return to the title with R. If storage is blocked, scores last for this session only.<br>
-  Single-player desktop browser preview. Multiplayer is available in the native app.</p>
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tower Defense playfield</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="icon-16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="icon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icon-180.png" sizes="180x180">
+<style>html,body { margin:0; width:100%; height:100%; overflow:hidden; background:black; }</style>
+<script src="wasm_exec.js"></script>
+<script src="game.js"></script>
+</html>
