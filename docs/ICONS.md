@@ -25,6 +25,9 @@ The native window manager receives 32, 48 and 256 pixel icons through
 - macOS: extract the `.tar.gz` and launch `Tower Defense.app` for the Finder/Dock
   icon. The standalone executable is also retained. Bundles are unsigned and
   not notarized; this change does not add a signing/distribution service.
+  The bundle launcher uses `~/Library/Application Support/Tower Defense` as its
+  working directory so Finder launches can save `score/stats.txt`. Existing CLI
+  scores are not moved; the standalone executable keeps its existing behavior.
 - Linux: the archive contains the executable, desktop entry, PNG and installation
   instructions. Install those into the documented user directories to show the
   launcher icon. Window/taskbar behavior depends on the desktop environment.

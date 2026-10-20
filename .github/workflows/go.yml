@@ -139,6 +139,7 @@ jobs:
         run: |
           plutil -lint 'build/package-${{ matrix.artifact }}/Tower Defense.app/Contents/Info.plist'
           iconutil -c iconset assets/icons/tower-defense.icns -o build/verified.iconset
+          sh -n 'build/package-${{ matrix.artifact }}/Tower Defense.app/Contents/MacOS/launch'
 
       - name: Validate Linux desktop entry
         if: runner.os == 'Linux'

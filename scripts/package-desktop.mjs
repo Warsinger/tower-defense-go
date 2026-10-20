@@ -14,6 +14,17 @@ export function packageDesktop(target, binary, output = 'build', icons = 'assets
     fs.mkdirSync(path.join(contents, 'Resources'));
     fs.copyFileSync(binary, path.join(contents, 'MacOS', 'tower-defense'));
     fs.chmodSync(path.join(contents, 'MacOS', 'tower-defense'), 0o755);
+    // Finder does not provide a writable working directory. Keep the existing
+    // relative score storage in a stable user directory without changing CLI runs.
+    const launcher = path.join(contents, 'MacOS', 'launch');
+    fs.writeFileSync(launcher, `#!/bin/sh
+set -eu
+bundle_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+mkdir -p "$HOME/Library/Application Support/Tower Defense"
+cd "$HOME/Library/Application Support/Tower Defense"
+exec "$bundle_dir/tower-defense" "$@"
+`);
+    fs.chmodSync(launcher, 0o755);
     fs.copyFileSync(path.join(icons, 'tower-defense.icns'), path.join(contents, 'Resources', 'tower-defense.icns'));
     fs.writeFileSync(path.join(contents, 'Info.plist'), `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -21,7 +32,7 @@ export function packageDesktop(target, binary, output = 'build', icons = 'assets
 <key>CFBundleName</key><string>Tower Defense</string>
 <key>CFBundleDisplayName</key><string>Tower Defense</string>
 <key>CFBundleIdentifier</key><string>io.github.warsinger.tower-defense</string>
-<key>CFBundleExecutable</key><string>tower-defense</string>
+<key>CFBundleExecutable</key><string>launch</string>
 <key>CFBundleIconFile</key><string>tower-defense.icns</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>NSHighResolutionCapable</key><true/>

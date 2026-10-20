@@ -24,6 +24,8 @@ test('desktop archives include the actual binary and platform icon metadata', t 
       const contents = path.join(folder, 'Tower Defense.app', 'Contents');
       assert.equal(fs.readFileSync(path.join(contents, 'MacOS', 'tower-defense'), 'utf8'), 'fixture executable');
       assert.match(fs.readFileSync(path.join(contents, 'Info.plist'), 'utf8'), /CFBundleIconFile<\/key><string>tower-defense.icns/);
+      assert.match(fs.readFileSync(path.join(contents, 'Info.plist'), 'utf8'), /CFBundleExecutable<\/key><string>launch/);
+      assert.match(fs.readFileSync(path.join(contents, 'MacOS', 'launch'), 'utf8'), /Library\/Application Support\/Tower Defense/);
     } else {
       assert.match(listing, /tower-defense.desktop/);
       assert.equal(fs.readFileSync(path.join(folder, 'tower-defense'), 'utf8'), 'fixture executable');
