@@ -121,14 +121,39 @@ jobs:
         run: mkdir -p build
         shell: bash
 
+      - name: Verify Windows icon resource
+        if: runner.os == 'Windows'
+        run: |
+          go run github.com/akavel/rsrc@v0.10.2 -arch amd64 -ico assets/icons/favicon.ico -o resource_windows_amd64.syso
+          git diff --exit-code -- resource_windows_amd64.syso
+
       - name: Build binary
         run: go build -v -o ${{ matrix.binary }}
+
+      - name: Package desktop icon integration
+        if: runner.os != 'Windows'
+        run: node scripts/package-desktop.mjs ${{ matrix.artifact }} ${{ matrix.binary }}
+
+      - name: Validate macOS bundle metadata and icon
+        if: runner.os == 'macOS'
+        run: |
+          plutil -lint 'build/package-${{ matrix.artifact }}/Tower Defense.app/Contents/Info.plist'
+          iconutil -c iconset assets/icons/tower-defense.icns -o build/verified.iconset
+          sh -n 'build/package-${{ matrix.artifact }}/Tower Defense.app/Contents/MacOS/launch'
+
+      - name: Validate Linux desktop entry
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y desktop-file-utils
+          desktop-file-validate build/package-${{ matrix.artifact }}/tower-defense.desktop
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
           name: tower-defense-${{ matrix.artifact }}
-          path: ${{ matrix.binary }}
+          path: |
+            ${{ matrix.binary }}
+            build/tower-defense-${{ matrix.artifact }}.tar.gz
           if-no-files-found: error
 
   browser:
@@ -142,8 +167,12 @@ jobs:
           cache: true
       - name: Test browser storage fallback
         run: node scripts/test-browser-storage.mjs
+      - name: Verify generated icons
+        run: |
+          go run ./cmd/icons
+          git diff --exit-code -- assets/icons
       - name: Test Pages packaging
-        run: node --test scripts/package-pages.test.mjs scripts/pages-target.test.mjs scripts/pages-project.test.mjs scripts/game-loader.test.mjs scripts/preview-comment.test.mjs
+        run: node --test scripts/*.test.mjs
       - name: Build browser bundle
         run: go run ./cmd/web
       - name: Package versioned Pages assets

@@ -30,6 +30,10 @@ Cloudflare setup, publishing, and rollback: [Deployment guide](docs/DEPLOYMENT.m
 
 ## Graphics assets
 
+Web and desktop icons use the original high-resolution LEGO tower photo on a light
+background. See [Icon assets and desktop packages](docs/ICONS.md) for regeneration
+and platform installation instructions.
+
 Graphics and sounds by Matt. Nathan created the Lego builds that were used for the assets. I took pictures of the ships and used the iPhone foreground cutting tool and some recoloration to create the spites. Then I shrunk them down to appropriate size.
 
 ### Creeps

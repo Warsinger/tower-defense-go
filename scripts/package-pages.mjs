@@ -5,7 +5,8 @@ import { gzipSync } from 'node:zlib';
 import { pathToFileURL } from 'node:url';
 
 export function packagePages(source, destination, revision = 'local') {
-  const names = ['game.html', 'launcher.js', 'game.js', 'wasm_exec.js', 'game.wasm'];
+  const icons = ['favicon.ico', 'icon-16.png', 'icon-32.png', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
+  const names = ['game.html', 'launcher.js', 'game.js', 'wasm_exec.js', 'game.wasm', ...icons];
   const files = new Map(names.map(name => [name, fs.readFileSync(path.join(source, name))]));
   files.set('game.wasm.gz', gzipSync(files.get('game.wasm'), { level: 9 }));
   files.delete('game.wasm');
@@ -23,9 +24,11 @@ export function packagePages(source, destination, revision = 'local') {
   const assets = path.join(destination, 'assets', hash);
   fs.mkdirSync(assets, { recursive: true });
   for (const [name, content] of files) fs.writeFileSync(path.join(assets, name), content);
-  const index = fs.readFileSync(path.join(source, 'index.html'), 'utf8');
+  let index = fs.readFileSync(path.join(source, 'index.html'), 'utf8');
   if (!index.includes('src="launcher.js"')) throw new Error('Launcher reference missing');
+  for (const icon of icons) index = index.replaceAll(`href="${icon}"`, `href="assets/${hash}/${icon}"`);
   fs.writeFileSync(path.join(destination, 'index.html'), index.replace('src="launcher.js"', `src="assets/${hash}/launcher.js"`));
+  fs.writeFileSync(path.join(destination, 'favicon.ico'), files.get('favicon.ico'));
   fs.writeFileSync(path.join(destination, '404.html'), '<!doctype html><title>Not found</title><h1>Not found</h1><p>Reload the game from its home page.</p>');
   fs.writeFileSync(path.join(destination, '_headers'), `/*\n  X-Content-Type-Options: nosniff\n/\n  Cache-Control: no-cache\n/index.html\n  Cache-Control: no-cache\n/version.json\n  Cache-Control: no-cache\n/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n/assets/${hash}/game.wasm.gz\n  Content-Type: application/gzip\n`);
   fs.writeFileSync(path.join(destination, 'version.json'), JSON.stringify({ revision, assets: `assets/${hash}` }) + '\n');

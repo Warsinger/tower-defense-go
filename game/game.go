@@ -2,6 +2,7 @@ package game
 
 import (
 	"tower-defense/assets"
+	"tower-defense/assets/icons"
 	"tower-defense/config"
 	"tower-defense/network"
 	"tower-defense/platform"
@@ -34,6 +35,13 @@ func NewGame(width, height, speed int, startingTowerLevel int, debug, computer, 
 	}
 
 	ebiten.SetWindowTitle("Tower Defense")
+	if !platform.Browser {
+		windowIcons, err := icons.Images()
+		if err != nil {
+			return nil, err
+		}
+		ebiten.SetWindowIcon(windowIcons)
+	}
 
 	gameStats := comp.LoadStats()
 

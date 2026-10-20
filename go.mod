@@ -8,6 +8,7 @@ require (
 	github.com/leap-fish/necs v0.0.4
 	github.com/yohamta/donburi v1.15.8
 	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e
+	golang.org/x/image v0.47.0
 	nhooyr.io/websocket v1.8.17
 )
 
@@ -25,7 +26,6 @@ require (
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/stretchr/objx v0.8.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
-	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
