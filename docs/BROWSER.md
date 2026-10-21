@@ -1,8 +1,8 @@
 # Browser preview
 
 The desktop browser version reuses the native Go/Ebitengine game and embedded
-assets. This initial version supports single-player gameplay only. Cloudflare
-hosting is tracked separately in issue #10.
+assets. This version supports single-player gameplay only. See [Deployment](DEPLOYMENT.md)
+for Cloudflare hosting.
 
 ## Build and run locally
 
@@ -12,8 +12,9 @@ Install the Go version in `go.mod` (currently Go 1.27.2). From the repository ro
 go run ./cmd/web -serve
 ```
 
-Open <http://localhost:8080>, select **Launch game**, then click inside the game
-to focus it. Press Space or click Start Game. Stop the local server with Ctrl+C.
+Open <http://localhost:8080>. The game loads directly on the page with instructions
+below the playfield and no separate launch step. Press Space or click Start Game
+on the game's title screen. Click inside the game if it needs focus. Stop the local server with Ctrl+C.
 Use `-port 8081` to choose another port. The server binds only to this computer
 and disables caching for local development. Do not open the HTML through `file://`.
 
@@ -39,7 +40,7 @@ cross-compilation target in the parent shell.
 - Click the playfield to focus input. Space and arrow keys do not scroll while
   the game has focus. Browser shortcuts remain browser shortcuts.
 - Audio requires a user interaction inside the game; browser/site mute settings
-  still apply. The launch button alone may not unlock audio in every browser.
+  still apply. Automatic loading does not unlock audio by itself.
 - Game Options retains debug/grid settings. Native server/client controls are
   unavailable; browser hosting of a WebSocket server and native peer discovery
   are outside this milestone. The native networking/viewer paths are unchanged.
