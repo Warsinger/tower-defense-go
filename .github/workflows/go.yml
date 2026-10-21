@@ -11,10 +11,6 @@ on:
         description: Publish this revision (main production; other branches require preview_pr)
         type: boolean
         default: false
-      create_project:
-        description: Create the approved free Direct Upload project if missing
-        type: boolean
-        default: false
       preview_pr:
         description: Open same-repository PR number for a manual preview
         type: string
@@ -188,31 +184,19 @@ jobs:
     name: Deploy Cloudflare Pages
     needs: [coverage, build, browser]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.deploy)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    concurrency:
-      group: cloudflare-tower-defense-go
-      cancel-in-progress: false
+    uses: Warsinger/cloudflare-pages-deploy/.github/workflows/pages.yml@8c5e23604919f8d049d0a8630c61827e409f5304
     permissions:
       contents: read
       pull-requests: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-      - uses: actions/download-artifact@v8
-        with:
-          name: tower-defense-web
-          path: build/pages
-      - name: Validate project and publish static bundle
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          GITHUB_TOKEN: ${{ github.token }}
-          CREATE_PROJECT: ${{ inputs.create_project }}
-          PREVIEW_PR: ${{ inputs.preview_pr }}
-          WRANGLER_SEND_METRICS: 'false'
-        run: node scripts/deploy-pages.mjs
+      deployments: write
+    with:
+      deployment-ref: 8c5e23604919f8d049d0a8630c61827e409f5304
+      artifact-name: tower-defense-web
+      project-name: tower-def
+      hostname: tower-def.pages.dev
+      title: Tower Defense
+      preview-pr: ${{ inputs.preview_pr }}
+      comment-marker: '<!-- tower-defense-preview -->'
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
