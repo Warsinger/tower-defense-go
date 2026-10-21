@@ -7,8 +7,7 @@ R2, or another backend. Report a free-tier limit rather than enabling billing.
 
 ## Owner setup
 
-1. Either enable **create_project** on an explicit manual deployment to create
-   only the approved project if missing, or in the existing Cloudflare account create a **Pages Direct Upload** project
+1. In the existing Cloudflare account, create a **Pages Direct Upload** project
    named `tower-def` with production branch `main`. Do not connect a
    second Cloudflare Git build. Confirm the assigned hostname.
 2. Install repository Actions secrets `CLOUDFLARE_ACCOUNT_ID` and
@@ -46,14 +45,13 @@ removed in Cloudflare; automatic PR-close cleanup is not included in this issue.
 
 The publishing job downloads the already tested bundle, checks its source SHA,
 validates the exact project and its Direct Upload/main configuration, and uses
-pinned Wrangler 4.151.1. It creates the exact approved project only when explicit manual setup is enabled;
-otherwise missing projects fail. It does not alter plans or enable other services. Publishing jobs share a non-cancelling concurrency group. Superseded
+pinned Wrangler 4.151.1. Missing projects fail; create/recover them explicitly through the dashboard. It does not alter plans or enable other services. Publishing jobs share a non-cancelling concurrency group. Superseded
 main revisions and stale/closed/fork PR previews fail before upload. GitHub may
 replace an older pending job with a newer one; rerun explicitly if needed.
 
-On success, **Open the game** appears as a clickable link in the Actions summary.
+On success, the official action writes deployment links to the Actions summary.
 For a preview, GitHub Actions also creates one marked **Browser preview** PR
-comment with **Play Tower Defense**, the revision, and the workflow link. Later
+comment with **Open Tower Defense**, the revision, and the workflow link. Later
 deployments update that same bot-owned comment instead of adding a stream of
 comments; an identical result is a no-op. Record the exact
 deployment URL, revision, browser/OS, and verification results in the PR/issue.
@@ -106,3 +104,10 @@ References: [Direct Upload CI](https://developers.cloudflare.com/pages/how-to/us
 [Pages limits](https://developers.cloudflare.com/pages/platform/limits/),
 [headers](https://developers.cloudflare.com/pages/configuration/headers/),
 [rollbacks](https://developers.cloudflare.com/pages/configuration/rollbacks/).
+
+## Shared deployment implementation
+
+Deployment validation, uploading, preview comments and their tests live in
+[cloudflare-pages-deploy](https://github.com/Warsinger/cloudflare-pages-deploy).
+Both workflow and script checkout are pinned to the same reviewed commit; update
+both references together. App builds, packaging and browser tests stay here.
