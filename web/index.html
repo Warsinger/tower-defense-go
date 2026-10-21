@@ -16,6 +16,10 @@
   iframe { display: block; border: 1px solid #596c80; margin: 16px auto; width: min(600px, 100%); aspect-ratio: 3 / 4; background: black; }
   #status[data-error="true"] { color: #ffb6b6; }
   p { line-height: 1.5; }
+  .project-footer { box-sizing: border-box; flex: none; width: 100%; max-width: 900px; margin: 16px auto 0; padding: 16px; border-top: 1px solid #405163; color: #b9c8d4; font: 14px/1.6 system-ui, sans-serif; text-align: center; }
+  .project-footer a { color: #9adfff; text-underline-offset: 3px; }
+  .project-footer a:hover { text-decoration-thickness: 2px; }
+  .project-footer a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 2px; }
 </style>
 <main>
   <h1>Tower Defense</h1>
@@ -27,5 +31,9 @@
   Scores save in this browser when you return to the title with R. If storage is blocked, scores last for this session only.<br>
   Single-player desktop browser preview. Multiplayer is available in the native app.</p>
 </main>
+<footer class="project-footer">
+  More apps by Matt Lee.
+  <a href="https://eelwehttam.pages.dev/" target="_blank" rel="noopener noreferrer" aria-label="Explore all projects (opens in a new tab)">Explore all projects <span aria-hidden="true">↗</span></a>
+</footer>
 
 </html>

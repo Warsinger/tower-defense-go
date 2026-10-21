@@ -38,6 +38,7 @@ test('real HTML loads the playfield and runtime from one versioned release', t =
     for (const htmlPath of [path.join(folder, 'index.html'), gamePath]) {
       const html = fs.readFileSync(htmlPath, 'utf8');
       for (const [, reference] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
+        if (/^https:\/\//.test(reference)) continue;
         assert.ok(fs.existsSync(path.resolve(path.dirname(htmlPath), reference)), `missing ${reference}`);
       }
     }
