@@ -7,6 +7,7 @@ The owner prefers the newer footer used by Game of Life and Rover. This page fol
 - All apps: https://eelwehttam.pages.dev/
 - Source: https://github.com/Warsinger/tower-defense-go
 - Report an issue: https://github.com/Warsinger/tower-defense-go/issues
+- Credits below the links: Graphics and audio by Matt. LEGO builds by Nathan.
 
 Each link retains the existing safe new-tab behavior, with noopener/noreferrer and an accessible new-tab announcement, so navigation preserves the active app. Links remain underlined and have a visible keyboard focus outline. Keep existing attribution elsewhere; do not invent asset credits or licensing claims.
 
@@ -18,7 +19,8 @@ The footer stays in normal document flow outside the canvas/iframe. It may wrap 
 <footer class="project-footer">
   <a href="https://eelwehttam.pages.dev/" target="_blank" rel="noopener noreferrer" aria-label="All apps (opens in a new tab)">All apps</a> ·
   <a href="https://github.com/Warsinger/tower-defense-go" target="_blank" rel="noopener noreferrer" aria-label="Source (opens in a new tab)">Source</a> ·
-  <a href="https://github.com/Warsinger/tower-defense-go/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue (opens in a new tab)">Report an issue</a>
+  <a href="https://github.com/Warsinger/tower-defense-go/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue (opens in a new tab)">Report an issue</a><br>
+  Graphics and audio by Matt. LEGO builds by Nathan.
 </footer>
 ```
 
