@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 
 export function packagePages(source, destination, revision = 'local') {
   const icons = ['favicon.ico', 'icon-16.png', 'icon-32.png', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
-  const names = ['game.html', 'launcher.js', 'game.js', 'styles.css', 'shared/frame.mjs', 'shared/go-runtime.mjs', 'shared/embed.css', 'shared/footer.css', 'wasm_exec.js', 'game.wasm', ...icons];
+  const names = ['game.html', 'launcher.js', 'game.js', 'styles.css', 'shared/frame.mjs','shared/status.mjs', 'shared/go-runtime.mjs', 'shared/embed.css', 'shared/footer.css', 'wasm_exec.js', 'game.wasm', ...icons];
   const files = new Map(names.map(name => [name, fs.readFileSync(path.join(source, name))]));
   files.set('game.wasm.gz', gzipSync(files.get('game.wasm'), { level: 9 }));
   files.delete('game.wasm');
