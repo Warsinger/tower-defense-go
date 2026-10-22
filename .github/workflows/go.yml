@@ -161,6 +161,11 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Test browser storage fallback
         run: node scripts/test-browser-storage.mjs
       - name: Verify generated icons

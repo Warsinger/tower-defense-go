@@ -6,13 +6,13 @@ import { pathToFileURL } from 'node:url';
 
 export function packagePages(source, destination, revision = 'local') {
   const icons = ['favicon.ico', 'icon-16.png', 'icon-32.png', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
-  const names = ['game.html', 'launcher.js', 'game.js', 'wasm_exec.js', 'game.wasm', ...icons];
+  const names = ['game.html', 'launcher.js', 'game.js', 'styles.css', 'shared/frame.mjs', 'shared/go-runtime.mjs', 'shared/embed.css', 'shared/footer.css', 'wasm_exec.js', 'game.wasm', ...icons];
   const files = new Map(names.map(name => [name, fs.readFileSync(path.join(source, name))]));
   files.set('game.wasm.gz', gzipSync(files.get('game.wasm'), { level: 9 }));
   files.delete('game.wasm');
   const loader = files.get('game.js').toString();
-  if (!loader.includes('fetch("game.wasm")')) throw new Error('Wasm fetch reference missing');
-  files.set('game.js', Buffer.from(loader.replace('fetch("game.wasm")', 'fetch("game.wasm.gz")')));
+  if (!loader.includes("new URL('game.wasm', import.meta.url)")) throw new Error('Wasm fetch reference missing');
+  files.set('game.js', Buffer.from(loader.replace("new URL('game.wasm', import.meta.url)", "new URL('game.wasm.gz', import.meta.url)")));
   const digest = crypto.createHash('sha256');
   for (const [name, content] of files) {
     if (content.length > 25 * 1024 * 1024) throw new Error(`${name} exceeds the Pages 25 MiB asset limit`);
@@ -23,11 +23,14 @@ export function packagePages(source, destination, revision = 'local') {
   fs.mkdirSync(destination, { recursive: false });
   const assets = path.join(destination, 'assets', hash);
   fs.mkdirSync(assets, { recursive: true });
-  for (const [name, content] of files) fs.writeFileSync(path.join(assets, name), content);
+  for (const [name, content] of files) {
+    fs.mkdirSync(path.dirname(path.join(assets, name)), {recursive:true});
+    fs.writeFileSync(path.join(assets, name), content);
+  }
   let index = fs.readFileSync(path.join(source, 'index.html'), 'utf8');
-  for (const name of ['game.html', 'launcher.js']) {
-    if (!index.includes(`src="${name}"`)) throw new Error(`${name} reference missing`);
-    index = index.replaceAll(`src="${name}"`, `src="assets/${hash}/${name}"`);
+  for (const name of ['game.html', 'launcher.js', 'styles.css']) {
+    if (!index.includes(`"${name}"`)) throw new Error(`${name} reference missing`);
+    index = index.replaceAll(`"${name}"`, `"assets/${hash}/${name}"`);
   }
   for (const icon of icons) index = index.replaceAll(`href="${icon}"`, `href="assets/${hash}/${icon}"`);
   fs.writeFileSync(path.join(destination, 'index.html'), index);

@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "test": "node --test scripts/*.test.mjs"
+  },
+  "name": "tower-defense-web",
+  "type": "module",
+  "dependencies": {
+    "@warsinger/web-shared": "https://codeload.github.com/Warsinger/web-shared/tar.gz/c8683b3122fd16516df8455f50de1a34cf23e594"
+  },
+  "private": true
+}

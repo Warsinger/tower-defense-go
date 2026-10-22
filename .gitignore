@@ -6,3 +6,5 @@ build/
 coverage.out
 coverage-summary.txt
 coverage.html
+
+/node_modules/

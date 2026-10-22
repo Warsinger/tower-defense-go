@@ -111,3 +111,5 @@ Deployment validation, uploading, preview comments and their tests live in
 [cloudflare-pages-deploy](https://github.com/Warsinger/cloudflare-pages-deploy).
 Both workflow and script checkout are pinned to the same reviewed commit; update
 both references together. App builds, packaging and browser tests stay here.
+
+Before local browser packaging, run `npm ci --ignore-scripts` with Node 24+. The locked web-shared JS/CSS assets are included in the same immutable asset hash and upload as the game; changing shared source alone does not update a deployed app. CI installs that exact dependency without lifecycle scripts or an optional registry-audit request. No Cloudflare target, account or credential changes are needed.
