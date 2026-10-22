@@ -15,7 +15,7 @@ test('desktop archives include the actual binary and platform icon metadata', t 
   });
   const binary = path.join(root, 'binary');
   fs.writeFileSync(binary, 'fixture executable');
-  for (const target of ['linux-amd64', 'darwin-arm64', 'darwin-amd64']) {
+  for (const target of ['linux-amd64', 'darwin-arm64']) {
     const archive = packageDesktop(target, binary, root);
     const listing = execFileSync('tar', ['-tzf', archive], { encoding: 'utf8' });
     const folder = path.join(root, `package-${target}`);

@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 
 // Keep the standalone binary and add an archive that preserves Unix permissions.
 export function packageDesktop(target, binary, output = 'build', icons = 'assets/icons') {
-  if (!['linux-amd64', 'darwin-amd64', 'darwin-arm64'].includes(target)) throw new Error(`Unsupported desktop package: ${target}`);
+  if (!['linux-amd64', 'darwin-arm64'].includes(target)) throw new Error(`Unsupported desktop package: ${target}`);
   const root = path.join(output, `package-${target}`);
   fs.mkdirSync(root); // Refuse to overwrite an existing package.
   if (target.startsWith('darwin-')) {

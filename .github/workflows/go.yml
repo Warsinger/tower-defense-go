@@ -83,9 +83,6 @@ jobs:
           - os: macos-15
             artifact: darwin-arm64
             binary: build/tower-defense-darwin-arm64
-          - os: macos-15-intel
-            artifact: darwin-amd64
-            binary: build/tower-defense-darwin-amd64
     runs-on: ${{ matrix.os }}
 
     steps:

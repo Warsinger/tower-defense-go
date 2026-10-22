@@ -36,7 +36,7 @@ For a local macOS/Linux build, build the executable first, then run:
 
 ```sh
 node scripts/package-desktop.mjs darwin-arm64 build/tower-defense-darwin-arm64
-# Or darwin-amd64 / linux-amd64 with the matching native binary.
+# Or linux-amd64 with the matching native binary.
 ```
 
 Web builds include ICO, 16/32 pixel favicons, a 180 pixel Apple touch icon and
