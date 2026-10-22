@@ -45,7 +45,7 @@ test('real HTML loads the playfield and runtime from one versioned release', t =
       }
     }
   }
-  for (const file of ['frame.mjs','status.mjs','go-runtime.mjs','embed.css','footer.css']) assert.ok(fs.existsSync(path.join(first, 'assets', hash, 'shared', file)));
+  for (const file of ['frame.mjs','status.mjs','go-runtime.mjs','embed.css','header.css','footer.css']) assert.ok(fs.existsSync(path.join(first, 'assets', hash, 'shared', file)));
   assert.match(fs.readFileSync(path.join(first, 'assets', hash, 'shared/embed.css'), 'utf8'), /@import '.\/footer.css'/);
   assert.equal(gunzipSync(fs.readFileSync(path.join(first, `assets/${hash}/game.wasm.gz`))).toString(), 'game.wasm');
   assert.ok(fs.existsSync(path.join(first, '404.html')));

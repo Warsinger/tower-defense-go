@@ -5,7 +5,7 @@
   "name": "tower-defense-web",
   "type": "module",
   "dependencies": {
-    "@warsinger/web-shared": "https://codeload.github.com/Warsinger/web-shared/tar.gz/19f22bb1b3ee235117ec2904df42c29a34e81250"
+    "@warsinger/web-shared": "https://codeload.github.com/Warsinger/web-shared/tar.gz/3248eee3c0755eb828e62e1d8965844f722d74ee"
   },
   "private": true
 }

@@ -34,3 +34,7 @@ The footer stays in normal document flow outside the canvas/iframe. It may wrap 
 Verify all three destinations, keyboard focus, desktop/narrow wrapping and packaged output. The native app and inner runtime document do not need a website navigation footer.
 
 The simple embed uses shared/embed.css and shared/footer.css. The title/game instructions remain local HTML; shared/frame.mjs handles actual runtime readiness, trusted session messages and canvas focus. Rover uses the alternative settings layout from the same package. Keep both layouts optional and preserve the in-game start screen.
+
+## Shared page header
+
+Use the Rover/Game of Life header: a large left-aligned title, a short muted description underneath and All apps navigation at the far right. The shared header stylesheet keeps the link available on small screens; game controls and startup behavior are unchanged.
