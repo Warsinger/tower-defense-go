@@ -1,43 +1,34 @@
-# Shared web footer pattern
+# Compact shared footer
 
-Tower Defense #23 and math-visualization #74 use the same landing-page link design.
-For future pages, copy the small HTML/CSS pattern below into their own static
-entry point. Each repository owns its copy; no shared JavaScript, CDN stylesheet,
-fetch or new package is required to show the link. Coordinate changes through
-these issue references rather than tying independent deployments together.
+The owner prefers the newer footer used by Game of Life and Rover. This page follows that compact visual pattern: muted 12px text, left-aligned links, dot separators and no divider/promotional paragraph. Match the footer to the existing page container (900px here) rather than changing the app layout.
 
-## Content and behavior
+## Content
 
-- Place the footer after the app and instructions, outside the canvas/iframe.
-- Use “More apps by Matt Lee.” and “Explore all projects” consistently.
-- Link to `https://eelwehttam.pages.dev/`, not a preview or repository URL.
-- Open a new tab to preserve the active app's state. Announce that behavior to
-  screen readers and use `noopener noreferrer`.
-- Keep the link underlined, provide a visible keyboard focus outline, and allow
-  text to wrap at narrow widths. The arrow is decorative.
-- Keep the footer in normal document flow, never an overlay. `flex: none` keeps
-  it visible on full-height flex layouts such as Math Viz, whose canvas should
-  continue using `flex: 1; min-height: 0` for the remaining space.
+- All apps: https://eelwehttam.pages.dev/
+- Source: https://github.com/Warsinger/tower-defense-go
+- Report an issue: https://github.com/Warsinger/tower-defense-go/issues
+
+Each link retains the existing safe new-tab behavior, with noopener/noreferrer and an accessible new-tab announcement, so navigation preserves the active app. Links remain underlined and have a visible keyboard focus outline. Keep existing attribution elsewhere; do not invent asset credits or licensing claims.
+
+The footer stays in normal document flow outside the canvas/iframe. It may wrap on narrow screens. In Math Viz's full-height flex page, retain flex: none on the footer and flex: 1; min-height: 0 on the canvas so the footer does not cover plotting controls. Each repository owns this small static copy; no shared JavaScript, remote stylesheet, build dependency or coordinated deployment is needed.
+
+## Markup
 
 ```html
 <footer class="project-footer">
-  More apps by Matt Lee.
-  <a href="https://eelwehttam.pages.dev/" target="_blank" rel="noopener noreferrer" aria-label="Explore all projects (opens in a new tab)">Explore all projects <span aria-hidden="true">↗</span></a>
+  <a href="https://eelwehttam.pages.dev/" target="_blank" rel="noopener noreferrer" aria-label="All apps (opens in a new tab)">All apps</a> ·
+  <a href="https://github.com/Warsinger/tower-defense-go" target="_blank" rel="noopener noreferrer" aria-label="Source (opens in a new tab)">Source</a> ·
+  <a href="https://github.com/Warsinger/tower-defense-go/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue (opens in a new tab)">Report an issue</a>
 </footer>
 ```
 
-The initial dark-page style uses muted text, a subtle divider and a light blue
-link. Keep these rules consistent between the two apps; future light themes can
-adapt the palette while retaining the content, placement and keyboard behavior.
+## Styles
 
 ```css
-.project-footer { box-sizing: border-box; flex: none; width: 100%; max-width: 900px; margin: 16px auto 0; padding: 16px; border-top: 1px solid #405163; color: #b9c8d4; font: 14px/1.6 system-ui, sans-serif; text-align: center; }
-.project-footer a { color: #9adfff; text-underline-offset: 3px; }
+.project-footer { box-sizing: border-box; flex: none; width: 100%; max-width: 900px; margin: 0 auto; padding: 0 16px 24px; color: #8b9db4; font: 12px/1.7 system-ui, sans-serif; text-align: left; }
+.project-footer a { color: inherit; text-underline-offset: 4px; }
 .project-footer a:hover { text-decoration-thickness: 2px; }
 .project-footer a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 2px; }
 ```
 
-Before publishing, inspect the footer at desktop and narrow widths, reach the
-link using the keyboard, and verify it opens the landing page without replacing
-the active app. Check both local and packaged output. Native apps and internal
-runtime documents do not need this website navigation footer.
+Verify all three destinations, keyboard focus, desktop/narrow wrapping and packaged output. The native app and inner runtime document do not need a website navigation footer.
