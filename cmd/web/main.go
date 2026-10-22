@@ -35,6 +35,19 @@ func main() {
 }
 
 func build() error {
+	shared := filepath.Join("node_modules", "@warsinger", "web-shared", "browser")
+	if _, err := os.Stat(filepath.Join(shared, "frame.mjs")); err != nil {
+		return fmt.Errorf("shared web package unavailable; run npm ci --ignore-scripts first: %w", err)
+	}
+	if err := os.MkdirAll("build/web/shared", 0755); err != nil {
+		return err
+	}
+	for _, name := range []string{"frame.mjs", "status.mjs", "go-runtime.mjs", "embed.css", "header.css", "footer.css"} {
+		if err := copyFile(filepath.Join(shared, name), filepath.Join("build/web/shared", name)); err != nil {
+			return err
+		}
+	}
+
 	if err := os.MkdirAll("build/web", 0755); err != nil {
 		return err
 	}
@@ -58,7 +71,7 @@ func build() error {
 	if err := copyFile(runtime, "build/web/wasm_exec.js"); err != nil {
 		return err
 	}
-	for _, name := range []string{"index.html", "launcher.js", "game.html", "game.js"} {
+	for _, name := range []string{"index.html", "launcher.js", "game.html", "game.js", "styles.css"} {
 		if err := copyFile(filepath.Join("web", name), filepath.Join("build/web", name)); err != nil {
 			return err
 		}

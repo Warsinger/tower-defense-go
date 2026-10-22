@@ -7,24 +7,15 @@
 <link rel="icon" type="image/png" href="icon-16.png" sizes="16x16">
 <link rel="icon" type="image/png" href="icon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="icon-180.png" sizes="180x180">
-<script src="launcher.js"></script>
-<style>
-  * { box-sizing: border-box; }
-  body { margin: 0; background: #131a22; color: #dff4ff; font: 16px system-ui, sans-serif; text-align: center; }
-  main { max-width: 900px; margin: auto; padding: 16px; }
-  h1 { font-size: 1.25rem; margin: 0 0 8px; }
-  iframe { display: block; border: 1px solid #596c80; margin: 16px auto; width: min(600px, 100%); aspect-ratio: 3 / 4; background: black; }
-  #status[data-error="true"] { color: #ffb6b6; }
-  p { line-height: 1.5; }
-  .project-footer { box-sizing: border-box; flex: none; width: 100%; max-width: 900px; margin: 0 auto; padding: 0 16px 24px; color: #8b9db4; font: 12px/1.7 system-ui, sans-serif; text-align: left; }
-  .project-footer a { color: inherit; text-underline-offset: 4px; }
-  .project-footer a:hover { text-decoration-thickness: 2px; }
-  .project-footer a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 2px; }
-</style>
+<script type="module" src="launcher.js"></script>
+<link rel="stylesheet" href="styles.css">
+<header>
+  <div><h1>Tower Defense</h1><p>Build your defenses. Protect your base.</p></div>
+  <nav aria-label="App navigation"><a href="https://eelwehttam.pages.dev/">All apps ↗</a></nav>
+</header>
 <main>
-  <h1>Tower Defense</h1>
   <p id="status" role="status" aria-live="polite">Loading game…</p>
-  <iframe id="game" title="Tower Defense game" allow="autoplay; fullscreen" src="game.html"></iframe>
+  <iframe id="game" title="Tower Defense game" allow="autoplay; fullscreen" data-src="game.html"></iframe>
   <p>Protect your base. Click to place towers; hover a tower and press H to heal or U to upgrade.<br>
   Click inside the game to focus. Space/Start Game: start · Space/P: pause · R: return to title · S: sound.<br>
   Sound starts after you interact with the game.<br>

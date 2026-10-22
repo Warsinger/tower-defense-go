@@ -15,9 +15,10 @@ test('real HTML loads the playfield and runtime from one versioned release', t =
   });
   const source = path.join(root, 'source'); fs.mkdirSync(source);
   const icons = ['favicon.ico', 'icon-16.png', 'icon-32.png', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
-  for (const name of ['index.html', 'game.html', 'launcher.js', 'game.js']) {
+  for (const name of ['index.html', 'game.html', 'launcher.js', 'game.js', 'styles.css']) {
     fs.copyFileSync(new URL(`../web/${name}`, import.meta.url), path.join(source, name));
   }
+  fs.cpSync(new URL('../node_modules/@warsinger/web-shared/browser', import.meta.url), path.join(source, 'shared'), {recursive:true});
   for (const name of ['wasm_exec.js', 'game.wasm', ...icons]) fs.writeFileSync(path.join(source, name), name);
   const first = path.join(root, 'first');
   const hash = packagePages(source, first, 'abc');
@@ -25,16 +26,17 @@ test('real HTML loads the playfield and runtime from one versioned release', t =
   for (const folder of [source, first]) {
     const index = fs.readFileSync(path.join(folder, 'index.html'), 'utf8');
     assert.doesNotMatch(index, /id="launch"|Launch game|src="[^\"]*""/);
-    const frame = index.match(/<iframe\b[^>]*\bsrc="([^"]+)"[^>]*><\/iframe>/);
-    assert.ok(frame, 'one well-formed iframe loads automatically');
+    const frame = index.match(/<iframe\b[^>]*\bdata-src="([^"]+)"[^>]*><\/iframe>/);
+    assert.ok(frame, 'one well-formed iframe is started by the shared session launcher');
+    assert.doesNotMatch(index, /<iframe[^>]*\ssrc=/);
     assert.equal((index.match(/<iframe\b/g) || []).length, 1);
-    assert.ok(index.indexOf('src="' + (folder === source ? '' : `assets/${hash}/`) + 'launcher.js"') < index.indexOf('<iframe'), 'status listener loads before the iframe');
+    assert.ok(index.indexOf('src="' + (folder === source ? '' : `assets/${hash}/`) + 'launcher.js"') < index.indexOf('<iframe'), 'deferred module owns the session before iframe navigation');
     const gamePath = path.join(folder, frame[1]);
     assert.ok(fs.existsSync(gamePath), 'iframe target exists');
     assert.equal(path.basename(gamePath), 'game.html');
     const game = fs.readFileSync(gamePath, 'utf8');
     assert.doesNotMatch(game, /<iframe\b/);
-    assert.match(game, /<script src="wasm_exec.js"><\/script>\s*<script src="game.js"><\/script>/);
+    assert.match(game, /<script src="wasm_exec.js"><\/script>\s*<script type="module" src="game.js"><\/script>/);
     for (const htmlPath of [path.join(folder, 'index.html'), gamePath]) {
       const html = fs.readFileSync(htmlPath, 'utf8');
       for (const [, reference] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
@@ -43,6 +45,8 @@ test('real HTML loads the playfield and runtime from one versioned release', t =
       }
     }
   }
+  for (const file of ['frame.mjs','status.mjs','go-runtime.mjs','embed.css','header.css','footer.css']) assert.ok(fs.existsSync(path.join(first, 'assets', hash, 'shared', file)));
+  assert.match(fs.readFileSync(path.join(first, 'assets', hash, 'shared/embed.css'), 'utf8'), /@import '.\/footer.css'/);
   assert.equal(gunzipSync(fs.readFileSync(path.join(first, `assets/${hash}/game.wasm.gz`))).toString(), 'game.wasm');
   assert.ok(fs.existsSync(path.join(first, '404.html')));
   assert.match(fs.readFileSync(path.join(first, 'index.html'), 'utf8'), new RegExp(`href="assets/${hash}/icon-32.png"`));
@@ -52,6 +56,8 @@ test('real HTML loads the playfield and runtime from one versioned release', t =
   assert.doesNotMatch(fs.readFileSync(path.join(first, '_headers'), 'utf8'), /Content-Encoding/);
   assert.match(fs.readFileSync(path.join(first, '_headers'), 'utf8'), /immutable/);
   assert.equal(packagePages(source, path.join(root, 'same')), hash);
+  fs.appendFileSync(path.join(source, 'shared/footer.css'), '\n/* shared style update */');
+  assert.notEqual(packagePages(source, path.join(root, 'new-shared-style')), hash);
   fs.writeFileSync(path.join(source, 'icon-32.png'), 'new icon');
   assert.notEqual(packagePages(source, path.join(root, 'new-icon')), hash);
   fs.writeFileSync(path.join(source, 'wasm_exec.js'), 'new runtime');

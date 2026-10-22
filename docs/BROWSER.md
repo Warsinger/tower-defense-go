@@ -9,6 +9,7 @@ for Cloudflare hosting.
 Install the Go version in `go.mod` (currently Go 1.27.2). From the repository root:
 
 ```sh
+npm ci --ignore-scripts
 go run ./cmd/web -serve
 ```
 
@@ -21,14 +22,21 @@ and disables caching for local development. Do not open the HTML through `file:/
 To build without serving:
 
 ```sh
+npm ci --ignore-scripts
 go run ./cmd/web
 ```
 
 The static bundle is written to `build/web`. The command compiles for `js/wasm`
 and copies `wasm_exec.js` from the same Go installation used for compilation.
-No Node, Python, third-party build tool, backend, or hosting account is required.
+Node 24+ is required to install the pinned shared browser package. No backend or hosting account is required for local builds. Native builds remain independent of npm.
 The command must be run using native Go, without setting GOOS/GOARCH to a
 cross-compilation target in the parent shell.
+
+## Shared browser components
+
+The exact Warsinger/web-shared Git commit and integrity hash are locked in package-lock.json. cmd/web copies the shared frame lifecycle, Go loader, simple embed layout and footer stylesheet into build/web/shared/. Packaging hashes all these files alongside the game and icons; deployed pages make no cross-site script/style requests. Update the dependency through a reviewed consumer PR with npm install, committed lockfile, tests and a preview. Do not use a mutable branch dependency or edit node_modules.
+
+The outer page installs its session-validated listener before navigating the iframe, reports real Go readiness/errors and focuses the canvas. The existing towerDefenseReady callback is configured in the shared Go loader. The Go runtime is still copied from the exact compiling toolchain. The game's title/start screen, gameplay, settings, sound and browser-local score storage are unchanged. Common runtime/lifecycle tests live in web-shared; Tower retains bundle/icon/desktop packaging tests and the actual Go/Wasm storage harness.
 
 ## Controls and browser differences
 
@@ -67,7 +75,7 @@ Run `node scripts/test-browser-storage.mjs` (Node 22 or later) to exercise the a
 Go/Wasm storage functions with normal storage, a throwing localStorage property
 getter, throwing getItem/setItem methods, and missing storage. Each failure case
 must preserve an in-memory score round trip without terminating the runtime.
-Node is needed only for this regression harness, not to build or serve the game.
+Node also installs the shared browser assets before building or serving; the runtime does not fetch npm packages.
 
 The CI browser job runs this harness, builds and uploads the static bundle; it does not simulate
 graphical browser interaction. Test locally using the server procedure above.

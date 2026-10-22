@@ -191,3 +191,5 @@ Graphics and sounds by Matt. Nathan created the Lego builds that were used for t
 ## Network play
 
 Things to send over network: Position, Health, Creep, Player, Tower, Bullet (and render), Game.highScore, Attack (mainly for cooldown, also debug info), Sprite renders (maybe just image name), gameover/paused status
+
+Browser builds use Node 24+ and `npm ci --ignore-scripts` before `go run ./cmd/web`. Shared page styling and Go/Wasm lifecycle code come from the exact locked [web-shared](https://github.com/Warsinger/web-shared) revision, bundled with the app. See [browser development](docs/BROWSER.md). Native Go builds are unchanged.

@@ -28,13 +28,13 @@ Open `coverage.html` in a browser to inspect uncovered lines. `coverage-summary.
 
 ## Browser validation
 
-`go run ./cmd/web` builds the Wasm bundle and matching Go runtime support. `go run ./cmd/web -serve` serves it locally for graphical checks. See [Browser preview](BROWSER.md) for the manual checklist. CI builds/uploads the bundle; it does not run browser UI tests. Native score persistence has a temporary-directory save/load round-trip test.
+Run `npm ci --ignore-scripts` first (Node 24+) for the pinned shared assets. `go run ./cmd/web` builds the Wasm bundle and matching Go runtime support. `go run ./cmd/web -serve` serves it locally for graphical checks. See [Browser preview](BROWSER.md) for the manual checklist. CI builds/uploads the bundle; it does not run browser UI tests. Native score persistence has a temporary-directory save/load round-trip test.
 
-`node --test scripts/*.test.mjs` checks browser startup messages and packages the
+`node --test scripts/*.test.mjs` checks desktop packaging and packages the
 real HTML/JavaScript templates with fixture Wasm/runtime bytes. It verifies the
-automatically loaded iframe, runtime script order, absence of recursive frames,
+session-started iframe, module/runtime script order, absence of recursive frames,
 and that all local and versioned script/frame/icon references exist. Graphical
-gameplay still needs the manual browser check above.
+gameplay still needs the manual browser check above. Common readiness/error, source/origin/session filtering, raw/gzip loading and focus tests live in Warsinger/web-shared.
 
 ## Coverage Tracking
 
