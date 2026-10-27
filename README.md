@@ -4,7 +4,7 @@ Simple tower defense game.
 
 ## Build and test
 
-Install Go 1.27.2 or later, matching the version in `go.mod`. From the repository root:
+Install Go 1.27.3 or later, matching the version in `go.mod`. From the repository root:
 
 ```sh
 go mod download

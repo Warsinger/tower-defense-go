@@ -6,7 +6,7 @@ for Cloudflare hosting.
 
 ## Build and run locally
 
-Install the Go version in `go.mod` (currently Go 1.27.2). From the repository root:
+Install the Go version in `go.mod` (currently Go 1.27.3). From the repository root:
 
 ```sh
 npm ci --ignore-scripts
