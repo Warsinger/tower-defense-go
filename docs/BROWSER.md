@@ -64,6 +64,8 @@ Completed-run totals and high scores save to localStorage under
 scoped to the site origin, including port: changing host, port, or deployment URL
 starts a separate score history. Clearing site data removes browser scores.
 
+After the first storage failure, the game uses memory until the page reloads. This keeps older saved scores from replacing newer session scores when reads still work but writes fail.
+
 If storage reads/writes are blocked or fail, the game remains usable with scores
 in memory for the current page session and logs a warning in the browser console.
 No native score file is read, migrated, overwritten, or deleted by the browser.
@@ -73,7 +75,7 @@ No native score file is read, migrated, overwritten, or deleted by the browser.
 Run `go test ./...`, `go vet ./...`, `go build ./...`, and `go run ./cmd/web`.
 Run `node scripts/test-browser-storage.mjs` (Node 22 or later) to exercise the actual
 Go/Wasm storage functions with normal storage, a throwing localStorage property
-getter, throwing getItem/setItem methods, and missing storage. Each failure case
+getter, throwing getItem/setItem methods, missing storage, and a failed write with an older score still readable. Each failure case
 must preserve an in-memory score round trip without terminating the runtime.
 Node also installs the shared browser assets before building or serving; the runtime does not fetch npm packages.
 
