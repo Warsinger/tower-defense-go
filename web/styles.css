@@ -1,1 +1,9 @@
 @import './shared/embed.css';
+
+#game {
+  /* Keep the full portrait playfield visible on typical laptop and phone
+     viewports. On short windows, prefer a usable board that can scroll. */
+  --frame-width: clamp(240px, calc((100dvh - 240px) * 0.75), 600px);
+  border: 0;
+  outline: 1px solid #596c80;
+}
