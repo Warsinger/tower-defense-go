@@ -87,3 +87,8 @@ for errors. A successful Wasm build alone does not establish browser support.
 The implementation PR records the tested browser/OS and remaining limitations.
 Mobile/touch support, broad browser coverage, and automatic browser graphics tests
 remain follow-up work.
+
+The playfield keeps its 3:4 aspect ratio. Its width follows the available page
+width and viewport height, up to its 600-pixel logical width. Short windows
+can scroll to the full board. Resizing changes display size without reloading
+the game. Touch-specific controls are tracked separately in issue #14.
