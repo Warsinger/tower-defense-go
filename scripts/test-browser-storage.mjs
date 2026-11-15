@@ -18,14 +18,19 @@ function run(command, args, options = {}) {
 
 if (process.argv[2] === '--case') {
   const [, , , mode, wasm, runtime] = process.argv;
-  let stored = null;
+  const stale = mode === 'stale-after-write-failure';
+  let stored = stale ? 'HighScore=12\n' : null;
+  let reads = 0;
+  let writes = 0;
   const storage = {
     getItem() {
+      reads++;
       if (mode === 'getItem-throws') throw new Error('getItem blocked');
       return stored;
     },
     setItem(key, value) {
-      if (mode === 'setItem-throws') throw new Error('quota exceeded');
+      writes++;
+      if (mode === 'setItem-throws' || stale) throw new Error('quota exceeded');
       stored = value;
     },
   };
@@ -44,6 +49,9 @@ if (process.argv[2] === '--case') {
   await go.run(instance);
   if (exitCode !== 0) throw new Error(`${mode}: Go exited with ${exitCode}`);
   if (mode === 'normal' && stored !== 'HighScore=42\n') throw new Error('Normal persistence failed');
+  if (stale && (reads !== 1 || writes !== 1 || stored !== 'HighScore=12\n')) {
+    throw new Error('Session fallback retried persistent storage or replaced the saved score');
+  }
   console.log(`PASS ${mode}`);
 } else {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'tower-storage-test-'));
@@ -55,6 +63,7 @@ if (process.argv[2] === '--case') {
 func main() {
   if _, err := readStats(); err != nil { panic(err) }
   if err := writeStats([]byte("HighScore=42\\n")); err != nil { panic(err) }
+  if err := writeStats([]byte("HighScore=42\\n")); err != nil { panic(err) }
   data, err := readStats()
   if err != nil { panic(err) }
   if string(data) != "HighScore=42\\n" { panic("score round trip failed") }
@@ -65,7 +74,7 @@ func main() {
     run('go', ['build', '-o', wasm, path.join(temp, 'main.go'), path.join(temp, 'storage_js.go')], { env });
     const goRoot = run('go', ['env', 'GOROOT']);
     const runtime = path.join(goRoot, 'lib', 'wasm', 'wasm_exec.js');
-    for (const mode of ['normal', 'getter-throws', 'getItem-throws', 'setItem-throws', 'missing-storage']) {
+    for (const mode of ['normal', 'getter-throws', 'getItem-throws', 'setItem-throws', 'missing-storage', 'stale-after-write-failure']) {
       console.log(run(process.execPath, [fileURLToPath(import.meta.url), '--case', mode, wasm, runtime]));
     }
   } finally {

@@ -10,6 +10,7 @@ import (
 const browserStatsKey = "tower-defense.stats.v1"
 
 var sessionStats []byte
+var sessionOnly bool
 
 // Storage can be unavailable in private sessions or when site storage is blocked.
 // Keep the current session usable and never touch the native score file.
@@ -17,8 +18,12 @@ var sessionStats []byte
 // JavaScript property getter into a Go panic that the deferred recover can catch.
 func readStats() (data []byte, err error) {
 	data = sessionStats
+	if sessionOnly {
+		return data, nil
+	}
 	defer func() {
 		if recover() != nil {
+			sessionOnly = true
 			fmt.Println("Browser score storage unavailable; scores last for this session only.")
 		}
 	}()
@@ -32,8 +37,12 @@ func readStats() (data []byte, err error) {
 
 func writeStats(data []byte) (err error) {
 	sessionStats = append(sessionStats[:0], data...)
+	if sessionOnly {
+		return nil
+	}
 	defer func() {
 		if recover() != nil {
+			sessionOnly = true
 			fmt.Println("Browser score storage unavailable; scores last for this session only.")
 		}
 	}()
