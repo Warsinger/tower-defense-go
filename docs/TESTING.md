@@ -28,7 +28,7 @@ Open `coverage.html` in a browser to inspect uncovered lines. `coverage-summary.
 
 ## Browser validation
 
-Run `npm ci --ignore-scripts` first (Node 24+) for the pinned shared assets. `go run ./cmd/web` builds the Wasm bundle and matching Go runtime support. `go run ./cmd/web -serve` serves it locally for graphical checks. See [Browser preview](BROWSER.md) for the manual checklist. CI builds/uploads the bundle; it does not run browser UI tests. Native score persistence has a temporary-directory save/load round-trip test.
+Run `npm ci --ignore-scripts` first (Node 24+) for the pinned shared assets. `go run ./cmd/web` builds the Wasm bundle and matching Go runtime support. `go run ./cmd/web -serve` serves it locally for graphical checks. See [Browser preview](BROWSER.md) for the manual checklist. Linux and Windows CI exercise the Go/Wasm storage harness, packaging tests, and a full web build. Each verifies that the compressed Pages payload matches the locally compiled WebAssembly module. Linux uploads the deployment artifact after verification. Browser UI checks remain manual. Native score persistence has a temporary-directory save/load round-trip test.
 
 `node --test scripts/*.test.mjs` checks desktop packaging and packages the
 real HTML/JavaScript templates with fixture Wasm/runtime bytes. It verifies the
